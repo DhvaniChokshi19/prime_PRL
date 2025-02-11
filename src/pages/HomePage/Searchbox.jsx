@@ -35,7 +35,10 @@ const Searchbox = () => {
       label: 'ALTMETRICS MENTIONS'
     }
   ];
-
+const handleLearnMoreClick = () => {
+    const featuresSection = document.getElementById('key-features');
+    featuresSection?.scrollIntoView({ behavior: 'smooth' });
+  };
 return (
     <div className="bg-white">
       <div className="max-w-8xl mx-8 px-1 pt-1">
@@ -47,7 +50,8 @@ return (
             <p className="text-2xl text-gray-700">
               Unlock Knowledge, Connect with Expert
             </p>
-            <button className="bg-blue-400 text-black-xl px-6 py-3 rounded-xl shadow-black hover:bg-blue-300 transition-colors">
+            <button className="bg-blue-400 text-black-xl px-6 py-3 rounded-xl shadow-black hover:bg-blue-300 transition-colors"
+            onClick={handleLearnMoreClick}>
               Learn More
             </button>
           </div>

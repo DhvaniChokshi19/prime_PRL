@@ -8,7 +8,8 @@ import Footer from "./pages/HomePage/Footer";
 function App() {
   return (
     <>
-      <Header /> <Searchbox />
+      <Header /> 
+      <Searchbox />
       <Keyfeatures />
       <Benefits />
       <Footer />

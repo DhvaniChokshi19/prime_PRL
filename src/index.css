@@ -6,8 +6,8 @@ body {
   font-family: "Inter", sans-serif;
 }
 .Logo {
-  @apply w-40 h-28 md:h-36 ml-44
+  @apply w-40 h-28 ml-44
 }
 .Mainlogo{
-  @apply w-1/2 md:h-96 ml-52
+  @apply w-1/2 ml-52
 }
