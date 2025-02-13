@@ -1,9 +1,11 @@
 import React from 'react'
 import { useState } from 'react';
-import homeimg from '../../assets/image 15.png'
+import homeimg from '../../assets/bg 1 (1).png'
+import { useNavigate } from 'react-router-dom';
 
 import { UserRound,Newspaper,BookMarked,AtSign } from 'lucide-react';
 const Searchbox = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     all: false,
@@ -56,21 +58,21 @@ return (
             </button>
           </div>
           
-          <div className="w-[800px] h-96 md:w-[800px]">
+          <div className="w-3/4 h-96 md:w-[800px]">
             <img 
               src={homeimg} 
               alt="Dashboard" 
-              className="w-full object-cover"
+              className="w-screen h-full object-fill"
             />
           </div>
         </div>
 
-        <div className="mt-8 bg-gray-50 p-3 border-black-300 shadow-sm">
+        <div className="mt-4 ml-7 mr-7 bg-gray-50 p-3 border-black-300 shadow-sm">
           <div className="relative">
             <input
               type="text"
               placeholder="Search for.."
-              className="w-full p-3 pr-14 text-lg rounded-2xl border border-black" 
+              className="w-full p-4 text-lg rounded-2xl border border-black" 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
