@@ -6,6 +6,9 @@ import Benefits from "./pages/HomePage/Benefits";
 import Footer from "./pages/HomePage/Footer"; 
 import Profiles from "./pages/Searchdisplay/profiles";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Footers from "./pages/Searchdisplay/Footers";
+import Headers from "./pages/ProfilePage/Headers";
+import Mainprofile from "./pages/ProfilePage/mainprofile";
 
 
 // Home page component
@@ -25,8 +28,17 @@ return (
   <>
   <Header></Header>
   <Profiles></Profiles>
+  <Footers></Footers>
   </>
 )
+}
+const ProfileP = () => {
+  return(
+    <>
+    <Headers></Headers>
+    <Mainprofile></Mainprofile>>
+    </>
+  )
 }
 
 function App() {
@@ -35,6 +47,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchDisplay />} />
+        <Route path="/profile" element={<ProfileP />} />
       </Routes>
     </Router>
   );

@@ -43,7 +43,52 @@ const profiles = () => {
     // Here you would typically fetch data for the new page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
+const departments = [
+  "Astronomy and Astrophysics",
+  "Atomic, Molecular and Optical Physics",
+  "Geosciences",
+  "Planetary Science",
+  "Space and Atmospheric Sciences",
+  "Theoretical Physics"
+];
+const locations=[ 
+"Andhra Pradesh",
+"Arunachal Pradesh",
+"Assam",
+"Bihar",
+"Chhattisgarh",
+"Goa",
+"Gujarat",
+"Haryana",
+"Himachal Pradesh",
+"Jharkhand",
+"Karnataka",
+"Kerala",
+"Maharashtra",
+"Madhya Pradesh",
+"Manipur",
+"Meghalaya",
+"Mizoram",
+"Nagaland",
+"Odisha",
+"Punjab",
+"Rajasthan",
+"Sikkim",
+"Tamil Nadu",
+"Tripura",
+"Telangana",
+"Uttar Pradesh",
+"Uttarakhand",
+"West Bengal",
+"Andaman & Nicobar (UT)",
+"Chandigarh (UT)",
+"Dadra & Nagar Haveli and Daman & Diu (UT)",
+"Delhi [National Capital Territory (NCT)]",
+"Jammu & Kashmir (UT)",
+"Ladakh (UT)",
+"Lakshadweep (UT)",
+"Puducherry (UT)"
+]
   const designations = [
     "Associate Professor",
     "Assistant Professor",
@@ -178,7 +223,16 @@ const profiles = () => {
             <AccordionItem value="department">
               <AccordionTrigger>Department</AccordionTrigger>
               <AccordionContent>
-                {/* Add department filters here */}
+                <div className="space-y-2">
+                  {departments.map((department) => (
+                    <div key={department} className="flex items-center space-x-2">
+                      <Checkbox id={department} />
+                      <label htmlFor={department} className="text-sm">
+                        {department}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </AccordionContent>
             </AccordionItem>
 
@@ -192,7 +246,16 @@ const profiles = () => {
             <AccordionItem value="location">
               <AccordionTrigger>Location</AccordionTrigger>
               <AccordionContent>
-                {/* Add location filters here */}
+               <div className="space-y-2">
+                  {locations.map((location) => (
+                    <div key={location} className="flex items-center space-x-2">
+                      <Checkbox id={location} />
+                      <label htmlFor={location} className="text-sm">
+                        {location}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -220,12 +283,12 @@ const profiles = () => {
           </div>
           </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 border">
             {facultyData.map((faculty) => (
               <Card key={faculty.id} className="hover:shadow-lg transition-shadow duration-300 group">
                 <CardContent className="p-6">
                   <div className="flex flex-col items-center">
-                    <div className="w-32 h-32 rounded-full bg-gray-300 mb-4 overflow-hidden group-hover:scale-105 transition-transform duration-300">
+                    <div className="w-32 h-32 rounded-full border-black  bg-grey-400 mb-3 overflow-hidden group-hover:scale-105 transition-transform duration-300">
                       <img
                         src={person}
                         alt={faculty.name}
@@ -236,7 +299,7 @@ const profiles = () => {
                       {faculty.name}
                     </h3>
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className="px-2 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
+                      <span className="px-2 py-1 bg-gray-200 rounded-full text-s text-black-600">
                         Uid: {faculty.uid}
                       </span>
                     </div>
