@@ -1,6 +1,7 @@
+
+
 import React from 'react';
-import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { Avatar } from '@/components/ui/avatar';
+import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import profilephoto from "../../assets/image 13.png";
 import { Button } from '@/components/ui/button';
@@ -9,10 +10,49 @@ import orcid from "../../assets/image.png";
 import scopus from "../../assets/image 16.png";
 import research from "../../assets/image 17.png";
 import googlei from "../../assets/image 18.png";
+import altmetric from "../../assets/image (1).png";
+import { useState } from 'react';
+import PersonalInformation from './PersonalInformation';
+import { 
+  User,
+  Briefcase,
+  GraduationCap,
+  Award,
+  Lightbulb,
+  BookOpen
+} from 'lucide-react';
 
 const Mainprofile = () => {
+  const [activeTab, setActiveTab] = useState('Personal Information');
+
+  const tabs = [
+    { name: 'Personal Information', icon: User },
+    { name: 'Professional Experience', icon: Briefcase },
+    { name: 'Qualifications', icon: GraduationCap },
+    { name: 'Honors & Awards', icon: Award },
+    { name: 'Patents', icon: Lightbulb },
+    { name: 'Publications', icon: BookOpen }
+  ];
+
+const renderContent = () => {
+    switch (activeTab) {
+      case 'Personal Information':
+        return <PersonalInformation />;
+      case 'Professional Experience':
+        return <div>Professional Experience Content</div>;
+      case 'Qualifications':
+        return <div>Qualifications Content</div>;
+      case 'Honors & Awards':
+        return <div>Honors & Awards Content</div>;
+      case 'Patents':
+        return <div>Patents Content</div>;
+      case 'Publications':
+        return <div>Publications Content</div>;
+      default:
+        return <PersonalInformation />;
+    }
+  };
   const handleExport = () => {
-    // Add export functionality here
     console.log('Exporting profile data...');
   };
 
@@ -50,9 +90,9 @@ const Mainprofile = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto p-6 ">
+    <div className="max-w-7xl mx-auto p-6">
       {/* Header Section */}
-      <div className="flex gap-6 mb-8 bg-gray-100">
+      <div className="flex gap-6 mb-8 bg-gray-100 p-6 rounded-lg">
         <img 
           src={profilephoto}
           alt="Profile"
@@ -61,12 +101,12 @@ const Mainprofile = () => {
         <div className="flex-1">
           <div className="flex justify-between items-start">
             <div>
-                 <div className="flex items-start gap-x-96 mb-1">
-                 <div className="flex items-center space-x-2 mb-2">
-                      <span className="px-2 py-1 bg-slate-200 rounded-full text-s text-black-600">
-                        Uid: 23456
-                      </span>
-                    </div>
+              <div className="flex items-start gap-x-96 mb-1">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="px-2 py-1 bg-slate-200 rounded-full text-s text-black-600">
+                    Uid: 23456
+                  </span>
+                </div>
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -83,15 +123,15 @@ const Mainprofile = () => {
               <p className="text-gray-600">Nanomaterials, Electrochemistry, Energy Storage Applications</p>
               <p className="text-gray-600">Ahmedabad, Gujarat</p>
               <div className="flex gap-4 mt-4">
-              {researchMetrics.map((metric, index) => (
-          <Card key={index} className="flex-1">
-            <CardContent className="p-2 text-center">
-              <h2 className="text-3xl font-bold mb-2">{metric.value}</h2>
-              <p className="text-gray-600">{metric.label}</p>
-            </CardContent>
-          </Card>
-        ))}
-            </div>
+                {researchMetrics.map((metric, index) => (
+                  <Card key={index} className="flex-1">
+                    <CardContent className="p-2 text-center">
+                      <h2 className="text-3xl font-bold mb-2">{metric.value}</h2>
+                      <p className="text-gray-600">{metric.label}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
             
             {/* Academic Identity Section */}
@@ -100,36 +140,28 @@ const Mainprofile = () => {
                 <h3 className="font-semibold mb-4">Academic Identity</h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <img
-                    src={orcid}
-                    className="w-8 h-8 flex items-center justify-center"/>
+                    <img src={orcid} alt="ORCID" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Orcid Id</p>
                       <p className="text-sm text-blue-600">0000-0003-2204-5333</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <img
-                    src={scopus}
-                    className="w-8 h-8 flex items-center justify-center"/>
+                    <img src={scopus} alt="Scopus" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Scopus Id</p>
                       <p className="text-sm text-blue-600">55155930000</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <img
-                    src={research}
-                    className="w-8 h-8 flex items-center justify-center"/>
+                    <img src={research} alt="Research" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Researcher Id</p>
                       <p className="text-sm text-blue-600">0000-0003-2204-5333</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <img
-                    src={googlei}
-                    className="w-8 h-8 flex items-center justify-center"/>
+                    <img src={googlei} alt="Google Scholar" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Google Id</p>
                       <p className="text-sm text-blue-600">0000-0003-2204-5333</p>
@@ -140,29 +172,33 @@ const Mainprofile = () => {
             </Card>
           </div>
         </div>
-        </div>
-
-      {/* Publications and Impact Factor Section */}
-      <div className="flex gap-6 mb-8 bg-gray-100">
-        {/* Publications Graph */}
-        <Card>
-          <CardContent className="p-2">
-            <h3 className="font-semibold mb-2">Publications</h3>
-            <div className="h-64 w-full ">
-              <ResponsiveContainer width="30%" height="30%" >
+      </div>
+    <Card className="w-full bg-gray-100">
+      <CardContent className="p-5">
+        <div className="grid grid-cols-4 gap-6">
+          {/* Publications Graph */}
+          <div className="flex flex-col">
+            <h3 className="font-semibold mb-4">Publications</h3>
+            <div className="h-48">
+              <ResponsiveContainer width="90%" height="90%">
                 <BarChart data={publicationData}>
-                  <Bar dataKey="count" fill="#3B82F6" />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#3B82F6" barSize={20} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <h3 className="font-semibold mb-3">Publication Distribution</h3>
-            <div className="h-64 " >
-              <ResponsiveContainer width="60%" height="60%">
+          </div>
+
+          {/* Publication Distribution */}
+          <div className="flex flex-col">
+            <h3 className="font-semibold mb-4">Publication Distribution</h3>
+            <div className="h-48">
+              <ResponsiveContainer width="70%" height="70%">
                 <PieChart>
                   <Pie
                     data={pieData}
-                    innerRadius={60}
-                    outerRadius={80}
+                    innerRadius={25}
+                    outerRadius={40}
                     paddingAngle={5}
                     dataKey="value"
                   >
@@ -170,83 +206,65 @@ const Mainprofile = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
+                  <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
             </div>
+          </div>
+
+          {/* Altmetrics */}
+          <div className="flex flex-col">
             <h3 className="font-semibold mb-4">Altmetrics</h3>
-          <div className="flex items-center gap-4">
-            <img src="/api/placeholder/200/200" alt="Altmetrics donut" className="w-32 h-32" />
-            <div>
-              <p className="mb-2">Mentioned by:</p>
-              <ul className="space-y-1">
-                <li>2 news outlets</li>
-                <li>11 blogs</li>
-                <li>1 Wikipedia page</li>
-                <li>109 tweeters</li>
-                <li>14 Facebook posts</li>
-                <li>13 Google+ users</li>
-              </ul>
+            <div className="flex items-center justify-center h-48">
+              <div className="flex flex-col items-start space-y-2">
+                <div className="text-sm">
+                  <img src={altmetric} alt="altmetrics" />
+                </div>
+              </div>
             </div>
           </div>
-          </CardContent>
-        </Card>
 
-        {/* Publication Distribution */}
-        {/* <Card>
-          <CardContent className="p-4 mb-1">
-            <h3 className="font-semibold mb-3">Publication Distribution</h3>
-            <div className="h-64 " >
-              <ResponsiveContainer width="60%" height="60%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card> */}
-
-      {/* Altmetrics Section */}
-      {/* <Card className="mb-8">
-        <CardContent className="p-6">
-          <h3 className="font-semibold mb-4">Altmetrics</h3>
-          <div className="flex items-center gap-4">
-            <img src="/api/placeholder/200/200" alt="Altmetrics donut" className="w-32 h-32" />
-            <div>
-              <p className="mb-2">Mentioned by:</p>
-              <ul className="space-y-1">
-                <li>2 news outlets</li>
-                <li>11 blogs</li>
-                <li>1 Wikipedia page</li>
-                <li>109 tweeters</li>
-                <li>14 Facebook posts</li>
-                <li>13 Google+ users</li>
-              </ul>
+          {/* Research Impact Factor */}
+          <div className="flex flex-col">
+            <h3 className="font-semibold mb-4">Research Impact Factor</h3>
+            <div className="h-48 overflow-y-auto">
+              <ul className="space-y-2 text-sm">
+                <li>Total career publications       42</li>
+                <li>Publication years        1994-2008</li>
+                <li>Mean Impact Factor (Web of Science)        2.685</li>
+                <li>Median ERA Ranking         B</li>
+                <li>Average citations per paper          6.2</li>
+                <li>Highest number of citations        61</li>
+                <li>Publications with 25+ citations     10</li>
+              </ul> 
             </div>
           </div>
-        </CardContent>
-      </Card> */}
-</div>
-      {/* Navigation Tabs */}
-      <div className="flex gap-4 border-b">
-        {['Personal Information', 'Professional Experience', 'Qualifications', 
-          'Honors & Awards', 'Patents', 'Publications'].map((tab, index) => (
-          <button key={index} className="px-4 py-2 hover:text-blue-600">
-            {tab}
+        </div>
+      </CardContent>
+    </Card>
+
+<div className="flex gap-4 border-b mb-6">
+        {tabs.map(({ name, icon: Icon }) => (
+          <button
+            key={name}
+            className={`px-4 py-2 hover:text-blue-600 transition-colors flex items-center gap-2 ${
+              activeTab === name 
+                ? 'text-blue-600 border-b-2 border-blue-600' 
+                : 'text-gray-600'
+            }`}
+            onClick={() => setActiveTab(name)}
+          >
+            <Icon size={18} />
+            {name}
           </button>
         ))}
+      </div>
+
+      {/* Content Section */}
+      <div className="mt-6">
+        {renderContent()}
       </div>
     </div>
   );
 };
-
 export default Mainprofile;

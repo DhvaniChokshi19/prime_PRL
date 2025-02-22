@@ -36,7 +36,7 @@ const ProfileP = () => {
   return(
     <>
     <Headers></Headers>
-    <Mainprofile></Mainprofile>>
+    <Mainprofile></Mainprofile>
     </>
   )
 }
