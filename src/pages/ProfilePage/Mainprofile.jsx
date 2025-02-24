@@ -16,7 +16,8 @@ import Publications from './Publications';
 import { 
   User,
   Lightbulb,
-  BookOpen
+  BookOpen,
+  GlobeLock
 } from 'lucide-react';
 
 
@@ -26,7 +27,8 @@ const Mainprofile = () => {
   const tabs = [
     { name: 'Personal Information', icon: User },
     { name: 'Patent', icon: Lightbulb },
-    { name: 'Publication', icon: BookOpen }
+    { name: 'Publication', icon: BookOpen },
+    {name: 'Networks',icon: GlobeLock},
   ];
 
 const renderContent = () => {
@@ -37,6 +39,7 @@ const renderContent = () => {
         return <Patents />;
       case 'Publication':
         return <Publications />;
+
       default:
         return <PersonalInformation />;
     }
@@ -69,14 +72,14 @@ const renderContent = () => {
     { label: 'I-Index', value: '64' }
   ];
 
-  const impactFactors = [
-    { label: 'Mean Impact Factor (Web of Science)', value: '24' },
-    { label: 'Median ERA Ranking', value: '1' },
-    { label: 'Average citations per paper', value: '10' },
-    { label: 'Total citations', value: '20' },
-    { label: 'Highest number of citations', value: '22' },
-    { label: 'Publications with 25+ citations', value: '20' }
-  ];
+  // const impactFactors = [
+  //   { label: 'Mean Impact Factor (Web of Science)', value: '24' },
+  //   { label: 'Median ERA Ranking', value: '1' },
+  //   { label: 'Average citations per paper', value: '10' },
+  //   { label: 'Total citations', value: '20' },
+  //   { label: 'Highest number of citations', value: '22' },
+  //   { label: 'Publications with 25+ citations', value: '20' }
+  // ];
 
   return (
     <div className="max-w-7xl mx-auto p-6">

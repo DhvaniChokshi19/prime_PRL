@@ -5,8 +5,10 @@ const Patents = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-2 mb-4">
+        <div className="flex items-center space-x-2 mb-4">
         <ScrollText className="w-6 h-6 text-gray-500" />
         <h3 className="text-xl font-semibold">Patents</h3>
+        </div>
       </div>
       <div className="space-y-6 pl-4 border-l-2 border-gray-200">
         {/* Patent 1 */}
