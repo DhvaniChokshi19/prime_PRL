@@ -1,6 +1,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Database, LineChart, Shield, Users, Eye, Cpu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+
 
 const Keyfeatures = () => {
   const features = [
@@ -35,12 +44,36 @@ const Keyfeatures = () => {
       description: "PRIME addresses the growing complexities of research ecosystems, offering flexibility to adapt to emerging challenges and advancements in research and technology."
     }
   ];
+ const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [direction, setDirection] = React.useState('');
+  const [isAnimating, setIsAnimating] = React.useState(false);
+
+  const nextSlide = () => {
+    if (isAnimating) return;
+    setDirection('right');
+    setIsAnimating(true);
+    setCurrentIndex((prevIndex) =>
+      prevIndex === features.length - 1 ? 0 : prevIndex + 1
+    );
+    setTimeout(() => setIsAnimating(false), 500);
+  };
+
+  const prevSlide = () => {
+    if (isAnimating) return;
+    setDirection('left');
+    setIsAnimating(true);
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? features.length - 1 : prevIndex - 1
+    );
+    setTimeout(() => setIsAnimating(false), 500);
+  };
+
 
   return (
     <div id="key-features" className="max-w-7xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold text-center mb-12">Key Features</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {features.map((feature, index) => (
           <Card key={index} className="border-2 hover:border-blue-200 transition-all duration-300">
             <CardHeader>
@@ -56,6 +89,38 @@ const Keyfeatures = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+    </div> */}
+<div className="relative">
+        <Carousel
+          opts={{
+            align: "center",
+            loop: true,
+          }}
+          className="w-full max-w-3xl mx-auto"
+        >
+          <CarouselContent>
+            {features.map((feature, index) => (
+              <CarouselItem key={index}>
+                <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+                  <CardHeader>
+                    <div className="flex items-center gap-4">
+                      {feature.icon}
+                      <CardTitle className="text-xl">{feature.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="left-0 md:-left-12" />
+          <CarouselNext className="right-0 md:-right-12" />
+        </Carousel>
       </div>
     </div>
   );

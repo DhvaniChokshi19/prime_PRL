@@ -11,3 +11,14 @@ body {
 .Mainlogo{
   @apply w-1/2 ml-52
 }
+
+@layer base {}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

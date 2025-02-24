@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,11 +11,9 @@ import googlei from "../../assets/image 18.png";
 import altmetric from "../../assets/image (1).png";
 import { useState } from 'react';
 import PersonalInformation from './PersonalInformation';
+
 import { 
   User,
-  Briefcase,
-  GraduationCap,
-  Award,
   Lightbulb,
   BookOpen
 } from 'lucide-react';
@@ -27,9 +23,9 @@ const Mainprofile = () => {
 
   const tabs = [
     { name: 'Personal Information', icon: User },
-    { name: 'Professional Experience', icon: Briefcase },
-    { name: 'Qualifications', icon: GraduationCap },
-    { name: 'Honors & Awards', icon: Award },
+    // { name: 'Professional Experience', icon: Briefcase },
+    // { name: 'Qualifications', icon: GraduationCap },
+    // { name: 'Honors & Awards', icon: Award },
     { name: 'Patents', icon: Lightbulb },
     { name: 'Publications', icon: BookOpen }
   ];
@@ -38,16 +34,10 @@ const renderContent = () => {
     switch (activeTab) {
       case 'Personal Information':
         return <PersonalInformation />;
-      case 'Professional Experience':
-        return <div>Professional Experience Content</div>;
-      case 'Qualifications':
-        return <div>Qualifications Content</div>;
-      case 'Honors & Awards':
-        return <div>Honors & Awards Content</div>;
       case 'Patents':
-        return <div>Patents Content</div>;
+        return <div>Patentscontent</div>;
       case 'Publications':
-        return <div>Publications Content</div>;
+        return <div>Publicatonscontent</div>;
       default:
         return <PersonalInformation />;
     }
@@ -124,7 +114,7 @@ const renderContent = () => {
               <p className="text-gray-600">Ahmedabad, Gujarat</p>
               <div className="flex gap-4 mt-4">
                 {researchMetrics.map((metric, index) => (
-                  <Card key={index} className="flex-1">
+                  <Card key={index} className=" border-none flex-1">
                     <CardContent className="p-2 text-center">
                       <h2 className="text-3xl font-bold mb-2">{metric.value}</h2>
                       <p className="text-gray-600">{metric.label}</p>
@@ -135,7 +125,7 @@ const renderContent = () => {
             </div>
             
             {/* Academic Identity Section */}
-            <Card className="w-72">
+            <Card className="w-72 border-none">
               <CardContent className="pt-6">
                 <h3 className="font-semibold mb-4">Academic Identity</h3>
                 <div className="space-y-3">
@@ -173,7 +163,7 @@ const renderContent = () => {
           </div>
         </div>
       </div>
-    <Card className="w-full bg-gray-100">
+    <Card className="w-full border-none bg-gray-100">
       <CardContent className="p-5">
         <div className="grid grid-cols-4 gap-6">
           {/* Publications Graph */}
