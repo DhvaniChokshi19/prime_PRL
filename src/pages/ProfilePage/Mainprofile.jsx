@@ -11,33 +11,32 @@ import googlei from "../../assets/image 18.png";
 import altmetric from "../../assets/image (1).png";
 import { useState } from 'react';
 import PersonalInformation from './PersonalInformation';
-
+import Patents from './Patents';
+import Publications from './Publications';
 import { 
   User,
   Lightbulb,
   BookOpen
 } from 'lucide-react';
 
+
 const Mainprofile = () => {
   const [activeTab, setActiveTab] = useState('Personal Information');
 
   const tabs = [
     { name: 'Personal Information', icon: User },
-    // { name: 'Professional Experience', icon: Briefcase },
-    // { name: 'Qualifications', icon: GraduationCap },
-    // { name: 'Honors & Awards', icon: Award },
-    { name: 'Patents', icon: Lightbulb },
-    { name: 'Publications', icon: BookOpen }
+    { name: 'Patent', icon: Lightbulb },
+    { name: 'Publication', icon: BookOpen }
   ];
 
 const renderContent = () => {
     switch (activeTab) {
       case 'Personal Information':
         return <PersonalInformation />;
-      case 'Patents':
-        return <div>Patentscontent</div>;
-      case 'Publications':
-        return <div>Publicatonscontent</div>;
+      case 'Patent':
+        return <Patents />;
+      case 'Publication':
+        return <Publications />;
       default:
         return <PersonalInformation />;
     }
