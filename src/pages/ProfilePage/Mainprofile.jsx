@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import profilephoto from "../../assets/image 13.png";
 import { Button } from '@/components/ui/button';
@@ -17,9 +17,8 @@ import {
   User,
   Lightbulb,
   BookOpen,
-  GlobeLock
+  GlobeLock,
 } from 'lucide-react';
-
 
 const Mainprofile = () => {
   const [activeTab, setActiveTab] = useState('Personal Information');
@@ -65,11 +64,27 @@ const renderContent = () => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28'];
 
-  const researchMetrics = [
-    { label: 'Publications', value: '50' },
-    { label: 'Citation', value: '100' },
-    { label: 'H-Index', value: '64' },
-    { label: 'I-Index', value: '64' }
+ const researchMetrics = [
+    { 
+      label: 'Publications', 
+      value: '50',
+      tooltip: null
+    },
+    { 
+      label: 'Citation', 
+      value: '100',
+      tooltip: 'The number of times the researcher\'s publications have been referenced by other works.'
+    },
+    { 
+      label: 'H-Index', 
+      value: '64',
+      tooltip: 'H-index a metric that measures a researcher productivity and impact. A researcher with an index of h has published h papers, each of which has been cited at least h times.'
+    },
+    { 
+      label: 'I-Index', 
+      value: '64',
+      tooltip: 'I-index represents the number of publications with at least 10 citations'
+    }
   ];
 
   // const impactFactors = [
@@ -114,17 +129,31 @@ const renderContent = () => {
               <p className="text-lg text-gray-600">Electrical Engineering</p>
               <p className="text-gray-600">Nanomaterials, Electrochemistry, Energy Storage Applications</p>
               <p className="text-gray-600">Ahmedabad, Gujarat</p>
-              <div className="flex gap-4 mt-4">
-                {researchMetrics.map((metric, index) => (
-                  <Card key={index} className=" border-none flex-1">
-                    <CardContent className="p-2 text-center">
-                      <h2 className="text-3xl font-bold mb-2">{metric.value}</h2>
-                      <p className="text-gray-600">{metric.label}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+            {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6"> */}
+      {/* <TooltipProvider>
+        {researchMetrics.map((metric, index) => (
+          <div key={index} className="bg-gray-100 p-4 rounded-lg text-center">
+            <div className="text-2xl font-bold text-blue-600 flex justify-center items-center">
+              {metric.value}
+              {metric.tooltip && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-block ml-1 cursor-help">
+                      <HelpCircle size={16} className="inline text-gray-400 hover:text-gray-600" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs p-2 bg-slate-900 text-white text-sm">
+                    {metric.tooltip}
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </div>
+            <div className="text-gray-600 text-sm">{metric.label}</div>
+          </div>
+        ))}
+      </TooltipProvider>
+    </div> */}
+    </div>
             
             {/* Academic Identity Section */}
             <Card className="w-72 border-none">

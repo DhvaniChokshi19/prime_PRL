@@ -9,6 +9,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Footers from "./pages/Searchdisplay/Footers";
 import Headers from "./pages/ProfilePage/Headers";
 import Mainprofile from "./pages/ProfilePage/mainprofile";
+import Loginbox from "./pages/LoginPage/Loginbox";
 
 
 // Home page component
@@ -40,7 +41,14 @@ const ProfileP = () => {
     </>
   )
 }
-
+const LoginP = () =>{
+  return(
+    <>
+    <Header></Header>
+    <Loginbox></Loginbox>
+    </>
+  )
+}
 function App() {
   return (
     <Router>
@@ -48,6 +56,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchDisplay />} />
         <Route path="/profile" element={<ProfileP />} />
+        <Route path="/Login"element={<LoginP />} />
       </Routes>
     </Router>
   );
