@@ -1,5 +1,5 @@
-import React from 'react';
-import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import React,{useState} from 'react';
+import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer,Tooltip } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import profilephoto from "../../assets/image 13.png";
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import scopus from "../../assets/image 16.png";
 import research from "../../assets/image 17.png";
 import googlei from "../../assets/image 18.png";
 import altmetric from "../../assets/image (1).png";
-import { useState } from 'react';
 import PersonalInformation from './PersonalInformation';
 import Patents from './Patents';
 import Publications from './Publications';
@@ -18,8 +17,26 @@ import {
   Lightbulb,
   BookOpen,
   GlobeLock,
-} from 'lucide-react';
 
+} from 'lucide-react';
+const Tooltips = ({ text, children }) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <div 
+      className="relative flex items-center"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {children}
+      {showTooltip && (
+        <div className="absolute bottom-full mb-2 w-48 p-2 bg-white-900 text-gray text-xs rounded shadow-lg">
+          {text}
+        </div>
+      )}
+    </div>
+  );
+}; //TEMPORARY CUSTOM TOOLTIP COMPONENT, WILL BE REPLACED WITH A LIBRARY
 const Mainprofile = () => {
   const [activeTab, setActiveTab] = useState('Personal Information');
 
@@ -78,12 +95,12 @@ const renderContent = () => {
     { 
       label: 'H-Index', 
       value: '64',
-      tooltip: 'H-index a metric that measures a researcher productivity and impact. A researcher with an index of h has published h papers, each of which has been cited at least h times.'
+      tooltip: 'A metric that measures a researcher productivity and impact.'
     },
     { 
       label: 'I-Index', 
       value: '64',
-      tooltip: 'I-index represents the number of publications with at least 10 citations'
+      tooltip: 'It represents the number of publications with at least 10 citations'
     }
   ];
 
@@ -129,32 +146,20 @@ const renderContent = () => {
               <p className="text-lg text-gray-600">Electrical Engineering</p>
               <p className="text-gray-600">Nanomaterials, Electrochemistry, Energy Storage Applications</p>
               <p className="text-gray-600">Ahmedabad, Gujarat</p>
-            {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6"> */}
-      {/* <TooltipProvider>
-        {researchMetrics.map((metric, index) => (
-          <div key={index} className="bg-gray-100 p-4 rounded-lg text-center">
-            <div className="text-2xl font-bold text-blue-600 flex justify-center items-center">
-              {metric.value}
-              {metric.tooltip && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-block ml-1 cursor-help">
-                      <HelpCircle size={16} className="inline text-gray-400 hover:text-gray-600" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs p-2 bg-slate-900 text-white text-sm">
-                    {metric.tooltip}
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-            <div className="text-gray-600 text-sm">{metric.label}</div>
+              {/* Research Metrics */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            {researchMetrics.map((metric, index) => (
+              <Tooltips key={index} text={metric.tooltip || ''}>
+                <div className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md cursor-pointer">
+                  <p className="text-xl font-bold">{metric.value}</p>
+                  <p className="text-gray-600">{metric.label}</p>
+                </div>
+              </Tooltips>
+            ))}
           </div>
-        ))}
-      </TooltipProvider>
-    </div> */}
-    </div>
-            
+        </div>
+
+
             {/* Academic Identity Section */}
             <Card className="w-72 border-none">
               <CardContent className="pt-6">

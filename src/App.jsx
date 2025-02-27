@@ -18,9 +18,9 @@ const Home = () => {
     <>
       <Header />
       <Searchbox />
-      <Keyfeatures />
-      <Benefits />
-      <Footer />
+      {/* <Keyfeatures /> */}
+      {/* <Benefits /> */}
+      {/* <Footer /> */}
     </>
   );
 };

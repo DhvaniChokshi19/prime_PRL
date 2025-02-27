@@ -1,8 +1,13 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Phone, Mail, Globe, MapPin, Award, Briefcase, GraduationCap, Edit,SquareUser } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const PersonalInformation = () => {
+  const navigate = useNavigate();
+  const handleEditClick = () => {
+    navigate("/Login");
+  };
   return (
     <Card className="w-full border-none bg-white-100">
       <CardContent className="p-6">
@@ -13,6 +18,7 @@ const PersonalInformation = () => {
         <h3 className="text-xl font-semibold">Personal Informatiion</h3>
           </div>
           <button 
+          onClick= {handleEditClick}
             className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 font-semibold rounded-md hover:bg-gray-100"
           >
             Edit
