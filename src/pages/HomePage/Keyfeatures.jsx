@@ -70,27 +70,9 @@ const Keyfeatures = () => {
 
 
   return (
-    <div id="key-features" className="max-w-7xl mx-auto px-4 py-12">
+    <div id="key-features" className="max-w-7xl mx-auto px-4 py-64">
       <h1 className="text-4xl font-bold text-center mb-12">Key Features</h1>
       
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {features.map((feature, index) => (
-          <Card key={index} className="border-2 hover:border-blue-200 transition-all duration-300">
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                {feature.icon}
-                <CardTitle className="text-xl">{feature.title}</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 leading-relaxed">
-                {feature.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div> */}
 <div className="relative">
         <Carousel
           opts={{
@@ -102,7 +84,7 @@ const Keyfeatures = () => {
           <CarouselContent>
             {features.map((feature, index) => (
               <CarouselItem key={index}>
-                <Card className="shadow-lg hover:shadow-xl transition-all duration-300">
+                <Card className="shadow-lg bg-gray-100 hover:shadow-xl transition-all duration-500">
                   <CardHeader>
                     <div className="flex items-center gap-4">
                       {feature.icon}

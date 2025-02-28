@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import person from '../../assets/person.jpg';
-
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -43,6 +43,10 @@ const profiles = () => {
     // Here you would typically fetch data for the new page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  const handleViewProfile = () => {
+    navigate('/profile');
+  };
+  const navigate = useNavigate();
 const departments = [
   "Astronomy and Astrophysics",
   "Atomic, Molecular and Optical Physics",
@@ -283,7 +287,7 @@ const locations=[
           </div>
           </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 border">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 borner-none">
             {facultyData.map((faculty) => (
               <Card key={faculty.id} className="hover:shadow-lg transition-shadow duration-300 group">
                 <CardContent className="p-6">
@@ -317,6 +321,7 @@ const locations=[
                       {faculty.location}
                     </div>
                     <Button 
+                    onClick={handleViewProfile}
                       variant="outline" 
                       size="sm"
                       className="w-full group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300"
