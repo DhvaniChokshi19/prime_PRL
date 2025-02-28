@@ -12,6 +12,7 @@ import altmetric from "../../assets/image (1).png";
 import PersonalInformation from './PersonalInformation';
 import Patents from './Patents';
 import Publications from './Publications';
+import Network from './Network';
 import { 
   User,
   Lightbulb,
@@ -55,7 +56,8 @@ const renderContent = () => {
         return <Patents />;
       case 'Publication':
         return <Publications />;
-
+      case 'Networks':
+        return <Network />;
       default:
         return <PersonalInformation />;
     }
