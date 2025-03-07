@@ -19,17 +19,20 @@ const Searchbox = () => {
     {
       icon: <UserRound className="h-8 w-8 text-blue-600" ></UserRound>,
       number: '21671',
-      label: 'PROFILES'
+      label: 'PROFILES',
+      route: '/search'
     },
     {
       icon: <Newspaper className="h-8 w-8 text-blue-600"/>,
       number: '216671',
-      label: 'PUBLICATIONS'
+      label: 'PUBLICATIONS',
+      route: '/publication'
     },
     {
       icon: <BookMarked className="h-8 w-8 text-blue-600"/>,
       number: '216671',
-      label: 'CITATIONS'
+      label: 'CITATIONS',
+      route: '/publication'
     },
     {
       icon: <AtSign className="h-8 w-8 text-blue-600"/>,
@@ -71,7 +74,9 @@ const handleKeyDown = (e) => {
       handleSearch(e);
     }
   };
-
+  const handleNavigate = (route) => {
+    navigate(route);
+  };
 return (
         <div className="bg-white">
       {/* Hero section with full-width image and overlay text */}
@@ -105,6 +110,7 @@ return (
               <div 
                 key={index}
                 className="bg-white rounded-lg shadow-md p-6 text-center"
+                onClick={() => handleNavigate(stat.route)}
               >
                 <div className="flex justify-center">
                   {stat.icon}

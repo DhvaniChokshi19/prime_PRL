@@ -1,6 +1,6 @@
 import React from 'react';
 import prllogo from '../../assets/prl-logo.png'; 
-import prlogo from '../../assets/prl_logo.png';
+import prlogo from '../../assets/prime.png';
 
 const Header = () => {
   return (
