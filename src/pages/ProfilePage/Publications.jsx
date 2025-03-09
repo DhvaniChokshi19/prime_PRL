@@ -10,8 +10,11 @@ const Publications = () => {
           <h3 className="text-xl font-semibold">Publications (793)</h3>
         </div>
         <div className="flex items-center space-x-2">
+          <span className="text-sm font-medium">Sort By:</span>
           <select className="px-3 py-1 border rounded-md text-sm">
-            <option>Sort by Date (newest)</option>
+            <option> Date (newest)</option>
+            <option> Date (oldest)</option>
+            <option> Relevance</option>
           </select>
         </div>
       </div>

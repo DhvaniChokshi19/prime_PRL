@@ -13,12 +13,13 @@ import PersonalInformation from './PersonalInformation';
 import Patents from './Patents';
 import Publications from './Publications';
 import Network from './Network';
+import Projects from './Projects';
 import { 
   User,
-  Lightbulb,
+  ScrollText,
   BookOpen,
   GlobeLock,
-
+BookMarked,
 } from 'lucide-react';
 const Tooltips = ({ text, children }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -43,9 +44,11 @@ const Mainprofile = () => {
 
   const tabs = [
     { name: 'Personal Information', icon: User },
-    { name: 'Patent', icon: Lightbulb },
+    { name: 'Patent', icon: ScrollText },
     { name: 'Publication', icon: BookOpen },
+    {name: 'Project',icon: BookMarked},
     {name: 'Networks',icon: GlobeLock},
+    
   ];
 
 const renderContent = () => {
@@ -56,6 +59,8 @@ const renderContent = () => {
         return <Patents />;
       case 'Publication':
         return <Publications />;
+      case 'Project':
+        return <Projects />;
       case 'Networks':
         return <Network />;
       default:

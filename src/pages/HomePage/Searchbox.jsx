@@ -2,6 +2,7 @@ import React from 'react'
 import { useState } from 'react';
 import homeimg from '../../assets/bg1.jpg'
 import { useNavigate } from 'react-router-dom';
+import publication from './publication';
 
 import { UserRound,Newspaper,BookMarked,AtSign } from 'lucide-react';
 const Searchbox = () => {
