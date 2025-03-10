@@ -2,7 +2,7 @@ import React from 'react'
 import { useState } from 'react';
 import homeimg from '../../assets/bg1.jpg'
 import { useNavigate } from 'react-router-dom';
-import publication from './publication';
+import Publication from './Publication.jsx';
 
 import { UserRound,Newspaper,BookMarked,AtSign } from 'lucide-react';
 const Searchbox = () => {
@@ -27,13 +27,13 @@ const Searchbox = () => {
       icon: <Newspaper className="h-8 w-8 text-blue-600"/>,
       number: '216671',
       label: 'PUBLICATIONS',
-      route: '/publication'
+      route: '/Publication'
     },
     {
       icon: <BookMarked className="h-8 w-8 text-blue-600"/>,
       number: '216671',
       label: 'CITATIONS',
-      route: '/publication'
+      route: '/Publication'
     },
     {
       icon: <AtSign className="h-8 w-8 text-blue-600"/>,

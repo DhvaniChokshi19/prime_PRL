@@ -1,5 +1,5 @@
 import React,{useState} from 'react';
-import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer,Tooltip } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer,Tooltip, XAxis,YAxis,Legend } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import profilephoto from "../../assets/image 13.png";
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,7 @@ const Mainprofile = () => {
 
   const tabs = [
     { name: 'Personal Information', icon: User },
-    { name: 'Patent', icon: ScrollText },
+    { name: 'Patent', icon: ScrollText  },
     { name: 'Publication', icon: BookOpen },
     {name: 'Project',icon: BookMarked},
     {name: 'Networks',icon: GlobeLock},
@@ -154,7 +154,7 @@ const renderContent = () => {
               <p className="text-gray-600">Nanomaterials, Electrochemistry, Energy Storage Applications</p>
               <p className="text-gray-600">Ahmedabad, Gujarat</p>
               {/* Research Metrics */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+              <div className="grid grid-cols-4 md:grid-cols-4 gap-3 mt-6">
             {researchMetrics.map((metric, index) => (
               <Tooltips key={index} text={metric.tooltip || ''}>
                 <div className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md cursor-pointer">
@@ -208,15 +208,17 @@ const renderContent = () => {
       </div>
     <Card className="w-full border-none bg-gray-100">
       <CardContent className="p-5">
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-4 gap-5">
           {/* Publications Graph */}
           <div className="flex flex-col">
             <h3 className="font-semibold mb-4">Publications</h3>
             <div className="h-48">
               <ResponsiveContainer width="90%" height="90%">
                 <BarChart data={publicationData}>
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#3B82F6" barSize={20} />
+                   <XAxis dataKey="year" />
+              <YAxis />
+              <Tooltip />
+            <Bar dataKey="count" fill="#3B82F6" barSize={18} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -224,13 +226,13 @@ const renderContent = () => {
 
           {/* Publication Distribution */}
           <div className="flex flex-col">
-            <h3 className="font-semibold mb-4">Publication Distribution</h3>
+            <h3 className="font-semibold  mb-4">Publication Distribution</h3>
             <div className="h-48">
               <ResponsiveContainer width="70%" height="70%">
                 <PieChart>
                   <Pie
                     data={pieData}
-                    innerRadius={25}
+                    innerRadius={20}
                     outerRadius={40}
                     paddingAngle={5}
                     dataKey="value"
@@ -239,6 +241,12 @@ const renderContent = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
+                  <Legend
+                  layout="vertical"
+                verticalAlign="bottom"
+                align="center" 
+                
+></Legend>
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>

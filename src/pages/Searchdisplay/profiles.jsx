@@ -111,6 +111,14 @@ const locations=[
     "Research Scientist",
     "Research Scholar"
   ];
+  const institutions = [
+    "IIT Bombay",
+    "IIT Delhi",
+    "PRL Ahmedabad",
+    "IISER Pune",
+    "isro Ahmedabad",
+    "isro Bangalore",
+  ];
   const facultyData = [
     {
       id: 1,
@@ -244,6 +252,23 @@ const locations=[
               <AccordionTrigger>Expertise</AccordionTrigger>
               <AccordionContent>
                 {/* Add expertise filters here */}
+              </AccordionContent>
+            </AccordionItem>
+
+            
+            <AccordionItem value="institution">
+              <AccordionTrigger>Institution</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2">
+                  {institutions.map((institution) => (
+                    <div key={institution} className="flex items-center space-x-2">
+                      <Checkbox id={institution} />
+                      <label htmlFor={institution} className="text-sm">
+                        {institution}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </AccordionContent>
             </AccordionItem>
 

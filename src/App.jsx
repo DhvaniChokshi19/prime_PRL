@@ -10,7 +10,7 @@ import Footers from "./pages/Searchdisplay/Footers";
 import Headers from "./pages/ProfilePage/Headers";
 import Mainprofile from "./pages/ProfilePage/mainprofile";
 import Loginbox from "./pages/LoginPage/Loginbox";
-
+import Publication from "./pages/HomePage/Publication";
 
 // Home page component
 const Home = () => {
@@ -49,6 +49,14 @@ const LoginP = () =>{
     </>
   )
 }
+const PublicationP=()=>{
+  return(
+    <>
+    <Header></Header>
+    <Publication></Publication>
+    </>
+  )
+}
 function App() {
   return (
     <Router>
@@ -57,6 +65,7 @@ function App() {
         <Route path="/search" element={<SearchDisplay />} />
         <Route path="/profile" element={<ProfileP />} />
         <Route path="/Login"element={<LoginP />} />
+        <Route path="/Publication"element={<PublicationP />}/>
       </Routes>
     </Router>
   );

@@ -36,6 +36,7 @@ const Publications = () => {
             <span className="text-gray-600">Chemical Engineering Journal, Volume 495, Year 2024</span>
           </div>
           <p className="text-blue-600 text-sm">DOI:10.1016/j.cej.2024.153442</p>
+          <span class="__dimensions_badge_embed__" data-doi="10.1016/j.cej.2024.153442" data-hide-zero-citations="true" data-style="small_circle"></span><script async src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
         </div>
 
         {/* Publication 2 */}
