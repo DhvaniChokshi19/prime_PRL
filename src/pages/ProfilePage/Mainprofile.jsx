@@ -1,4 +1,6 @@
 import React,{useState} from 'react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer,Tooltip, XAxis,YAxis,Legend } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import profilephoto from "../../assets/image 13.png";
@@ -42,6 +44,35 @@ const Tooltips = ({ text, children }) => {
 const Mainprofile = () => {
   const [activeTab, setActiveTab] = useState('Personal Information');
 
+  const [personalInfo, setPersonalInfo] = useState({});
+  const [publicationsData, setPublicationsData] = useState([]);
+  const [patentsData, setPatentsData] = useState([]);
+  const [projectsData, setProjectsData] = useState([]);
+  const [networkData, setNetworkData] = useState([]);
+
+  //function to receive data from child components
+  const updateComponentData = (componentName, data) => {
+    switch(componentName) {
+      case 'PersonalInformation':
+        setPersonalInfo(data);
+        break;
+      case 'Publications':
+        setPublicationsData(data);
+        break;
+      case 'Patents':
+        setPatentsData(data);
+        break;
+      case 'Projects':
+        setProjectsData(data);
+        break;
+      case 'Network':
+        setNetworkData(data);
+        break;
+      default:
+        break;
+    }
+  };
+
   const tabs = [
     { name: 'Personal Information', icon: User },
     { name: 'Patent', icon: ScrollText  },
@@ -51,24 +82,190 @@ const Mainprofile = () => {
     
   ];
 
-const renderContent = () => {
+ const renderContent = () => {
     switch (activeTab) {
       case 'Personal Information':
-        return <PersonalInformation />;
+        return <PersonalInformation onDataUpdate={(data) => updateComponentData('PersonalInformation', data)} />;
       case 'Patent':
-        return <Patents />;
+        return <Patents onDataUpdate={(data) => updateComponentData('Patents', data)} />;
       case 'Publication':
-        return <Publications />;
+        return <Publications onDataUpdate={(data) => updateComponentData('Publications', data)} />;
       case 'Project':
-        return <Projects />;
+        return <Projects onDataUpdate={(data) => updateComponentData('Projects', data)} />;
       case 'Networks':
-        return <Network />;
+        return <Network onDataUpdate={(data) => updateComponentData('Network', data)} />;
       default:
-        return <PersonalInformation />;
+        return <PersonalInformation onDataUpdate={(data) => updateComponentData('PersonalInformation', data)} />;
     }
   };
   const handleExport = () => {
-    console.log('Exporting profile data...');
+   const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPosition = 20;
+    
+    // Set font styles
+    const titleFont = 'helvetica';
+    const regularFont = 'helvetica';
+    
+    // Add header with researcher name - using real data from state
+    doc.setFont(titleFont, 'bold');
+    doc.setFontSize(18);
+    doc.text(personalInfo.name || 'Dr. Nithyananad Prabhu', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+    
+    // Add position and field
+    doc.setFontSize(12);
+    doc.text(`${personalInfo.position || 'Research Scientist'} - ${personalInfo.field || 'Electrical Engineering'}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 6;
+    
+    // Add specialization
+    doc.setFont(regularFont, 'normal');
+    doc.setFontSize(10);
+    doc.text(personalInfo.specialization || 'Nanomaterials, Electrochemistry, Energy Storage Applications', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 6;
+    
+    // Add location
+    doc.text(personalInfo.location || 'Ahmedabad, Gujarat', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+    
+    // Add academic identifiers
+    doc.setFont(titleFont, 'bold');
+    doc.setFontSize(12);
+    doc.text('Academic Identity', 20, yPosition);
+    yPosition += 6;
+    
+    doc.setFont(regularFont, 'normal');
+    doc.setFontSize(10);
+    doc.text(`ORCID ID: ${personalInfo.orcidId || '0000-0003-2204-5333'}`, 20, yPosition);
+    yPosition += 5;
+    doc.text(`Scopus ID: ${personalInfo.scopusId || '55155930000'}`, 20, yPosition);
+    yPosition += 5;
+    doc.text(`Researcher ID: ${personalInfo.researcherId || '0000-0003-2204-5333'}`, 20, yPosition);
+    yPosition += 5;
+    doc.text(`Google Scholar ID: ${personalInfo.googleId || '0000-0003-2204-5333'}`, 20, yPosition);
+    yPosition += 15;
+    
+    // Add research metrics
+    doc.setFont(titleFont, 'bold');
+    doc.setFontSize(12);
+    doc.text('Research Metrics', 20, yPosition);
+    yPosition += 8;
+    
+    // Create metrics table using real data when available
+    const metricsData = [
+      ['Publications', personalInfo.publications || '50'],
+      ['Citations', personalInfo.citations || '100'],
+      ['H-Index', personalInfo.hIndex || '64'],
+      ['I-Index', personalInfo.iIndex || '64'],
+      ['Mean Impact Factor (Web of Science)', personalInfo.impactFactor || '2.685'],
+      ['Median ERA Ranking', personalInfo.eraRanking || 'B'],
+      ['Average citations per paper', personalInfo.avgCitations || '6.2'],
+      ['Highest number of citations', personalInfo.maxCitations || '61'],
+      ['Publications with 25+ citations', personalInfo.pubsWith25Citations || '10']
+    ];
+    
+    doc.autoTable({
+      startY: yPosition,
+      head: [['Metric', 'Value']],
+      body: metricsData,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+      margin: { left: 20, right: 20 }
+    });
+    
+    yPosition = doc.lastAutoTable.finalY + 15;
+    
+    // Publications section using real data
+    doc.setFont(titleFont, 'bold');
+    doc.setFontSize(14);
+    doc.text('Publications', 20, yPosition);
+    yPosition += 8;
+    
+    // Use real publications data if available, otherwise use sample data
+    const publicationsForTable = publicationsData.length > 0 ? 
+      publicationsData.map(pub => [pub.title, pub.journal, pub.year.toString(), pub.doi]) :
+      [
+        ['Advances in Nanomaterials for Energy Storage', 'Journal of Energy Materials', '2022', '10.1000/xyz123'],
+        ['Electrochemical Properties of Novel Composite Materials', 'Electrochemistry Communications', '2021', '10.1000/abc456'],
+        ['Sustainable Energy Storage Solutions', 'Applied Energy', '2020', '10.1000/def789']
+      ];
+    
+    doc.autoTable({
+      startY: yPosition,
+      head: [['Title', 'Journal', 'Year', 'DOI']],
+      body: publicationsForTable,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+      margin: { left: 20, right: 20 },
+      styles: { fontSize: 9 }
+    });
+    
+    yPosition = doc.lastAutoTable.finalY + 15;
+    
+    // Patents section using real data
+    doc.setFont(titleFont, 'bold');
+    doc.setFontSize(14);
+    doc.text('Patents', 20, yPosition);
+    yPosition += 8;
+    
+    // Use real patents data if available, otherwise use sample data
+    const patentsForTable = patentsData.length > 0 ?
+      patentsData.map(patent => [patent.title, patent.patentNumber, patent.year.toString(), patent.status]) :
+      [
+        ['Method for Enhancing Battery Life in Electric Vehicles', 'US12345678', '2021', 'Granted'],
+        ['Energy Efficient Storage Device', 'US87654321', '2019', 'Granted']
+      ];
+    
+    doc.autoTable({
+      startY: yPosition,
+      head: [['Title', 'Patent Number', 'Year', 'Status']],
+      body: patentsForTable,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+      margin: { left: 20, right: 20 },
+      styles: { fontSize: 9 }
+    });
+    
+    yPosition = doc.lastAutoTable.finalY + 15;
+    
+    // Projects section using real data
+    if (yPosition > 240) { // Check if need a new page
+      doc.addPage();
+      yPosition = 20;
+    }
+    
+    doc.setFont(titleFont, 'bold');
+    doc.setFontSize(14);
+    doc.text('Projects', 20, yPosition);
+    yPosition += 8;
+    
+    
+    const projectsForTable = projectsData.length > 0 ?
+      projectsData.map(project => [project.title, project.agency, project.duration, project.status]) :
+      [
+        ['Development of High-Capacity Energy Storage Systems', 'Department of Science & Technology', '2020-2023', 'Ongoing'],
+        ['Green Energy Solutions for Smart Cities', 'Ministry of Electronics & IT', '2018-2021', 'Completed']
+      ];
+    
+    doc.autoTable({
+      startY: yPosition,
+      head: [['Title', 'Funding Agency', 'Duration', 'Status']],
+      body: projectsForTable,
+      theme: 'grid',
+      headStyles: { fillColor: [59, 130, 246], textColor: 255 },
+      margin: { left: 20, right: 20 },
+      styles: { fontSize: 9 }
+    });
+    
+    // Add footer with date
+    const today = new Date();
+    doc.setFont(regularFont, 'italic');
+    doc.setFontSize(8);
+    doc.text(`Generated on ${today.toLocaleDateString()}`, pageWidth - 20, 280, { align: 'right' });
+    
+    // Save the PDF with a filename
+    const researcherName = personalInfo.name ? personalInfo.name.replace(/\s+/g, '_') : 'name';
+    doc.save(`CV_${researcherName}_${today.toLocaleDateString().replace(/\//g, '-')}.pdf`);
   };
 
   const publicationData = [
@@ -226,16 +423,18 @@ const renderContent = () => {
 
           {/* Publication Distribution */}
           <div className="flex flex-col">
-            <h3 className="font-semibold  mb-4">Publication Distribution</h3>
-            <div className="h-48">
-              <ResponsiveContainer width="70%" height="70%">
+            <h3 className="font-semibold mb-4">Publication Distribution</h3>
+            <div className="h-48 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieData}
                     innerRadius={20}
-                    outerRadius={40}
+                    outerRadius={50}
                     paddingAngle={5}
                     dataKey="value"
+                    cx="50%"
+          cy="50%"
                   >
                     {pieData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -243,9 +442,9 @@ const renderContent = () => {
                   </Pie>
                   <Legend
                   layout="vertical"
-                verticalAlign="bottom"
-                align="center" 
-                
+                verticalAlign="middle"
+                align="right" 
+                wrapperStyle={{paddingLeft:"10px"}}
 ></Legend>
                   <Tooltip />
                 </PieChart>
@@ -270,13 +469,13 @@ const renderContent = () => {
             <h3 className="font-semibold mb-4">Research Impact Factor</h3>
             <div className="h-48 overflow-y-auto">
               <ul className="space-y-2 text-sm">
-                <li>Total career publications       42</li>
-                <li>Publication years        1994-2008</li>
-                <li>Mean Impact Factor (Web of Science)        2.685</li>
-                <li>Median ERA Ranking         B</li>
-                <li>Average citations per paper          6.2</li>
-                <li>Highest number of citations        61</li>
-                <li>Publications with 25+ citations     10</li>
+                <li>Total career publications                     42</li>
+                <li>Publication years                       1994-2008</li>
+                <li>Mean Impact Factor (Web of Science)                           2.685</li>
+                <li>Median ERA Ranking                             B</li>
+                <li>Average citations per paper                        6.2</li>
+                <li>Highest number of citations                   61</li>
+                <li>Publications with 25+ citations                  10</li>
               </ul> 
             </div>
           </div>

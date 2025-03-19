@@ -8,6 +8,7 @@ const PersonalInformation = () => {
   const handleEditClick = () => {
     navigate("/Login");
   };
+
   return (
     <Card className="w-full border-none bg-white-100">
       <CardContent className="p-6">

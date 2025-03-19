@@ -7,17 +7,17 @@ const Publication = () => {
       title: "Most Viewed",
       publications: [
         {
-          title: "The Influence of mean arterial blood pressure during CPB on the rate of postoperative acute kidney injury in elderly diabetic patients after CABG surgery",
+          title: "Highly sensitive electrochemical sensor for glutathione detection using zinc oxide quantum dots anchored on reduced graphene oxide",
           views: "8,254",
-          authors: ["Ralienė, Laima", "Čerškutė, Renaldas", "Sąsidkienė, Milda", "Andrujaitionė, Judita"],
-          type: "Konferencijų tezės nerecenzuojamuose leidiniuose / Conference theses in non-peer-reviewed publications (T2)"
+          authors: ["Vinoth V.","Subramaniyam G.","Kaimal R.","Shanmugaraj K.","Gnana Sundara Raj B.","Thirumurugan A.","Thandapani P.","Pugazhenthiran N.","Manidurai P.","Anandan S."],
+          type: "Surfaces and Interfaces, Volume 51, Year 2024",
         },
         {
-          title: "CAG and GGN repeats in AR gene exert combinatorial effects on reproductive parameters in Baltic young male cohort",
+          title: "Design rule of swift control prototyping systems for power electronics and electrical drives",
           views: "6,130",
-          authors: ["Grigorjeva, Marina", "Punab, Margus", "Kahre, Tiina", "Ivandi, Märt", "Tõnisson, Neeme", "Poolamets, Olev", "Vihljajev, Vladimir", "Žilaitienė, Birutė", "Erenpreiss, Juris", "Matulevičius, Valentinas", "Laan, Mart"],
-          type: "Konferencijų tezės nerecenzuojamuose leidiniuose / Conference theses in non-peer-reviewed publications (T2)"
-        }
+          authors: ["T. Bramhananda Reddy.", "N. Ravisankara Reddy.", "A. Pradeepkumar Yadav." ,"C. Harinatha Reddy.", "C. Harikrishna.","Y.V. Siva Reddy.", "Vihljajev, Vladimir", "Žilaitienė, Birutė", "Erenpreiss, Juris", "Matulevičius, Valentinas", "Laan, Mart"],
+          type: "Journal of Research Administration",
+        }, 
       ]
     },
     {
@@ -107,7 +107,7 @@ const Publication = () => {
                       {pub.title}
                     </h3>
                     {pub.views && (
-                      <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded ml-2 whitespace-nowrap">
+                      <span className="bg-gray-200 text-gray-700 text-xs px-2 rounded ml-2 whitespace-nowrap">
                         {pub.views}
                       </span>
                     )}
@@ -128,7 +128,7 @@ const Publication = () => {
                   </div>
                   
                   <div className="mt-2 flex items-center">
-                    <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded mr-2">Type</span>
+                    <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded mr-2">Journal</span>
                     <span className="text-xs text-gray-600">{pub.type}</span>
                   </div>
                 </div>
@@ -136,6 +136,7 @@ const Publication = () => {
             </div>
           </div>
         ))}
+        
       </div>
     </div>
   )

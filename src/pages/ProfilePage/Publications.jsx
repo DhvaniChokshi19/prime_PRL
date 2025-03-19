@@ -1,7 +1,35 @@
 import React from 'react';
 import { BookOpen, Lock } from 'lucide-react';
 
-const Publications = () => {
+  const Publications = ({ onDataUpdate }) => {
+  // Sample state - replace with your actual publications data
+  const [publications, setPublications] = useState([
+    {
+      title: 'Advances in Nanomaterials for Energy Storage',
+      journal: 'Journal of Energy Materials',
+      year: 2022,
+      doi: '10.1000/xyz123'
+    },
+    {
+      title: 'Electrochemical Properties of Novel Composite Materials',
+      journal: 'Electrochemistry Communications',
+      year: 2021,
+      doi: '10.1000/abc456'
+    },
+    {
+      title: 'Sustainable Energy Storage Solutions',
+      journal: 'Applied Energy',
+      year: 2020,
+      doi: '10.1000/def789'
+    }
+    // Add more publications as needed
+  ]);
+
+  // Use useEffect to pass data to parent when component mounts or data changes
+  useEffect(() => {
+    onDataUpdate(publications);
+  }, [publications, onDataUpdate]);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
