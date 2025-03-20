@@ -15,7 +15,7 @@ const handleLoginClick=()=>{
 
   return (
     <div className="flex justify-between items-center px-4 py-2">
-      {/* Left side - Logos */}
+     
       <div className="flex space-x-4">
         <div className="Logo">
           <img src={prllogo} alt="PRL Logo" />
