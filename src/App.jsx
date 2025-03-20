@@ -1,5 +1,4 @@
 import React from "react";
-import Header from "./pages/HomePage/Header";
 import Searchbox from "./pages/HomePage/Searchbox";
 import Keyfeatures from "./pages/HomePage/Keyfeatures";
 import Benefits from "./pages/HomePage/Benefits";
@@ -11,12 +10,14 @@ import Headers from "./pages/ProfilePage/Headers";
 import Mainprofile from "./pages/ProfilePage/mainprofile";
 import Loginbox from "./pages/LoginPage/Loginbox";
 import Publication from "./pages/HomePage/Publication";
+import Header from './pages/HomePage/Header';
+
 
 // Home page component
 const Home = () => {
   return (
     <>
-      <Header />
+     <Header />
       <Searchbox />
       <Keyfeatures />
       <Benefits />
