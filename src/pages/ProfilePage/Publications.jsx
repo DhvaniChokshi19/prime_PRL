@@ -138,9 +138,8 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
         <div className="flex items-center space-x-2">
           <BookOpen className="w-6 h-6 text-gray-500" />
           <h3 className="text-xl font-semibold">
-            {showAll 
-              ? `All Publications (${publications.length || 0})` 
-              : `Top Cited Publications (${topPubs.length || 0})`}
+             
+              Publications (${topPubs.length || 0})
           </h3>
         </div>
         <div className="flex items-center space-x-2">

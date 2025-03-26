@@ -3,6 +3,7 @@ import axios from 'axios';
 import { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Download } from 'lucide-react';
 import orcid from "../../assets/image.png";
 import scopus from "../../assets/image 16.png";
@@ -13,6 +14,7 @@ import Patents from './Patents';
 import Publications from './Publications';
 import Network from './Network';
 import Projects from './Projects';
+import { useParams } from 'react-router-dom';
 import { 
   User,
   ScrollText,
@@ -21,8 +23,10 @@ import {
   BookMarked,
 } from 'lucide-react';
 
+// Set base URL for axios
 axios.defaults.baseURL = 'http://localhost:8000';
 
+// Tooltips component (kept as it was)
 const Tooltips = ({ text, children }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -46,9 +50,12 @@ const Mainprofile = () => {
   const [activeTab, setActiveTab] = useState('Personal Information');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [profileId, setProfileId] = useState(1); // Default profile ID
+  const { profileId: urlProfileId } = useParams();
+  const [publicationsFilter, setPublicationsFilter] = useState(null);
+  // Convert URL parameter to a number, default to 1 if not provided
+  const profileId = parseInt(urlProfileId, 10) || 1;
 
-  // Combined state for all profile data
+  // Updated state to match backend response structure
   const [profileData, setProfileData] = useState({
     profile: {
       name: '',
@@ -57,23 +64,25 @@ const Mainprofile = () => {
       department: '',
       expertise: '',
       state: '',
-      scopus_id: '',
-      orc_id: '',
-      google_scholar_id: '',
-      publons_id: '',
       orcid_url: '',
       scopus_url: '',
+      google_scholar_url: '',
+      publons_url: '',
+      orc_id:'',
+      scopus_id:'',
     },
     personal_information: [],
     qualifications: [],
     professional_experiences: [],
     honors_and_awards: [],
-    top_publications: [], // Added to store top cited publications
+    patents: [],
+    citation_data: [],
+    publication_stats: []
   });
   
   const [publicationsData, setPublicationsData] = useState([]);
 
-  // Fetch all profile data from backend in a single API call
+  // Fetch profile data
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
@@ -82,14 +91,8 @@ const Mainprofile = () => {
           params: { profile_id: profileId }
         });
         
+        console.log("Received profile data:", response.data);
         setProfileData(response.data);
-        
-        // If top_publications is in the response, make it available to the Publications component
-        if (response.data.top_publications && Array.isArray(response.data.top_publications)) {
-          // We keep it in profileData so Publications can access it
-          console.log("Top publications loaded:", response.data.top_publications.length);
-        }
-        
         setLoading(false);
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -101,7 +104,7 @@ const Mainprofile = () => {
     fetchProfileData();
   }, [profileId]);
 
-  // Fetch publications data separately
+  // Fetch publications data
   useEffect(() => {
     const fetchPublicationsData = async () => {
       try {
@@ -117,20 +120,18 @@ const Mainprofile = () => {
     fetchPublicationsData();
   }, [profileId]);
 
-  // Function to update component data
+  // Update component data function
   const updateComponentData = (componentName, data) => {
     switch(componentName) {
       case 'PersonalInformation':
-        setProfileData(prevData => {
-          return {
-            ...prevData,
-            profile: { ...prevData.profile, ...data.profile },
-            personal_information: data.personal_information || prevData.personal_information,
-            qualifications: data.qualifications || prevData.qualifications,
-            professional_experiences: data.professional_experiences || prevData.professional_experiences,
-            honors_and_awards: data.honors_and_awards || prevData.honors_and_awards
-          };
-        });
+        setProfileData(prevData => ({
+          ...prevData,
+          profile: { ...prevData.profile, ...data.profile },
+          personal_information: data.personal_information || prevData.personal_information,
+          qualifications: data.qualifications || prevData.qualifications,
+          professional_experiences: data.professional_experiences || prevData.professional_experiences,
+          honors_and_awards: data.honors_and_awards || prevData.honors_and_awards
+        }));
         break;
       case 'Publications':
         setPublicationsData(data);
@@ -138,25 +139,21 @@ const Mainprofile = () => {
       case 'Patents':
         setProfileData(prevData => ({ ...prevData, patents: data }));
         break;
-      case 'Projects':
-        // Handle projects update
-        break;
-      case 'Network':
-        // Handle network update
-        break;
       default:
         break;
     }
   };
 
+  // Tabs configuration
   const tabs = [
     { name: 'Personal Information', icon: User },
     { name: 'Publication', icon: BookOpen },
-    { name: 'Patent', icon: ScrollText  },
+    { name: 'Patent', icon: ScrollText },
     { name: 'Project', icon: BookMarked },
     { name: 'Networks', icon: GlobeLock },
   ];
 
+  // Render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
       case 'Personal Information':
@@ -167,12 +164,11 @@ const Mainprofile = () => {
       case 'Publication':
         return <Publications 
           profileId={profileId}
-          data={publicationsData} 
+          data={publicationsData}
+           filter={publicationsFilter} 
           onDataUpdate={(data) => updateComponentData('Publications', data)}
-          // Pass top publications from profileData if available
-          topPublications={profileData.top_publications}
         />;
-        case 'Patent':
+      case 'Patent':
         return <Patents 
           patents={profileData.patents} 
           onDataUpdate={(data) => updateComponentData('Patents', data)}
@@ -195,78 +191,58 @@ const Mainprofile = () => {
     }
   };
 
-  const handleExport = async () => {
-
-  };
-
   // Calculate research metrics
   const calculateMetrics = () => {
-    // Get citation data from the API response if available
-    const citationData = profileData.citation_data && profileData.citation_data.length > 0 
-      ? profileData.citation_data[0] 
-      : null;
+    const totalPublications = publicationsData.length;
+    const totalCitations = publicationsData.reduce((sum, pub) => sum + (pub.cited_by || 0), 0);
     
-    // Get publication stats from API
-    const pubStats = profileData.publication_stats || [];
-    
-    // Calculate total publications - use publicationsData.length if available
-    const totalPublications = publicationsData.length || 
-      citationData?.num_documents || 
-      pubStats.reduce((sum, stat) => sum + stat.total_publications, 0) || 0;
-    
-    // Calculate total citations
-    const totalCitations = citationData?.num_citations || 
-      pubStats.reduce((sum, stat) => sum + stat.total_citations_per_year, 0) || 0;
-    
-    // H-index either from API or calculate
-    const hIndex = citationData?.h_index || 
-      Math.floor(Math.sqrt(totalCitations)) || 0;
-    
-    // I-index (publications with 10+ citations) - approximation or direct calculation
-    const iIndex = publicationsData.length > 0 
-      ? publicationsData.filter(pub => (pub.cited_by || 0) >= 10).length
-      : Math.floor(totalPublications * 0.3) || 0;
-    
+    const citationData = profileData.citation_data?.[0] || {};
+    const hIndex = citationData.h_index || Math.floor(Math.sqrt(totalCitations));
+    const iIndex = publicationsData.filter(pub => (pub.cited_by || 0) >= 10).length;
+const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
     return [
       { 
         label: 'Publications', 
         value: totalPublications.toString(),
-        tooltip: 'Total number of publications across all years'
+        tooltip: 'Total number of publications'
       },
       { 
         label: 'Citations', 
         value: totalCitations.toString(),
-        tooltip: 'Total number of times this researcher\'s publications have been cited'
+        tooltip: 'Total number of citations'
       },
       { 
         label: 'H-Index', 
         value: hIndex.toString(),
-        tooltip: 'The h-index is the largest number h such that h publications have at least h citations each'
+        tooltip: 'Measure of research productivity and impact'
       },
       { 
         label: 'I-Index', 
         value: iIndex.toString(),
-        tooltip: 'The i-index represents the number of publications with at least 10 citations'
+        tooltip: 'Number of publications with at least 10 citations'
       }
     ];
   };
 
   // Format publication stats for charts
   const formatPublicationStats = () => {
-    const stats = profileData.publication_stats || [
-      { year: 2017, total_publications: 5, total_citations_per_year: 28, avg_citations_per_paper: 5.6 },
-      { year: 2018, total_publications: 8, total_citations_per_year: 42, avg_citations_per_paper: 5.25 },
-      { year: 2019, total_publications: 12, total_citations_per_year: 56, avg_citations_per_paper: 4.7 },
-      { year: 2020, total_publications: 10, total_citations_per_year: 38, avg_citations_per_paper: 3.8 },
-      { year: 2021, total_publications: 9, total_citations_per_year: 24, avg_citations_per_paper: 2.7 },
-      { year: 2022, total_publications: 6, total_citations_per_year: 12, avg_citations_per_paper: 2.0 }
-    ];
-    
-    return stats.map(stat => ({
-      year: stat.year,
-      publications: stat.total_publications,
-      citations: stat.total_citations_per_year
-    }));
+    const stats = profileData.publication_stats || [];
+    return {
+      stats: stats.map(stat => ({
+        year: stat.year,
+        Publications: stat.total_publications,
+        Citations: stat.total_citations_per_year
+      })),
+      yearRangeOptions: stats.length > 0 
+        ? `${Math.min(...stats.map(s => s.year))}-${Math.max(...stats.map(s => s.year))}`
+        : 'N/A'
+    };
+  };
+
+  // Handle export functionality (to be implemented)
+  const handleExport = async () => {
+    // Implement export logic
+    console.log('Export functionality not yet implemented');
   };
 
   if (loading) {
@@ -279,8 +255,69 @@ const Mainprofile = () => {
 
   // Get metrics and formatted stats
   const researchMetrics = calculateMetrics();
-  const formattedPublicationStats = formatPublicationStats();
+  const { stats: formattedPublicationStats, yearRangeOptions } = formatPublicationStats();
 
+  const PublicationBarChart = () => {
+    // Extract unique years from publication stats
+    const allYears = formattedPublicationStats.map(stat => stat.year);
+    
+    // State for selected years
+    const [selectedYears, setSelectedYears] = useState(allYears);
+
+    // Filter publication stats based on selected years
+    const filteredStats = formattedPublicationStats.filter(stat => 
+      selectedYears.includes(stat.year)
+    );
+
+    // Handle year selection toggle
+    const handleYearToggle = (year) => {
+      setSelectedYears(prev => 
+        prev.includes(year) 
+          ? prev.filter(y => y !== year)
+          : [...prev, year]
+      );
+    };
+   return (
+      <div>
+        <div className="flex items-center space-x-2 mb-4">
+          <h3 className="text-lg font-semibold mr-4">Select Years:</h3>
+          {allYears.map(year => (
+            <div key={year} className="flex items-center space-x-2">
+              <Checkbox
+                id={`year-${year}`}
+                checked={selectedYears.includes(year)}
+                onCheckedChange={() => handleYearToggle(year)}
+              />
+              <label 
+                htmlFor={`year-${year}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {year}
+              </label>
+            </div>
+          ))}
+        </div>
+        <ResponsiveContainer width="90%" height={200}>
+          <BarChart data={filteredStats}>
+            <XAxis dataKey="year" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="Publications" name="Publications" fill="#3B82F6" barSize={18} />
+            <Bar dataKey="Citations" name="Citations" fill="#10B981" barSize={18} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  };
+const handlePublication=()=>{
+setActiveTab('Publication');
+  
+    setPublicationsFilter({
+      key: 'Cited by:',
+      minValue: 20,
+    });
+}
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header Section */}
@@ -295,8 +332,12 @@ const Mainprofile = () => {
             <div>
               <div className="flex items-start gap-x-96 mb-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <span className="px-2 py-1 bg-slate-200 rounded-full text-m text-black-600">
-                    id: {profileId}
+                  <span>
+                    {profileId && (
+                      <div className="text-gray-600">
+                        ID: {profileId}
+                      </div>
+                    )}
                   </span>
                 </div>
                 <Button 
@@ -309,11 +350,12 @@ const Mainprofile = () => {
                   <span>Export</span>
                 </Button>
               </div>
-              <h1 className="text-2xl font-bold mb-2">{profileData.profile.name || "Dr. Nithyananad Prabhu"}</h1>
+              <h1 className="text-2xl font-bold mb-2">{profileData.profile.name || "Dr. Name"}</h1>
               <p className="text-lg text-gray-600">{profileData.profile.designation || "Research Scientist"}</p>
-              <p className="text-lg text-gray-600">{profileData.profile.department || "Electrical Engineering"}</p>
-              <p className="text-gray-600">{profileData.profile.expertise || "Nanomaterials, Electrochemistry, Energy Storage Applications"}</p>
-              <p className="text-gray-600">{profileData.profile.state || "Ahmedabad, Gujarat"}</p>
+              <p className="text-lg text-gray-600">{profileData.profile.department || "Department"}</p>
+              <p className="text-gray-600">{profileData.profile.expertise || "Research Areas"}</p>
+              <p className="text-gray-600">{profileData.profile.state || "Location"}</p>
+              
               {/* Research Metrics */}
               <div className="grid grid-cols-4 md:grid-cols-4 gap-2 mt-6">
                 {researchMetrics.map((metric, index) => (
@@ -337,8 +379,14 @@ const Mainprofile = () => {
                     <div>
                       <p className="text-sm font-medium">Orcid Id</p>
                       <p className="text-sm text-blue-600">
-                        <a href={profileData.profile.orcid_url || `https://orcid.org/${profileData.profile.orc_id}`} target="_blank" rel="noopener noreferrer">
-                          {profileData.profile.orc_id || "0000-0003-2204-5333"}
+                        <a 
+                          href={profileData.profile.orcid_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          {profileData.profile.orcid_url 
+                ? profileData.profile.orcid_url.split('/').pop() 
+                : "N/A"}
                         </a>
                       </p>
                     </div>
@@ -348,8 +396,14 @@ const Mainprofile = () => {
                     <div>
                       <p className="text-sm font-medium">Scopus Id</p>
                       <p className="text-sm text-blue-600">
-                        <a href={profileData.profile.scopus_url || `https://www.scopus.com/authid/detail.uri?authorId=${profileData.profile.scopus_id}`} target="_blank" rel="noopener noreferrer">
-                          {profileData.profile.scopus_id || "55155930000"}
+                        <a 
+                          href={profileData.profile.scopus_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          {profileData.profile.scopus_url
+                ? profileData.profile.scopus_url.split('=').pop()
+                : "N/A"}
                         </a>
                       </p>
                     </div>
@@ -358,14 +412,14 @@ const Mainprofile = () => {
                     <img src={publons} alt="Publons" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Publons Id</p>
-                      <p className="text-sm text-blue-600">{profileData.profile.publons_id || "0000-0003-2204-5333"}</p>
+                      <p className="text-sm text-blue-600">{profileData.profile.publons_id || "N/A"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <img src={googlei} alt="Google Scholar" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Google Scholar Id</p>
-                      <p className="text-sm text-blue-600">{profileData.profile.google_scholar_id || "0000-0003-2204-5333"}</p>
+                      <p className="text-sm text-blue-600">{profileData.profile.google_scholar_id || "N/A"}</p>
                     </div>
                   </div>
                 </div>
@@ -375,52 +429,40 @@ const Mainprofile = () => {
         </div>
       </div>
 
-     <Card className="w-full h-60 border-none bg-gray-100">
-      <CardContent className="p-2">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="h-72">
-            <ResponsiveContainer width="70%" height="70%">
-              <BarChart data={formattedPublicationStats}>
-                <XAxis dataKey="year" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="publications" name="Publications" fill="#3B82F6" barSize={18} />
-                <Bar dataKey="citations" name="Citations" fill="#10B981" barSize={18} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-3">
-            <h3 className="font-semibold mb-4">Research Impact Factor</h3>
-            <div className="h-48 overflow-y-auto">
-              <ul className="space-y-2 text-base">
-                <li>Total career publications: {researchMetrics[0].value}</li>
-                <li>Publication years: {formattedPublicationStats.length > 0 ? 
-                  `${Math.min(...formattedPublicationStats.map(s => s.year))}-${Math.max(...formattedPublicationStats.map(s => s.year))}` : 
-                  "N/A"}
-                </li>
-                <li>Mean Impact Factor (Web of Science): {
-                  publicationsData.length > 0 
-                    ? (publicationsData.reduce((sum, pub) => sum + (pub.impact_factor || 0), 0) / publicationsData.length).toFixed(2) 
-                    : "2.685"
-                }</li>
-                <li>Average citations per paper: {
-                  parseInt(researchMetrics[0].value) > 0 
-                    ? (parseInt(researchMetrics[1].value) / parseInt(researchMetrics[0].value)).toFixed(1) 
-                    : "0.0"
-                }</li>
-                <li>Publications with 25+ citations: {
-                  publicationsData.length > 0
-                    ? publicationsData.filter(pub => (pub.cited_by || 0) >= 25).length
-                    : Math.floor(parseInt(researchMetrics[0].value) * 0.2)
-                }</li>
-              </ul> 
+      {/* Publications Chart */}
+      <Card className="w-full h-60 border-none bg-gray-100">
+        <CardContent className="p-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="h-72">
+                 <PublicationBarChart />
+            </div>
+            <div className="mt-3">
+              <h3 className="font-semibold mb-4">Research Impact Factor</h3>
+              <div className="h-48 overflow-y-auto">
+                <ul className="space-y-2 text-base">
+                  <li>Total career publications: {researchMetrics[0].value}</li>
+                  <li>Publication years: {yearRangeOptions}</li>
+                  <li>Mean Impact Factor: {
+                    publicationsData.length > 0 
+                      ? (publicationsData.reduce((sum, pub) => sum + (pub.impact_factor || 0), 0) / publicationsData.length).toFixed(2) 
+                      : "N/A"
+                  }</li>
+                  <li>Average citations per paper: {
+                    parseInt(researchMetrics[0].value) > 0 
+                      ? (parseInt(researchMetrics[1].value) / parseInt(researchMetrics[0].value)).toFixed(1) 
+                      : "0.0"
+                  }</li>
+                  <li className="cursor-pointer hover:text-blue-600 transition-colors" onClick={handlePublication}>Publications with 20+ citations: {
+                    publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length
+                  }</li>
+                </ul> 
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
 
+      {/* Tabs */}
       <div className="flex gap-4 border-b mb-6">
         {tabs.map(({ name, icon: Icon }) => (
           <button
@@ -447,4 +489,3 @@ const Mainprofile = () => {
 };
 
 export default Mainprofile;
-

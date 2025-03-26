@@ -18,10 +18,10 @@ const Searchbox = () => {
 
   // Add state for stats data
   const [statsData, setStatsData] = useState({
-    profiles: '0',
-    publications: '0',
-    citations: '0',
-    altmetrics: '0'
+   total_profiles: '0',
+    total_publications: '0', 
+    total_citations: '0',
+    avg_citations_per_paper: '0'
   });
 
   // Fetch stats data on component mount
@@ -42,10 +42,10 @@ const Searchbox = () => {
         
         const data = await response.json();
         setStatsData({
-          profiles: data.profiles_count.toLocaleString(),
-          publications: data.publications_count.toLocaleString(),
-          citations: data.citations_count.toLocaleString(),
-          altmetrics: data.altmetrics_count.toLocaleString()
+         total_profiles: data.total_profiles.toLocaleString(),
+          total_publications: data.total_publications.toLocaleString(),
+          total_citations: data.total_citations.toLocaleString(),
+          avg_citations_per_paper: data.avg_citations_per_paper.toLocaleString()
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -59,26 +59,26 @@ const Searchbox = () => {
   const stats = [
     {
       icon: <UserRound className="h-8 w-8 text-blue-600" />,
-      number: statsData.profiles,
+      number: statsData.total_profiles,
       label: 'PROFILES',
-      route: '/persons'
+      route: '/person'
     },
     {
       icon: <Newspaper className="h-8 w-8 text-blue-600"/>,
-      number: statsData.publications,
+      number: statsData.total_publications,
       label: 'PUBLICATIONS',
       route: '/Publication'
     },
     {
       icon: <BookMarked className="h-8 w-8 text-blue-600"/>,
-      number: statsData.citations,
+      number: statsData.total_citations,
       label: 'CITATIONS',
       route: '/Publication'
     },
     {
       icon: <AtSign className="h-8 w-8 text-blue-600"/>,
-      number: statsData.altmetrics,
-      label: 'ALTMETRICS MENTIONS'
+      number: statsData.avg_citations_per_paper,
+      label: 'AVERAGE CITATIONS PER PAPER'
     }
   ];
 
@@ -102,14 +102,19 @@ const Searchbox = () => {
         
         // If no specific filters are checked or "all" is checked, search in all fields
         if (activeFilters.length === 0 || filters.all) {
-          queryParams.append('query', searchTerm);
-          queryParams.append('filter_all', 'true');
+           Object.entries({
+            name: searchTerm,
+            designation: searchTerm,
+            department: searchTerm,
+            expertise: searchTerm
+          }).forEach(([key, value]) => {
+            queryParams.append(key, value);
+          });
         } else {
           // Add searchTerm for each active filter
           activeFilters.forEach(([filter, _]) => {
             if (filter !== 'all') {
               queryParams.append(filter, searchTerm);
-              queryParams.append(`filter_${filter}`, 'true');
             }
           });
         }
@@ -127,7 +132,7 @@ const Searchbox = () => {
         }
         
         const searchResults = await response.json();
-        // console.log("Search results received:", searchResults);
+        console.log("Search results received:", searchResults);
         // Navigate to search results page with the results as state
         navigate('/search', { 
           state: { results: searchResults },

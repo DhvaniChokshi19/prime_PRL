@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import pubimg from '../../assets/pub_bg.jpg';
 
 const Publication = () => {
@@ -7,8 +7,6 @@ const Publication = () => {
   const [yearlyData, setYearlyData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedMetric, setSelectedMetric] = useState('total_publications');
-  const [selectedYear, setSelectedYear] = useState(null);
   const [years, setYears] = useState([]);
 
   // Fetch data from the API when component mounts
@@ -17,14 +15,11 @@ const Publication = () => {
       try {
         setIsLoading(true);
         
-        // Determine the correct API URL (adjust this to your actual backend URL)
-        // For local development, your Django backend is likely on a different port
         const API_BASE_URL =  'http://localhost:8000';
         const apiUrl = `${API_BASE_URL}/api/departments`;
         
         console.log('Fetching data from:', apiUrl);
         
-        // Make the API request to your Django backend with the correct URL
         const response = await fetch(apiUrl, {
           headers: {
             'Accept': 'application/json',
@@ -32,28 +27,24 @@ const Publication = () => {
           },
         });
         
-        // Log the response for debugging
         console.log('Response status:', response.status);
         
-        // Check if the response is ok
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         
-        // Parse the JSON response
         const data = await response.json();
         
-        // Process the data - separate department metrics and yearly stats
         const deptMetrics = [];
         const yearlyDataObj = {};
         const uniqueYears = new Set();
         
         data.forEach(item => {
           if (item.hasOwnProperty('total_profiles')) {
-            // This is department metrics data
+            // Department metrics data
             deptMetrics.push(item);
           } else if (item.hasOwnProperty('publication_stats')) {
-            // This is yearly publication stats data
+            // Yearly publication stats data
             const departmentName = item.department;
             
             item.publication_stats.forEach(stat => {
@@ -73,15 +64,8 @@ const Publication = () => {
           }
         });
         
-        // Convert years to array and sort
         const sortedYears = Array.from(uniqueYears).sort();
         
-        // Set the most recent year as the default selected year
-        if (sortedYears.length > 0 && !selectedYear) {
-          setSelectedYear(sortedYears[sortedYears.length - 1]);
-        }
-        
-        // Update state with the processed data
         setDepartmentData(deptMetrics);
         setYearlyData(yearlyDataObj);
         setYears(sortedYears);
@@ -124,14 +108,11 @@ const Publication = () => {
       setDepartmentData(mockDepartmentData);
       setYearlyData(mockYearlyData);
       setYears(mockYears);
-      setSelectedYear(mockYears[mockYears.length - 1]);
     };
 
     fetchDepartmentData();
   }, []); // Empty dependency array means this effect runs once on mount
 
-  // The rest of the component remains the same...
-  
   // Show loading state
   if (isLoading) {
     return (
@@ -161,79 +142,54 @@ const Publication = () => {
     );
   }
 
-  // Prepare data for the yearly trends chart
+  // Prepare data for the yearly trends bar chart
   const prepareYearlyTrendsData = () => {
-    // Get all department names
-    const departments = departmentData.map(dept => dept.department);
-    
-    // Create data for the line chart
+    // Calculate total publications and citations for each year
     return years.map(year => {
       const yearData = { year };
       
-      // Find data for this year
       const yearStats = yearlyData[year] || [];
       
-      // Add data for each department
-      departments.forEach(dept => {
-        const deptData = yearStats.find(stat => stat.department === dept);
-        
-        if (deptData) {
-          yearData[`${dept}_publications`] = deptData.total_publications;
-          yearData[`${dept}_citations`] = deptData.total_citations;
-        } else {
-          yearData[`${dept}_publications`] = 0;
-          yearData[`${dept}_citations`] = 0;
-        }
-      });
+      // Sum publications and citations across all departments for this year
+      yearData.total_publications = yearStats.reduce((sum, dept) => sum + (dept.total_publications || 0), 0);
+      yearData.total_citations = yearStats.reduce((sum, dept) => sum + (dept.total_citations || 0), 0);
       
       return yearData;
     });
   };
 
-  // Generate colors for departments
-  const generateColors = (count) => {
-    const colors = [
-      '#3B82F6', // blue
-      '#10B981', // green
-      '#F59E0B', // yellow
-      '#EF4444', // red
-      '#8B5CF6', // purple
-      '#EC4899', // pink
-      '#06B6D4', // cyan
-      '#F97316', // orange
-    ];
-    
-    return Array(count).fill().map((_, idx) => colors[idx % colors.length]);
-  };
+  // Generate colors for the bar chart
+  const generateColors = () => ({
+    publications: '#3B82F6', // blue
+    citations: '#10B981'     // green
+  });
 
   // Get yearly trends data
   const yearlyTrendsData = prepareYearlyTrendsData();
-  
-  // Get all department names and colors
-  const departments = departmentData.map(dept => dept.department);
-  const departmentColors = generateColors(departments.length);
+  const colors = generateColors();
 
   return (
-    <div className='bg-blue-200 mx-auto max-w-6xl p-4'>
-      <div className="relative w-full h-48">
+    <div className='bg-blue-200 mx-auto max-w-9xl p-4'>
+      {/* Existing code for header image */}
+      <div className="relative w-screen h-48">
         <img 
           src={pubimg} 
           alt="Dashboard" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0"> 
+        <div className="absolute inset-0 "> 
           <div className="container mx-auto px-8 h-52 flex items-center">
-            <div className="text-black space-y-6 max-w-2xl">
-              <h1 className="text-5xl font-bold">
-                Publications
+            <div className="text-black space-y-6 max-w-3xl">
+              <h1 className="text-4xl font-bold">
+                Publications & Citations Department wise
               </h1>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Combined Publications, Profiles and Citations Chart */}
-      <div className="mb-8 bg-white p-6 rounded-lg shadow-md mt-6">
+      {/* Existing code for Department Metrics Overview */}
+      <div className="mb-8 bg-white p-6 rounded-lg shadow-md mt-6 max-w-8xl">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">Department Metrics Overview</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -261,76 +217,51 @@ const Publication = () => {
         </div>
       </div>
 
-      {/* Year-wise Department Trends Chart */}
+      {/* New Yearly Trends Bar Chart */}
       {years.length > 0 && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-700 mb-2 sm:mb-0">Department Trends by Year</h3>
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center space-x-2">
-                <label htmlFor="metricSelect" className="text-sm text-gray-600">Metric:</label>
-                <select
-                  id="metricSelect"
-                  value={selectedMetric}
-                  onChange={(e) => setSelectedMetric(e.target.value)}
-                  className="text-sm border rounded py-1 px-2"
-                >
-                  <option value="total_publications">Publications</option>
-                  <option value="total_citations">Citations</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">Yearly Publications and Citations</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
+              <BarChart
                 data={yearlyTrendsData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="year" 
                   tick={{ fontSize: 12 }}
+                  angle={-45} 
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
                 />
                 <YAxis />
-                <Tooltip
-                  formatter={(value, name) => {
-                    // Extract department name from the dataKey
-                    const dept = name.split('_')[0];
-                    return [value, dept];
-                  }}
+                <Tooltip />
+                <Legend />
+                <Bar 
+                  dataKey="total_publications" 
+                  name="Total Publications" 
+                  fill={colors.publications} 
                 />
-                <Legend 
-                  formatter={(value) => {
-                    // Extract department name from the dataKey
-                    return value.split('_')[0];
-                  }}
+                <Bar 
+                  dataKey="total_citations" 
+                  name="Total Citations" 
+                  fill={colors.citations} 
                 />
-                {departments.map((dept, index) => (
-                  <Line
-                    key={dept}
-                    type="monotone"
-                    dataKey={`${dept}_${selectedMetric === 'total_publications' ? 'publications' : 'citations'}`}
-                    name={`${dept}_${selectedMetric === 'total_publications' ? 'publications' : 'citations'}`}
-                    stroke={departmentColors[index]}
-                    activeDot={{ r: 8 }}
-                    strokeWidth={2}
-                  />
-                ))}
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
       )}
 
-      {/* Summary Cards */}
+      {/* Existing code for Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {departmentData.map((dept, index) => (
           <div 
             key={dept.department} 
             className="bg-white rounded-lg p-4 shadow border-l-4" 
-            style={{ borderLeftColor: departmentColors[index % departmentColors.length] }}
+            style={{ borderLeftColor: '#3B82F6' }}
           >
             <h4 className="font-bold text-gray-700 mb-2 truncate" title={dept.department}>{dept.department}</h4>
             <div className="grid grid-cols-3 gap-2 text-center">
