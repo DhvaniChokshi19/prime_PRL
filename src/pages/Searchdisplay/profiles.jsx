@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import person from '../../assets/person.jpg';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -30,16 +31,18 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+const API_BASE_URL = 'http://localhost:8000';
 
 const Profiles = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [facultyData, setFacultyData] = useState([]);
+  const [allFacultyData, setAllFacultyData] = useState([]);
+  const [displayFacultyData, setDisplayFacultyData] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 9;
-   const [totalPages, setTotalPages] = useState(1);
-const [activeFilters, setActiveFilters] = useState({
+  const [totalPages, setTotalPages] = useState(1);
+  const [activeFilters, setActiveFilters] = useState({
     designations: [],
     departments: [],
     states: [],
@@ -47,10 +50,134 @@ const [activeFilters, setActiveFilters] = useState({
   });
   const [sortBy, setSortBy] = useState('name');
   const navigate = useNavigate();
+  const location = useLocation();
 
+  // Extract search parameters from URL
   useEffect(() => {
-    fetchFacultyData();
-  }, [currentPage,  sortBy]);
+    const searchParams = new URLSearchParams(location.search);
+    const query = searchParams.get('query');
+    
+    if (query) {
+      setSearchTerm(query);
+    }
+    
+    // Check if we have results passed via state
+    if (location.state && location.state.results) {
+      console.log("Results from state:", location.state.results);
+      setAllFacultyData(location.state.results);
+    } else {
+      // If no results in state, fetch them based on URL parameters
+      fetchAllFacultyData();
+    }
+  }, [location]);
+
+  // Apply filters, sorting, and pagination whenever data, filters, sort, or page changes
+  useEffect(() => {
+    applyFiltersAndPagination();
+  }, [allFacultyData, activeFilters, sortBy, currentPage, searchTerm]);
+
+  const fetchAllFacultyData = async () => {
+    setLoading(true);
+    try {
+      // Fetch all data without pagination parameters
+      let url = `${API_BASE_URL}/api/search`;
+      
+      // Add search term if present
+      if (searchTerm) {
+        url += `?query=${encodeURIComponent(searchTerm)}`;
+      }
+      
+      console.log("Fetching all data from:", url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Fetched all data:", data);
+      
+      setAllFacultyData(data);
+    } catch (error) {
+      console.error("Error fetching faculty data:", error);
+      setAllFacultyData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFiltersAndPagination = () => {
+    // Start with all faculty data
+    let filteredData = [...allFacultyData];
+    
+    // Apply search term filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filteredData = filteredData.filter(faculty => 
+        faculty.name?.toLowerCase().includes(searchLower) ||
+        faculty.department?.toLowerCase().includes(searchLower) ||
+        faculty.expertise?.toLowerCase().includes(searchLower) ||
+        faculty.designation?.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Apply designation filters
+    if (activeFilters.designations.length > 0) {
+      filteredData = filteredData.filter(faculty => 
+        activeFilters.designations.includes(faculty.designation)
+      );
+    }
+    
+    // Apply department filters
+    if (activeFilters.departments.length > 0) {
+      filteredData = filteredData.filter(faculty => 
+        activeFilters.departments.includes(faculty.department)
+      );
+    }
+    
+    // Apply state filters
+    if (activeFilters.states.length > 0) {
+      filteredData = filteredData.filter(faculty => 
+        activeFilters.states.includes(faculty.state)
+      );
+    }
+    
+    // Apply institution filters
+    if (activeFilters.institutions.length > 0) {
+      filteredData = filteredData.filter(faculty => 
+        activeFilters.institutions.includes(faculty.institution)
+      );
+    }
+    
+    // Apply sorting
+    filteredData.sort((a, b) => {
+      if (sortBy === 'name') {
+        return a.name?.localeCompare(b.name);
+      } else if (sortBy === 'designation') {
+        return a.designation?.localeCompare(b.designation);
+      } else if (sortBy === 'department') {
+        return a.department?.localeCompare(b.department);
+      }
+      return 0;
+    });
+    
+    // Update total items and pages
+    setTotalItems(filteredData.length);
+    setTotalPages(Math.ceil(filteredData.length / itemsPerPage));
+    
+    // Get current page items
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    setDisplayFacultyData(filteredData.slice(startIndex, endIndex));
+  };
+
   // Handle filter changes
   const handleFilterChange = (category, value) => {
     setActiveFilters(prev => {
@@ -62,59 +189,8 @@ const [activeFilters, setActiveFilters] = useState({
       }
       return updated;
     });
-  };
-  const fetchFacultyData = async () => {
-    setLoading(true);
-    try {
-      // Use the actual API endpoint from your screenshot
-      let url = `/api/search?page=${currentPage}&limit=${itemsPerPage}&ordering=${sortBy}`;
-      
-      // Add search parameters if needed
-      if (searchTerm) {
-        url += `&name=${searchTerm}`;
-      }
-      if(searchTerm){
-        url += `&designation=${searchTerm}`;
-      }
-      if(searchTerm){
-        url += `&department=${searchTerm}`;
-      }
-      if(searchTerm){
-        url += `&expertise=${searchTerm}`;
-      }
-    if (activeFilters.designations.length > 0) {
-        activeFilters.designations.forEach(designation => {
-          url += `&designation=${encodeURIComponent(designation)}`;
-        });
-      }
-      
-      if (activeFilters.departments.length > 0) {
-        activeFilters.departments.forEach(department => {
-          url += `&department=${encodeURIComponent(department)}`;
-        });
-      }
-      
-      if (activeFilters.states.length > 0) {
-        activeFilters.states.forEach(state => {
-          url += `&state=${encodeURIComponent(state)}`;
-        });
-      }
-      
-      if (activeFilters.institutions.length > 0) {
-        activeFilters.institutions.forEach(institution => {
-          url += `&institution=${encodeURIComponent(institution)}`;
-        });
-      }
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      setFacultyData(data);
-      setTotalItems(data.length > 0 ? data.length : 0); // Assuming we have pagination info from the API
-    } catch (error) {
-      console.error("Error fetching faculty data:", error);
-    } finally {
-      setLoading(false);
-    }
+    // Reset to first page when filters change
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page) => {
@@ -122,14 +198,23 @@ const [activeFilters, setActiveFilters] = useState({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleViewProfile = (facultyId) => {
-    navigate(`/profile/${facultyId}`);
+  const handleViewProfile = (profile_id) => {
+    navigate(`/profile/${profile_id}`);
   };
 
   const handleSearch = (e) => {
-    e.preventDefault();
-    setCurrentPage(1); // Reset to first page when searching
-    fetchFacultyData();
+  e.preventDefault();
+  setCurrentPage(1);
+  
+  // Clear any previous results from state to ensure we're not using cached data
+  navigate(location.pathname, { state: null });
+  
+  // Always fetch fresh data when performing a search
+  fetchAllFacultyData();
+};
+
+  const handleSortChange = (value) => {
+    setSortBy(value);
   };
 
   const departments = [
@@ -219,32 +304,8 @@ const [activeFilters, setActiveFilters] = useState({
     "ISRO Bangalore",
   ];
 
-  // Use the faculty data from the API response
-  const sampleFacultyData = [
-    {
-      id: 201,
-      name: "Dr. MD. Nurul Alam",
-      designation: "Library Officer-C",
-      department: "Library Services",
-      expertise: null,
-      state: "Ahmedabad",
-      image_url: null,
-      scopus_url: "https://www.scopus.com/authid/detail.uri?authorId=57191944503"
-    },
-    {
-      id: 499,
-      name: "Mr Nurul Alam",
-      designation: "Pending",
-      department: "Library Services",
-      expertise: null,
-      state: null,
-      image_url: null,
-      scopus_url: "https://www.scopus.com/authid/detail.uri?authorId=56286229880"
-    }
-  ];
-
-  // Use the sample data if the API hasn't returned anything yet
-  const displayData = facultyData.length > 0 ? facultyData : sampleFacultyData;
+  // Show error message if no data is available
+  const displayData = displayFacultyData.length > 0 ? displayFacultyData : { error: "No faculty data available" };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -277,7 +338,10 @@ const [activeFilters, setActiveFilters] = useState({
                   <div className="space-y-2">
                     {designations.map((designation) => (
                       <div key={designation} className="flex items-center space-x-2">
-                        <Checkbox id={designation} />
+                        <Checkbox id={designation} 
+                        checked={activeFilters.designations.includes(designation)}
+                          onCheckedChange={() => handleFilterChange('designations', designation)}
+                        />
                         <label htmlFor={designation} className="text-sm">
                           {designation}
                         </label>
@@ -293,7 +357,11 @@ const [activeFilters, setActiveFilters] = useState({
                   <div className="space-y-2">
                     {departments.map((department) => (
                       <div key={department} className="flex items-center space-x-2">
-                        <Checkbox id={department} />
+                        <Checkbox id={department} 
+                        
+                        checked={activeFilters.departments.includes(department)}
+                          onCheckedChange={() => handleFilterChange('departments', department)}
+                        />
                         <label htmlFor={department} className="text-sm">
                           {department}
                         </label>
@@ -316,7 +384,10 @@ const [activeFilters, setActiveFilters] = useState({
                   <div className="space-y-2">
                     {institutions.map((institution) => (
                       <div key={institution} className="flex items-center space-x-2">
-                        <Checkbox id={institution} />
+                        <Checkbox id={institution}
+                        checked={activeFilters.institutions.includes(institution)}
+                          onCheckedChange={() => handleFilterChange('institutions', institution)}
+                         />
                         <label htmlFor={institution} className="text-sm">
                           {institution}
                         </label>
@@ -327,12 +398,15 @@ const [activeFilters, setActiveFilters] = useState({
               </AccordionItem>
 
               <AccordionItem value="state">
-                <AccordionTrigger>state</AccordionTrigger>
+                <AccordionTrigger>State</AccordionTrigger>
                 <AccordionContent>
                 <div className="space-y-2">
                     {states.map((state) => (
                       <div key={state} className="flex items-center space-x-2">
-                        <Checkbox id={state} />
+                        <Checkbox id={state}
+                        checked={activeFilters.states.includes(state)}
+                          onCheckedChange={() => handleFilterChange('states', state)}
+                         />
                         <label htmlFor={state} className="text-sm">
                           {state}
                         </label>
@@ -350,7 +424,7 @@ const [activeFilters, setActiveFilters] = useState({
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Sort By</span>
-              <Select defaultValue="name">
+              <Select value={sortBy} onValueChange={handleSortChange}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>
@@ -362,13 +436,13 @@ const [activeFilters, setActiveFilters] = useState({
               </Select>
             </div>
             <div className="text-sm text-gray-600">
-              Showing {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} results
+              Showing {totalItems > 0 ? `${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, totalItems)}` : 0} of {totalItems} results
             </div>
           </div>
 
           {loading ? (
             <div className="text-center py-8">Loading...</div>
-          ) : (
+          ) : Array.isArray(displayData) && displayData.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 border-none">
               {displayData.map((faculty) => (
                 <Card key={faculty.id} className="hover:shadow-lg transition-shadow duration-300 group">
@@ -410,8 +484,8 @@ const [activeFilters, setActiveFilters] = useState({
                       )}
                       {faculty.state && (
                         <div className="flex items-center text-sm text-gray-600 mb-4">
-                        {faculty.state}
-                      </div>
+                          {faculty.state}
+                        </div>
                       )}
                       <Button 
                         onClick={() => handleViewProfile(faculty.id)}
@@ -426,75 +500,78 @@ const [activeFilters, setActiveFilters] = useState({
                 </Card>
               ))}
             </div>
+          ) : (
+            <div className="text-center py-8">
+              <p>No profiles found matching your search criteria.</p>
+            </div>
           )}
 
-          {/* Pagination Controls */}
-          <div className="mt-8 flex justify-center">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious 
-                    href="#" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(Math.max(1, currentPage - 1));
-                    }}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-                  />
-                </PaginationItem>
-                
-                {[...Array(totalPages)].map((_, index) => {
-                  const pageNumber = index + 1;
+          {/* Improved Pagination Controls */}
+          {totalItems > 0 && totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(Math.max(1, currentPage - 1));
+                      }}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                    />
+                  </PaginationItem>
                   
-                  // Show first page, current page, last page, and one page before and after current
-                  if (
-                    pageNumber === 1 ||
-                    pageNumber === totalPages ||
-                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-                  ) {
-                    return (
-                      <PaginationItem key={pageNumber}>
-                        <PaginationLink 
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handlePageChange(pageNumber);
-                          }}
-                          isActive={currentPage === pageNumber}
-                        >
-                          {pageNumber}
-                        </PaginationLink>
-                      </PaginationItem>
-                    );
-                  }
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                    // Show current page and adjacent pages
+                    const shouldShow = page === 1 || 
+                                     page === totalPages || 
+                                     Math.abs(page - currentPage) <= 1;
+                    
+                    // Show ellipsis for gaps
+                    const shouldShowEllipsis = (page === 2 && currentPage > 3) || 
+                                             (page === totalPages - 1 && currentPage < totalPages - 2);
+                                       
+                    if (shouldShow) {
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink 
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handlePageChange(page);
+                            }}
+                            isActive={currentPage === page}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    } else if (shouldShowEllipsis) {
+                      return (
+                        <PaginationItem key={`ellipsis-${page}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      );
+                    }
+                    
+                    return null;
+                  })}
                   
-                  if (
-                    pageNumber === 2 ||
-                    pageNumber === totalPages - 1
-                  ) {
-                    return (
-                      <PaginationItem key={pageNumber}>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    );
-                  }
-                  
-                  return null;
-                })}
-
-                <PaginationItem>
-                  <PaginationNext 
-                    href="#" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handlePageChange(Math.min(totalPages, currentPage + 1));
-                    }}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
+                  <PaginationItem>
+                    <PaginationNext 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePageChange(Math.min(totalPages, currentPage + 1));
+                      }}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -504,40 +581,6 @@ const [activeFilters, setActiveFilters] = useState({
 export default Profiles;
 
 
-
-
-// import React, { useState } from 'react';
-// import person from '../../assets/person.jpg';
-// import { useNavigate } from 'react-router-dom';
-// import {
-//   Card,
-//   CardContent,
-// } from "@/components/ui/card";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "@/components/ui/select";
-// import {
-//   Accordion,
-//   AccordionContent,
-//   AccordionItem,
-//   AccordionTrigger,
-// } from "@/components/ui/accordion";
-// import { Button } from "@/components/ui/button";
-// import { Checkbox } from '@/components/ui/checkbox';
-// import { Search } from 'lucide-react';
-// import {
-//   Pagination,
-//   PaginationContent,
-//   PaginationEllipsis,
-//   PaginationItem,
-//   PaginationLink,
-//   PaginationNext,
-//   PaginationPrevious,
-// } from "@/components/ui/pagination";
 
 // const profiles = () => {
 //   const [searchTerm, setSearchTerm] = useState('');
@@ -555,87 +598,7 @@ export default Profiles;
 //     navigate('/profile');
 //   };
 //   const navigate = useNavigate();
-// const departments = [
-// 'Astronomy and Astrophysics',
-// 'Atomic, Molecular and Optical Physics', 
-// 'Geosciences', 
-// 'Planetary Sciences', 
-// 'Space and Atmospheric Sciences', 
-// 'Theoretical Physics', 
-// 'Udaipur Solar Observatory',
-// 'Workshop', 
-// 'CNIT Services', 
-// 'Medical Services',
-// 'AdminisTration', 
-// 'CMG Services', 
-// 'Library Services', 
-// 'Unknown', 
-// 'Others', 
-// ];
-// const locations=[ 
-// "Andhra Pradesh",
-// "Arunachal Pradesh",
-// "Assam",
-// "Bihar",
-// "Chhattisgarh",
-// "Goa",
-// "Gujarat",
-// "Haryana",
-// "Himachal Pradesh",
-// "Jharkhand",
-// "Karnataka",
-// "Kerala",
-// "Maharashtra",
-// "Madhya Pradesh",
-// "Manipur",
-// "Meghalaya",
-// "Mizoram",
-// "Nagaland",
-// "Odisha",
-// "Punjab",
-// "Rajasthan",
-// "Sikkim",
-// "Tamil Nadu",
-// "Tripura",
-// "Telangana",
-// "Uttar Pradesh",
-// "Uttarakhand",
-// "West Bengal",
-// "Andaman & Nicobar (UT)",
-// "Chandigarh (UT)",
-// "Dadra & Nagar Haveli and Daman & Diu (UT)",
-// "Delhi [National Capital Territory (NCT)]",
-// "Jammu & Kashmir (UT)",
-// "Ladakh (UT)",
-// "Lakshadweep (UT)",
-// "Puducherry (UT)"
-// ]
-//   const designations = [
-//     "Associate Professor",
-//     "Assistant Professor",
-//     "Scientist",
-//     "Senior Scientist",
-//     "Faculty",
-//     "Senior Research Fellow",
-//     "Dean",
-//     "Doctor",
-//     "Head of the Department",
-//     "Lecturer",
-//     "Associate Dean",
-//     "Head",
-//     "Project Engineer",
-//     "Research Fellow",
-//     "Research Scientist",
-//     "Research Scholar"
-//   ];
-//   const institutions = [
-//     "IIT Bombay",
-//     "IIT Delhi",
-//     "PRL Ahmedabad",
-//     "IISER Pune",
-//     "isro Ahmedabad",
-//     "isro Bangalore",
-//   ];
+
 //   const facultyData = [
 //     {
 //       id: 1,

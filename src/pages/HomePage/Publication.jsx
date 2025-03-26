@@ -1,22 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
-import pubimg from '../../assets/pub_bg.jpg'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
+import pubimg from '../../assets/pub_bg.jpg';
 
 const Publication = () => {
-const [departmentData, setDepartmentData] = useState([]);
-  // State to track loading status
+  const [departmentData, setDepartmentData] = useState([]);
+  const [yearlyData, setYearlyData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  // State to track error status
   const [error, setError] = useState(null);
+  const [selectedMetric, setSelectedMetric] = useState('total_publications');
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [years, setYears] = useState([]);
 
   // Fetch data from the API when component mounts
   useEffect(() => {
     const fetchDepartmentData = async () => {
       try {
         setIsLoading(true);
-        // Make the API request to your Django backend
-        const response = await fetch('/api/departments');
+        
+        // Determine the correct API URL (adjust this to your actual backend URL)
+        // For local development, your Django backend is likely on a different port
+        const API_BASE_URL =  'http://localhost:8000';
+        const apiUrl = `${API_BASE_URL}/api/departments`;
+        
+        console.log('Fetching data from:', apiUrl);
+        
+        // Make the API request to your Django backend with the correct URL
+        const response = await fetch(apiUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        // Log the response for debugging
+        console.log('Response status:', response.status);
         
         // Check if the response is ok
         if (!response.ok) {
@@ -26,23 +43,95 @@ const [departmentData, setDepartmentData] = useState([]);
         // Parse the JSON response
         const data = await response.json();
         
-        // Format the data if needed
-        const formattedData = Array.isArray(data) ? data : data.results || [];
+        // Process the data - separate department metrics and yearly stats
+        const deptMetrics = [];
+        const yearlyDataObj = {};
+        const uniqueYears = new Set();
         
-        // Update state with the fetched data
-        setDepartmentData(formattedData);
+        data.forEach(item => {
+          if (item.hasOwnProperty('total_profiles')) {
+            // This is department metrics data
+            deptMetrics.push(item);
+          } else if (item.hasOwnProperty('publication_stats')) {
+            // This is yearly publication stats data
+            const departmentName = item.department;
+            
+            item.publication_stats.forEach(stat => {
+              const year = stat.year.toString();
+              uniqueYears.add(year);
+              
+              if (!yearlyDataObj[year]) {
+                yearlyDataObj[year] = [];
+              }
+              
+              yearlyDataObj[year].push({
+                department: departmentName,
+                total_publications: stat.total_publications,
+                total_citations: stat.total_citations
+              });
+            });
+          }
+        });
+        
+        // Convert years to array and sort
+        const sortedYears = Array.from(uniqueYears).sort();
+        
+        // Set the most recent year as the default selected year
+        if (sortedYears.length > 0 && !selectedYear) {
+          setSelectedYear(sortedYears[sortedYears.length - 1]);
+        }
+        
+        // Update state with the processed data
+        setDepartmentData(deptMetrics);
+        setYearlyData(yearlyDataObj);
+        setYears(sortedYears);
         setError(null);
       } catch (err) {
         console.error('Error fetching department data:', err);
         setError('Failed to load department data. Please try again later.');
+        
+        // Use mock data if API fails
+        console.log('Using mock data due to API error');
+        useMockData();
       } finally {
         setIsLoading(false);
       }
     };
 
+    // Mock data function for development/testing
+    const useMockData = () => {
+      console.log('Loading mock data');
+      
+      const mockDepartmentData = [
+        { department: "Computer Science", total_publications: 356, total_citations: 4250, total_profiles: 42 },
+        { department: "Physics", total_publications: 285, total_citations: 3800, total_profiles: 36 },
+        { department: "Mathematics", total_publications: 198, total_citations: 2100, total_profiles: 28 },
+        { department: "Chemistry", total_publications: 245, total_citations: 3200, total_profiles: 32 },
+        { department: "Biology", total_publications: 320, total_citations: 4100, total_profiles: 38 }
+      ];
+      
+      const mockYears = ["2021", "2022", "2023", "2024"];
+      
+      const mockYearlyData = {};
+      mockYears.forEach(year => {
+        mockYearlyData[year] = mockDepartmentData.map(dept => ({
+          department: dept.department,
+          total_publications: Math.floor(dept.total_publications * (0.85 + Math.random() * 0.3)),
+          total_citations: Math.floor(dept.total_citations * (0.85 + Math.random() * 0.3))
+        }));
+      });
+      
+      setDepartmentData(mockDepartmentData);
+      setYearlyData(mockYearlyData);
+      setYears(mockYears);
+      setSelectedYear(mockYears[mockYears.length - 1]);
+    };
+
     fetchDepartmentData();
   }, []); // Empty dependency array means this effect runs once on mount
 
+  // The rest of the component remains the same...
+  
   // Show loading state
   if (isLoading) {
     return (
@@ -72,74 +161,57 @@ const [departmentData, setDepartmentData] = useState([]);
     );
   }
 
+  // Prepare data for the yearly trends chart
+  const prepareYearlyTrendsData = () => {
+    // Get all department names
+    const departments = departmentData.map(dept => dept.department);
+    
+    // Create data for the line chart
+    return years.map(year => {
+      const yearData = { year };
+      
+      // Find data for this year
+      const yearStats = yearlyData[year] || [];
+      
+      // Add data for each department
+      departments.forEach(dept => {
+        const deptData = yearStats.find(stat => stat.department === dept);
+        
+        if (deptData) {
+          yearData[`${dept}_publications`] = deptData.total_publications;
+          yearData[`${dept}_citations`] = deptData.total_citations;
+        } else {
+          yearData[`${dept}_publications`] = 0;
+          yearData[`${dept}_citations`] = 0;
+        }
+      });
+      
+      return yearData;
+    });
+  };
 
-  const sections = [
-    {
-      title: "Most Viewed",
-      publications: [
-        {
-          title: "Highly sensitive electrochemical sensor for glutathione detection using zinc oxide quantum dots anchored on reduced graphene oxide",
-          views: "8,254",
-          authors: ["Vinoth V.","Subramaniyam G.","Kaimal R.","Shanmugaraj K.","Gnana Sundara Raj B.","Thirumurugan A.","Thandapani P.","Pugazhenthiran N.","Manidurai P.","Anandan S."],
-          type: "Surfaces and Interfaces, Volume 51, Year 2024",
-        },
-        {
-          title: "Design rule of swift control prototyping systems for power electronics and electrical drives",
-          views: "6,130",
-          authors: ["T. Bramhananda Reddy.", "N. Ravisankara Reddy.", "A. Pradeepkumar Yadav." ,"C. Harinatha Reddy.", "C. Harikrishna.","Y.V. Siva Reddy.", "Vihljajev, Vladimir", "Žilaitienė, Birutė", "Erenpreiss, Juris", "Matulevičius, Valentinas", "Laan, Mart"],
-          type: "Journal of Research Administration",
-        }, 
-      ]
-    },
-    {
-      title: "Most Downloaded",
-      publications: [
-        {
-          title: "Galvijų neužkrečiamosios virškinimo organų ligos : mokomoji knyga",
-          downloads: "812",
-          authors: ["Antanaitis, Ramūnas"],
-          type: "Mokomoji knyga / Educational book (K2b)"
-        },
-        {
-          title: "Neurologijos pagriniai : vadovėlis",
-          downloads: "280", 
-          authors: ["Endzinienė, Milda", "Jurkevičienė, Giedrė", "Laurikaitė, Kristina", "Mickevičienė, Dalė", "Obelienienė, Diana", "Petrikonis, Kęstutis", "Ščiupokas, Arūnas", "Vaičienė-Magistris, Nerija", "Vaitkus, Antanas"],
-          type: "Vadovėlis / Textbook (K2a)"
-        },
-        {
-          title: "Anatomijos vardynas : [elektroninė knyga]",
-          downloads: "242",
-          authors: ["Stropus, Stasys Rimvydas", "Paulienė, Neringa", "Paula, Danute", "Tamošiūnas, Virgilijus", "Jakimavičienė, Eglė Marija", "Žemlevičiūtė, Palmira"],
-          type: "Žodynas / Dictionary (K3a)"
-        }
-      ]
-    },
-    {
-      title: "Recent Submissions",
-      publications: [
-        {
-          title: "Paukščių aspergilioze",
-          authors: ["Ročkevičius, Alius"],
-          type: "Straipsnis mokslo-populiarinimo leidinyje / Article in popular science editions (S6)"
-        },
-        {
-          title: "Smulkiųjų atrajotojų kazeoinis limfadenitas",
-          authors: ["Žagrauskaitė, Rita", "Burinskaitė-Ambroziūnienė, Giedrė", "Ročkevičius, Alius"],
-          type: "Straipsnis mokslo-populiarinimo leidinyje / Article in popular science editions (S6)"
-        },
-        {
-          title: "Galvijų kraujo biocheminio tyrimo diagnostinė reikšmė",
-          authors: ["Antanaitis, Ramūnas"],
-          type: "Straipsnis mokslo-populiarinimo leidinyje / Article in popular science editions (S6)"
-        },
-        {
-          title: "Arklių oro maišų mikoze",
-          authors: ["Pakalniskytė, Eglė", "Mataitytė, Simona", "Graždytė, Renata"],
-          type: "Straipsnis mokslo-populiarinimo leidinyje / Article in popular science editions (S6)"
-        }
-      ]
-    }
-  ];
+  // Generate colors for departments
+  const generateColors = (count) => {
+    const colors = [
+      '#3B82F6', // blue
+      '#10B981', // green
+      '#F59E0B', // yellow
+      '#EF4444', // red
+      '#8B5CF6', // purple
+      '#EC4899', // pink
+      '#06B6D4', // cyan
+      '#F97316', // orange
+    ];
+    
+    return Array(count).fill().map((_, idx) => colors[idx % colors.length]);
+  };
+
+  // Get yearly trends data
+  const yearlyTrendsData = prepareYearlyTrendsData();
+  
+  // Get all department names and colors
+  const departments = departmentData.map(dept => dept.department);
+  const departmentColors = generateColors(departments.length);
 
   return (
     <div className='bg-blue-200 mx-auto max-w-6xl p-4'>
@@ -159,138 +231,108 @@ const [departmentData, setDepartmentData] = useState([]);
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {sections.map((section, index) => (
-          <div key={index} className="bg-gray-100 rounded shadow">
-            <div className="flex justify-between items-center bg-gray-200 px-4 py-2">
-              <h2 className="text-gray-700 font-medium">{section.title}</h2>
-              <div className="flex">
-                <button className="text-gray-500 px-1">❮</button>
-                <button className="text-gray-500 px-1">❯</button>
+
+      {/* Combined Publications, Profiles and Citations Chart */}
+      <div className="mb-8 bg-white p-6 rounded-lg shadow-md mt-6">
+        <h3 className="text-lg font-semibold text-gray-700 mb-4">Department Metrics Overview</h3>
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={departmentData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="department" 
+                angle={-45} 
+                textAnchor="end"
+                height={60}
+                interval={0}
+              />
+              <YAxis yAxisId="left" orientation="left" />
+              <YAxis yAxisId="right" orientation="right" />
+              <Tooltip />
+              <Legend />
+              <Bar yAxisId="left" dataKey="total_publications" name="Publications" fill="#3B82F6" />
+              <Bar yAxisId="left" dataKey="total_profiles" name="Profiles" fill="#10B981" />
+              <Bar yAxisId="right" dataKey="total_citations" name="Citations" fill="#F59E0B" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Year-wise Department Trends Chart */}
+      {years.length > 0 && (
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2 sm:mb-0">Department Trends by Year</h3>
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center space-x-2">
+                <label htmlFor="metricSelect" className="text-sm text-gray-600">Metric:</label>
+                <select
+                  id="metricSelect"
+                  value={selectedMetric}
+                  onChange={(e) => setSelectedMetric(e.target.value)}
+                  className="text-sm border rounded py-1 px-2"
+                >
+                  <option value="total_publications">Publications</option>
+                  <option value="total_citations">Citations</option>
+                </select>
               </div>
             </div>
-            
-            <div className="p-2">
-              {section.publications.map((pub, pubIndex) => (
-                <div key={pubIndex} className="mb-4 bg-white p-3 rounded shadow-sm">
-                  <div className="flex justify-between">
-                    <h3 className="text-teal-600 font-medium text-sm hover:underline cursor-pointer">
-                      {pub.title}
-                    </h3>
-                    {pub.views && (
-                      <span className="bg-gray-200 text-gray-700 text-xs px-2 rounded ml-2 whitespace-nowrap">
-                        {pub.views}
-                      </span>
-                    )}
-                    {pub.downloads && (
-                      <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded ml-2 whitespace-nowrap">
-                        {pub.downloads}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="text-gray-600 text-xs mt-1 italic">
-                    {pub.authors.map((author, authorIndex) => (
-                      <span key={authorIndex}>
-                        {author}
-                        {authorIndex < pub.authors.length - 1 ? '; ' : ''}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  <div className="mt-2 flex items-center">
-                    <span className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded mr-2">Journal</span>
-                    <span className="text-xs text-gray-600">{pub.type}</span>
-                  </div>
-
-                </div>
-              ))}
-            </div>
           </div>
-        ))}
-        {/* Publications Chart */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Publications by Department</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={departmentData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="department" 
-                angle={-45} 
-                textAnchor="end"
-                height={60}
-                interval={0}
-              />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="total_publications" name="Publications" fill="#3B82F6" />
-            </BarChart>
-          </ResponsiveContainer>
+          
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={yearlyTrendsData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="year" 
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis />
+                <Tooltip
+                  formatter={(value, name) => {
+                    // Extract department name from the dataKey
+                    const dept = name.split('_')[0];
+                    return [value, dept];
+                  }}
+                />
+                <Legend 
+                  formatter={(value) => {
+                    // Extract department name from the dataKey
+                    return value.split('_')[0];
+                  }}
+                />
+                {departments.map((dept, index) => (
+                  <Line
+                    key={dept}
+                    type="monotone"
+                    dataKey={`${dept}_${selectedMetric === 'total_publications' ? 'publications' : 'citations'}`}
+                    name={`${dept}_${selectedMetric === 'total_publications' ? 'publications' : 'citations'}`}
+                    stroke={departmentColors[index]}
+                    activeDot={{ r: 8 }}
+                    strokeWidth={2}
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
-      
-      {/* Citations Chart */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Citations by Department</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={departmentData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="department" 
-                angle={-45} 
-                textAnchor="end"
-                height={60}
-                interval={0}
-              />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="total_citations" name="Citations" fill="#F59E0B" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      
-      {/* Profiles Chart */}
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Profiles by Department</h3>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={departmentData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="department" 
-                angle={-45} 
-                textAnchor="end"
-                height={60}
-                interval={0}
-              />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="total_profiles" name="Profiles" fill="#10B981" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {departmentData.map((dept) => (
-          <div key={dept.department} className="bg-gray-50 rounded-lg p-4 shadow">
-            <h4 className="font-bold text-gray-700 mb-2">{dept.department}</h4>
+        {departmentData.map((dept, index) => (
+          <div 
+            key={dept.department} 
+            className="bg-white rounded-lg p-4 shadow border-l-4" 
+            style={{ borderLeftColor: departmentColors[index % departmentColors.length] }}
+          >
+            <h4 className="font-bold text-gray-700 mb-2 truncate" title={dept.department}>{dept.department}</h4>
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="bg-blue-100 p-2 rounded">
                 <p className="text-xs text-blue-700 font-semibold">Publications</p>
@@ -309,8 +351,7 @@ const [departmentData, setDepartmentData] = useState([]);
         ))}
       </div>
     </div>
-    </div>
-  )
-}
+  );
+};
 
 export default Publication;

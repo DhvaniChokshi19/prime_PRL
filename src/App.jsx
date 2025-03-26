@@ -11,7 +11,7 @@ import Mainprofile from "./pages/ProfilePage/mainprofile";
 import Loginbox from "./pages/LoginPage/Loginbox";
 import Publication from "./pages/HomePage/Publication";
 import Header from './pages/HomePage/Header';
-
+import Persons from "./pages/HomePage/persons";
 
 // Home page component
 const Home = () => {
@@ -58,15 +58,23 @@ const PublicationP=()=>{
     </>
   )
 }
+const PersonsP=()=>{
+  return(
+    <>
+    <Header></Header>
+    <Persons></Persons></>
+  )
+}
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchDisplay />} />
-        <Route path="/profile" element={<ProfileP />} />
+        <Route path="/profile/:id" element={<ProfileP />} />
         <Route path="/Login"element={<LoginP />} />
         <Route path="/Publication"element={<PublicationP />}/>
+        <Route path='/Person'element={<PersonsP/>}/>
       </Routes>
     </Router>
   );

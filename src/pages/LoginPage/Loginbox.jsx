@@ -1,151 +1,184 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // For redirection
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-const LoginBox = () => {
+// Login component that handles both OTP request and verification
+const Login = () => {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate(); // For redirection
-  
-  // Check if the email is a valid PRL email
-  const isValidPrlEmail = (email) => {
-    return email && email.trim() !== '' && email.includes('@prl');
-  };
-  
-  // Function to send OTP to the user's email
-  const handleSendOTP = async () => {
-    if (!isValidPrlEmail(email)) return;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [countdown, setCountdown] = useState(0);
+  const navigate = useNavigate();
+
+axios.defaults.baseURL = 'http://localhost:8000';
+  useEffect(() => {
+    // Countdown timer for OTP expiry (5 minutes)
+    let timer;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleRequestOTP = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
     
-    setIsLoading(true);
     try {
-      // In a real application, would make an API call here
-      // await api.sendOTP(email);
-      
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const response = await axios.post('/api/login/request-otp', { email });
       setOtpSent(true);
-    } catch (error) {
-      console.error('Error sending OTP:', error);
-      alert('Failed to send OTP. Please try again.');
+      setCountdown(300); // 5 minutes in seconds
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to send OTP. Please try again.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
-  
-  // Function to verify OTP and login the user
-  const handleLogin = async () => {
-    if (!otp || otp.trim() === '') return;
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
     
-    setIsLoading(true);
     try {
-      // In a real application, we would verify the OTP with your backend
-      // Example: const response = await api.verifyOTP(email, otp);
+      const response = await axios.post('/api/login/verify-otp', { email, otp });
       
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // // Store tokens
+      // const { access, refresh } = response.data;
+      // localStorage.setItem('access_token', access);
+      // localStorage.setItem('refresh_token', refresh);
       
-      // On successful authentication, redirect to profile page
-      navigate('/profile'); // This will redirect the user to the profile page
-    } catch (error) {
-      console.error('Error logging in:', error);
-      alert('Invalid OTP. Please try again.');
+      // // Set authorization header for future requests
+      // axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+      
+      // Redirect to dashboard or profile page
+      navigate('/api/profile/{profile_id}');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Invalid OTP. Please try again.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' + secs : secs}`;
   };
 
   return (
-    <div className="min-h-full bg-gray-100 flex items-center justify-center">
-      <div className="w-full max-w-md bg-white border-2 border-gray-200 rounded-md shadow-md p-8">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold mb-2">Welcome</h2>
-          <p className="text-gray-600">Log in to your account</p>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">PRIME Login</h1>
+          <p className="mt-2 text-gray-600">
+            {!otpSent ? 'Enter your email to receive an OTP' : 'Enter the OTP sent to your email'}
+          </p>
         </div>
 
-        <div className="mb-6">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Enter PRL Email
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-              </svg>
-            </div>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="example@prl.res.in"
-            />
+        {error && (
+          <div className="p-3 text-sm text-red-800 bg-red-100 rounded-md">
+            {error}
           </div>
-        </div>
+        )}
 
-        <div className="flex justify-center mb-4">
-          <button
-            type="button"
-            onClick={handleSendOTP}
-            disabled={!isValidPrlEmail(email) || isLoading}
-            className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
-              isValidPrlEmail(email) && !isLoading
-                ? 'bg-blue-200 text-blue-800 hover:bg-blue-300'
-                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            {isLoading && !otpSent ? 'Sending...' : 'Send OTP'}
-          </button>
-        </div>
-
-        {otpSent && (
-          <>
-            <p className="text-center text-green-600 text-sm mb-4">
-              OTP sent successfully on your email
-            </p>
-
-            <div className="mb-6">
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
-                Enter OTP
+        {!otpSent ? (
+          <form onSubmit={handleRequestOTP} className="mt-8 space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email Address
               </label>
               <input
-                type="text"
-                id="otp"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter 6-digit OTP"
+                id="email"
+                name="email"
+                type="email"
+                required
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-
-            <div className="flex justify-center">
+            <div>
               <button
-                type="button"
-                onClick={handleLogin}
-                disabled={!otp || otp.trim() === '' || isLoading}
-                className={`px-6 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 ${
-                  otp && otp.trim() !== '' && !isLoading
-                    ? 'bg-blue-200 text-blue-800 hover:bg-blue-300'
-                    : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                type="submit"
+                disabled={loading || !email}
+                className={`w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  loading || !email ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
-                {isLoading ? 'Logging in...' : 'Login'}
+                {loading ? 'Sending...' : 'Send OTP'}
               </button>
             </div>
-          </>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOTP} className="mt-8 space-y-6">
+            <div>
+              <label htmlFor="otp" className="block text-sm font-medium text-gray-700">
+                One-Time Password (OTP)
+              </label>
+              <input
+                id="otp"
+                name="otp"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength="6"
+                required
+                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+              />
+              {countdown > 0 && (
+                <p className="mt-2 text-sm text-gray-600">
+                  OTP expires in: {formatTime(countdown)}
+                </p>
+              )}
+              {countdown === 0 && otpSent && (
+                <p className="mt-2 text-sm text-red-600">
+                  OTP has expired. Please request a new one.
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col space-y-3">
+              <button
+                type="submit"
+                disabled={loading || otp.length !== 6 || countdown === 0}
+                className={`w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  loading || otp.length !== 6 || countdown === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                {loading ? 'Verifying...' : 'Verify OTP'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpSent(false);
+                  setOtp('');
+                  setError(null);
+                  setCountdown(0);
+                }}
+                className="w-full px-4 py-2 text-blue-600 bg-white border border-blue-600 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Back to Email
+              </button>
+              <button
+                type="button"
+                onClick={handleRequestOTP}
+                disabled={loading}
+                className="text-sm text-blue-600 hover:underline focus:outline-none"
+              >
+                Resend OTP
+              </button>
+            </div>
+          </form>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 w-full bg-gray-700 text-white p-3 flex justify-between">
-        <div>PRL, Thaltej</div>
-        <div>2025 © All Rights Reserved.</div>
       </div>
     </div>
   );
 };
 
-export default LoginBox;
+export default Login;

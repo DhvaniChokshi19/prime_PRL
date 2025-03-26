@@ -1,109 +1,84 @@
-// import React, {useState} from 'react';
-// import { BookOpen, Lock } from 'lucide-react';
-
-//   const Publications = () => {
-
-//   const [publications, setPublications] = useState([
-//     {
-//       title: 'Advances in Nanomaterials for Energy Storage',
-//       journal: 'Journal of Energy Materials',
-//       year: 2022,
-//       doi: '10.1000/xyz123'
-//     },
-//     {
-//       title: 'Electrochemical Properties of Novel Composite Materials',
-//       journal: 'Electrochemistry Communications',
-//       year: 2021,
-//       doi: '10.1000/abc456'
-//     },
-//     {
-//       title: 'Sustainable Energy Storage Solutions',
-//       journal: 'Applied Energy',
-//       year: 2020,
-//       doi: '10.1000/def789'
-//     }
-//   ]);
-
-//   return (
-//     <div className="space-y-4">
-//       <div className="flex items-center justify-between mb-4">
-//         <div className="flex items-center space-x-2">
-//           <BookOpen className="w-6 h-6 text-gray-500" />
-//           <h3 className="text-xl font-semibold">Publications (793)</h3>
-//         </div>
-//         <div className="flex items-center space-x-2">
-//           <span className="text-sm font-medium">Sort By:</span>
-//           <select className="px-3 py-1 border rounded-md text-sm">
-//             <option> Date (newest)</option>
-//             <option> Date (oldest)</option>
-//             <option> Relevance</option>
-//           </select>
-//         </div>
-//       </div>
-
-//       <div className="space-y-6 pl-4 border-l-2 border-gray-200">
-//         {/* Publication 1 */}
-//         <div className="space-y-2">
-//           <div className="flex items-start justify-between gap-4">
-//             <h4 className="font-semibold">
-//               Nonprecious and shape-controlled Co3O4-CoO@Co electrocatalysts with defect-rich and spin-state altering properties to accelerate hydrogen evolution reaction at large current densities over a wide pH range
-//             </h4>
-//             <Lock className="w-4 h-4 text-gray-500 flex-shrink-0" />
-//           </div>
-//           <p className="text-gray-600">
-//             Karuppasamy L.;Gurusamy L.;Anandan S.;Barton S.C.;Liu C.H.;Wu J.J.
-//           </p>
-//           <div className="flex flex-wrap gap-4 text-sm">
-//             <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
-//             <span className="text-gray-600">Chemical Engineering Journal, Volume 495, Year 2024</span>
-//           </div>
-//           <p className="text-blue-600 text-sm">DOI:10.1016/j.cej.2024.153442</p>
-//           <span class="__dimensions_badge_embed__" data-doi="10.1016/j.cej.2024.153442" data-hide-zero-citations="true" data-style="small_circle"></span><script async src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
-//         </div>
-
-//         {/* Publication 2 */}
-//         <div className="space-y-2">
-//           <div className="flex items-start justify-between gap-4">
-//             <h4 className="font-semibold">
-//               Effect of nutrition intervention on cognitive development among malnourished preschool children: randomized controlled trial
-//             </h4>
-//             <div className="flex items-center gap-2">
-//               {/* <Citation className="w-4 h-4 text-gray-500" /> */}
-//               <span className="text-gray-600">8</span>
-//             </div>
-//           </div>
-//           <p className="text-gray-600">
-//             Ansuya, B.S., Nayak, Baby S., U., Bhaskaran, Unnikrishnan, Y.N., Shashidhara, Y. N., S.C., Mundkur, Suneel C.
-//           </p>
-//           <div className="flex flex-wrap gap-4 text-sm">
-//             <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
-//             <span className="text-green-600">Open access</span>
-//             <span className="text-gray-600">Scientific Reports, 2023</span>
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Publications;
-
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Lock, ExternalLink } from 'lucide-react';
+import { BookOpen, Lock, ExternalLink, Award, ChevronDown } from 'lucide-react';
 import axios from 'axios';
+import { Button } from '@/components/ui/button';
 
-const Publications = ({ profileId }) => {
+const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   const [publications, setPublications] = useState([]);
+  const [topPubs, setTopPubs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAll, setShowAll] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
-    const fetchPublications = async () => {
+    // If top publications are provided via props, use them
+    if (topPublications && Array.isArray(topPublications) && topPublications.length > 0) {
+      setTopPubs(topPublications);
+    }
+
+    // If all publications data is provided, use it instead of fetching
+    if (data && Array.isArray(data) && data.length > 0) {
+      setPublications(data);
+      setIsLoading(false);
+      
+      // If top publications weren't provided via props, derive them from all publications
+      if (!topPublications || !topPublications.length) {
+        const sortedByCitations = [...data]
+          .sort((a, b) => (b.cited_by || 0) - (a.cited_by || 0));
+        setTopPubs(sortedByCitations.slice(0, 10));
+      }
+      
+      // Update parent component if needed
+      if (onDataUpdate) {
+        onDataUpdate(data);
+      }
+      return;
+    }
+
+    // Only fetch data if not provided
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Replace with your actual API endpoint and parameters
-        const response = await axios.get(`/api/profile/publications${profileId ? `?profile_id=${profileId}` : ''}`);
-        setPublications(response.data);
+        
+        // Fetch all publications
+        const publicationsResponse = await axios.get('/api/profile/publications', {
+          params: { profile_id: profileId }
+        });
+        
+        setPublications(publicationsResponse.data);
+        
+        // If top publications weren't provided via props, check if they need to be fetched
+        if (!topPublications || !topPublications.length) {
+          try {
+            // Try to fetch profile data which includes top publications
+            const profileResponse = await axios.get('/api/profile', {
+              params: { profile_id: profileId }
+            });
+            
+            // If backend provides top publications, use them
+            if (profileResponse.data.top_publications && 
+                Array.isArray(profileResponse.data.top_publications)) {
+              setTopPubs(profileResponse.data.top_publications);
+            } else {
+              // Otherwise derive top publications from all publications
+              const sortedByCitations = [...publicationsResponse.data]
+                .sort((a, b) => (b.cited_by || 0) - (a.cited_by || 0));
+              setTopPubs(sortedByCitations.slice(0, 10));
+            }
+          } catch (err) {
+            // If profile fetch fails, derive top publications from all publications
+            const sortedByCitations = [...publicationsResponse.data]
+              .sort((a, b) => (b.cited_by || 0) - (a.cited_by || 0));
+            setTopPubs(sortedByCitations.slice(0, 10));
+            console.error('Error fetching profile data:', err);
+          }
+        }
+        
+        // Update parent component if needed
+        if (onDataUpdate) {
+          onDataUpdate(publicationsResponse.data);
+        }
       } catch (err) {
         setError('Failed to load publications');
         console.error('Error fetching publications:', err);
@@ -112,29 +87,76 @@ const Publications = ({ profileId }) => {
       }
     };
 
-    fetchPublications();
-  }, [profileId]);
+    fetchData();
+  }, [profileId, onDataUpdate, data, topPublications]);
 
   // Format publication date to show only year
   const formatYear = (dateString) => {
     if (!dateString) return '';
-    return new Date(dateString).getFullYear();
+    try {
+      return new Date(dateString).getFullYear();
+    } catch (e) {
+      return dateString;
+    }
   };
+
+  // Sort publications based on selected option
+  const sortedPublications = () => {
+    const publicationsToSort = showAll ? publications : topPubs;
+    
+    if (!Array.isArray(publicationsToSort) || publicationsToSort.length === 0) {
+      return [];
+    }
+    
+    return [...publicationsToSort].sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.publication_date || 0) - new Date(a.publication_date || 0);
+        case 'oldest':
+          return new Date(a.publication_date || 0) - new Date(b.publication_date || 0);
+        case 'citations':
+          return (b.cited_by || 0) - (a.cited_by || 0);
+        default:
+          return 0;
+      }
+    });
+  };
+
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
+  };
+
+  const handleViewMoreClick = () => {
+    setShowAll(true);
+  };
+
+  const displayedPublications = sortedPublications();
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <BookOpen className="w-6 h-6 text-gray-500" />
-          <h3 className="text-xl font-semibold">Publications ({publications.length || 0})</h3>
+          <h3 className="text-xl font-semibold">
+            {showAll 
+              ? `All Publications (${publications.length || 0})` 
+              : `Top Cited Publications (${topPubs.length || 0})`}
+          </h3>
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium">Sort By:</span>
-          <select className="px-3 py-1 border rounded-md text-sm">
-            <option>Date (newest)</option>
-            <option>Date (oldest)</option>
-            <option>Citations</option>
+          <select 
+            className="px-3 py-1 border rounded-md text-sm"
+            value={sortBy}
+            onChange={handleSortChange}
+          >
+            <option value="newest">Date (newest)</option>
+            <option value="oldest">Date (oldest)</option>
+            <option value="citations">Citations</option>
           </select>
+          <div className='flex items-center space-x-3' >
+           <p className='text-sm text-black'>Data Source: Scopus</p>
+        </div>
         </div>
       </div>
 
@@ -145,42 +167,70 @@ const Publications = ({ profileId }) => {
       ) : error ? (
         <div className="text-red-500 text-center py-4">{error}</div>
       ) : (
-        <div className="space-y-6 pl-4 border-l-2 border-gray-200">
-          {Array.isArray(publications) ? (
-            publications.map((pub, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-start justify-between gap-4">
-                  <h4 className="font-semibold">{pub.title}</h4>
-                  {!pub.open_access && <Lock className="w-4 h-4 text-gray-500 flex-shrink-0" />}
-                  {pub.open_access && <ExternalLink className="w-4 h-4 text-green-500 flex-shrink-0" />}
-                </div>
-                <p className="text-gray-600">{pub.co_authors}</p>
-                <div className="flex flex-wrap gap-4 text-sm">
-                  <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
-                  {pub.open_access && <span className="text-green-600">Open access</span>}
-                  <span className="text-gray-600">
-                    {pub.publication_name}
-                    {pub.volume && `, Volume ${pub.volume}`}
-                    {pub.issue && `, Issue ${pub.issue}`}
-                    {pub.pagerange && `, Pages ${pub.pagerange}`}
-                    {pub.publication_date && `, ${formatYear(pub.publication_date)}`}
-                  </span>
-                </div>
-                {pub.doi && (
-                  <p className="text-blue-600 text-sm">DOI:{pub.doi}</p>
-                  
-                )}
-                {pub.cited_by > 0 && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-600">{pub.cited_by}</span>
+        <>
+          <div className="space-y-6 pl-4 border-l-2 border-gray-200">
+            {displayedPublications.length > 0 ? (
+              displayedPublications.map((pub, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex items-start justify-between gap-4">
+                    <h4 className="font-semibold">
+                      {pub.title}
+                      {!showAll && <Award className="inline-block ml-2 w-4 h-4 text-yellow-500" />}
+                    </h4>
+                    <div className="flex-shrink-0">
+                      {pub.open_access === false && <Lock className="w-4 h-4 text-gray-500" />}
+                      {pub.open_access === true && <ExternalLink className="w-4 h-4 text-green-500" />}
+                    </div>
                   </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="text-gray-500 text-center py-4">No publications found</div>
+                  <p className="text-gray-600">{pub.co_authors}</p>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
+                    {pub.open_access && <span className="text-green-600">Open access</span>}
+                    <span className="text-gray-600">
+                      {pub.publication_name}
+                      {pub.volume && `, Volume ${pub.volume}`}
+                      {pub.issue && `, Issue ${pub.issue}`}
+                      {pub.pagerange && `, Pages ${pub.pagerange}`}
+                      {pub.publication_date && `, ${formatYear(pub.publication_date)}`}
+                    </span>
+                  </div>
+                  {pub.doi && (
+                    <p className="text-blue-600 text-sm">
+                      <a 
+                        href={`https://doi.org/${pub.doi}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        DOI: {pub.doi}
+                      </a>
+                    </p>
+                  )}
+                  {(pub.cited_by !== undefined) && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-600">Cited by: <span className="font-medium">{pub.cited_by}</span></span>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500 text-center py-4">No publications found</div>
+            )}
+          </div>
+          
+          {!showAll && topPubs.length > 0 && publications.length > topPubs.length && (
+            <div className="flex justify-center mt-6">
+              <Button
+                variant="outline"
+                onClick={handleViewMoreClick}
+                className="flex items-center gap-2"
+              >
+                View All Publications
+                <ChevronDown size={16} />
+              </Button>
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );

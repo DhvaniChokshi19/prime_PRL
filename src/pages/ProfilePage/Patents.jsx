@@ -1,79 +1,26 @@
-// import React from 'react';
-// import { ScrollText, Calendar, Tag } from 'lucide-react';
-
-// const Patents = () => {
-//   return (
-//     <div className="space-y-4">
-//       <div className="flex items-center space-x-2 mb-4">
-//         <div className="flex items-center space-x-2 mb-4">
-//         <ScrollText className="w-6 h-6 text-gray-500" />
-//         <h3 className="text-xl font-semibold">Patents</h3>
-//         </div>
-//       </div>
-//       <div className="space-y-6 pl-4 border-l-2 border-gray-200">
-//         {/* Patent 1 */}
-//         <div className="space-y-2">
-//           <h4 className="font-semibold">
-//             An Improved Solid-State Polymer Composition, a Process for its Preparation and an Improved Dye-sensitized Solar Cell
-//           </h4>
-//           <div className="flex flex-wrap gap-4 text-1rm text-gray-600">
-//             <div className="flex items-center gap-1">
-//               <ScrollText className="w-4 h-4" />
-//               <span>Patent No. 266300</span>
-//             </div>
-//             <div className="flex items-center gap-1">
-//               <Tag className="w-4 h-4" />
-//               <span>Chemical Sciences</span>
-//             </div>
-//             <div className="flex items-center gap-1">
-//               <Calendar className="w-4 h-4" />
-//               <span>Filed: 2007-02-03</span>
-//             </div>
-//             <div className="flex items-center gap-1">
-//               <Calendar className="w-4 h-4" />
-//               <span>Published: 2015-07-13</span>
-//             </div>
-//           </div>
-//           <p className="text-1rm text-gray-500">Indian</p>
-//         </div>
-
-//         {/* Patent 2 */}
-//         <div className="space-y-2">
-//           <h4 className="font-semibold">
-//             Airbag Gas Generant Composition Comprising Primary fuel, oxidizer and co-oxidiser which is basic metal nitrate nanosheets along with alkali metal nitrate, that react with azide fuel to cause complete combustion without toxic residues
-//           </h4>
-//           <div className="flex flex-wrap gap-4 text-1rm text-gray-600">
-//             <div className="flex items-center gap-1">
-//               <ScrollText className="w-4 h-4" />
-//               <span>Patent No. IN201741038676-A</span>
-//             </div>
-//             <div className="flex items-center gap-1">
-//               <Tag className="w-4 h-4" />
-//               <span>Engineering and Technology</span>
-//             </div>
-//             <div className="flex items-center gap-1">
-//               <Calendar className="w-4 h-4" />
-//               <span>Filed: 2018-06-05</span>
-//             </div>
-//           </div>
-//           <p className="text-1rm text-gray-500">Indian</p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Patents;
-
 import React, { useState, useEffect } from 'react';
 import { ScrollText, Calendar, Tag, FileText, Users } from 'lucide-react';
 
-const Patents = ({ profileId }) => {
-  const [patents, setPatents] = useState([]);
-  const [loading, setLoading] = useState(true);
+const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
+  const [patents, setPatents] = useState(initialPatents || []);
+  const [loading, setLoading] = useState(!initialPatents);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // If patents were provided directly, use those instead of fetching
+    if (initialPatents) {
+      setPatents(initialPatents);
+      setLoading(false);
+      return;
+    }
+
+    // Only fetch from API if profileId is provided and no initialPatents
+    if (!profileId) {
+      setLoading(false);
+      setError('Profile ID is required to fetch patents');
+      return;
+    }
+
     // Fetch patents for the profile
     const fetchPatents = async () => {
       try {
@@ -100,6 +47,8 @@ const Patents = ({ profileId }) => {
         
         const data = await response.json();
         setPatents(data);
+        // If onDataUpdate callback is provided, call it with the fetched data
+        if (onDataUpdate) onDataUpdate(data);
         setLoading(false);
       } catch (err) {
         console.error('Patent fetch error:', err);
@@ -108,13 +57,8 @@ const Patents = ({ profileId }) => {
       }
     };
 
-    if (profileId) {
-      fetchPatents();
-    } else {
-      setLoading(false);
-      setError('Profile ID is required');
-    }
-  }, [profileId]);
+    fetchPatents();
+  }, [profileId, initialPatents, onDataUpdate]);
 
   // For development/testing - remove in production
   // This provides fallback data when API fails
@@ -149,10 +93,10 @@ const Patents = ({ profileId }) => {
   // Status badge color mapping
   const getStatusColor = (status) => {
     const statusColors = {
-      'PENDING': 'bg-yellow-100 text-yellow-800',
-      'APPROVED': 'bg-green-100 text-green-800',
-      'PUBLISHED': 'bg-blue-100 text-blue-800',
-      'REJECTED': 'bg-red-100 text-red-800'
+      'Filed': 'bg-yellow-100 text-yellow-800',
+      
+      'Published': 'bg-blue-200 text-blue-800',
+      
     };
     return statusColors[status] || 'bg-gray-100 text-gray-800';
   };
@@ -191,11 +135,15 @@ const Patents = ({ profileId }) => {
 const RenderPatents = ({ patents, getStatusColor }) => {
   return (
     <div className="space-y-4">
+      <div className='flex items-center justify-between mb-4'>
       <div className="flex items-center space-x-2 mb-4">
         <ScrollText className="w-6 h-6 text-gray-500" />
         <h3 className="text-xl font-semibold">Patents</h3>
       </div>
-
+      <div className='text-align-right'>
+          <p className='text-sm text-black'>Data Source: Scopus</p>
+        </div>
+</div>
       <div className="space-y-6 pl-4 border-l-2 border-gray-200">
         {patents.map((patent, index) => (
           <div key={patent.id || index} className="space-y-2">
@@ -241,6 +189,7 @@ const RenderPatents = ({ patents, getStatusColor }) => {
             {patent.country && <p className="text-sm text-gray-500">{patent.country}</p>}
           </div>
         ))}
+        
       </div>
     </div>
   );
