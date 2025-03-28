@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate,useLocation } from 'react-router-dom';
+import Cookies from 'js-cookie';
 // Login component that handles both OTP request and verification
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +11,7 @@ const Login = () => {
   const [error, setError] = useState(null);
   const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
 
 axios.defaults.baseURL = 'http://localhost:8000';
   useEffect(() => {
@@ -47,16 +48,16 @@ axios.defaults.baseURL = 'http://localhost:8000';
     try {
       const response = await axios.post('/api/login/verify-otp', { email, otp });
       
-      // // Store tokens
-      // const { access, refresh } = response.data;
-      // localStorage.setItem('access_token', access);
-      // localStorage.setItem('refresh_token', refresh);
-      
-      // // Set authorization header for future requests
-      // axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-      
-      // Redirect to dashboard or profile page
-      navigate('/api/profile/{profile_id}');
+      const {access, refresh, user ,profile_id} = response.data;
+       if (access, refresh) {
+        
+       Cookies.set('authToken', access, { expires: 7, secure: true, sameSite: 'Strict' });
+
+            // Store refresh token in localStorage
+      localStorage.setItem('refreshToken', refresh);
+      }
+      console.log(response);
+      navigate(`/profile/${profile_id}`);
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid OTP. Please try again.');
     } finally {

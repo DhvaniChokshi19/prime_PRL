@@ -139,7 +139,7 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
           <BookOpen className="w-6 h-6 text-gray-500" />
           <h3 className="text-xl font-semibold">
              
-              Publications (${topPubs.length || 0})
+              Publications 
           </h3>
         </div>
         <div className="flex items-center space-x-2">
@@ -204,11 +204,14 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
                         DOI: {pub.doi}
                       </a>
                     </p>
+                    
                   )}
                   {(pub.cited_by !== undefined) && (
                     <div className="flex items-center gap-2">
                       <span className="text-gray-600">Cited by: <span className="font-medium">{pub.cited_by}</span></span>
+                    <p className='text-gray-600'> {pub.sjr && `, SJR: ${pub.sjr}`}</p>
                     </div>
+                    
                   )}
                 </div>
               ))

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import homeimg from '../../assets/bg1.jpg';
-import { UserRound, Newspaper, BookMarked, AtSign } from 'lucide-react';
+import { UserRound, Newspaper, BookMarked, AtSign, Eye } from 'lucide-react';
 import axios from 'axios';
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -21,14 +21,15 @@ const Searchbox = () => {
    total_profiles: '0',
     total_publications: '0', 
     total_citations: '0',
-    avg_citations_per_paper: '0'
+    avg_citations_per_paper: '0',
+    visitors_today: '0'
   });
 
   // Fetch stats data on component mount
   useEffect(() => {
     const fetchStatsData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/stats`, {
+        const response = await fetch(`${API_BASE_URL}/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -45,7 +46,8 @@ const Searchbox = () => {
          total_profiles: data.total_profiles.toLocaleString(),
           total_publications: data.total_publications.toLocaleString(),
           total_citations: data.total_citations.toLocaleString(),
-          avg_citations_per_paper: data.avg_citations_per_paper.toLocaleString()
+          avg_citations_per_paper: data.avg_citations_per_paper.toLocaleString(),
+          visitors_today: data.visitors_today.toLocaleString() 
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -79,6 +81,11 @@ const Searchbox = () => {
       icon: <AtSign className="h-8 w-8 text-blue-600"/>,
       number: statsData.avg_citations_per_paper,
       label: 'AVERAGE CITATIONS PER PAPER'
+    },
+    {
+      icon: <Eye className="h-8 w-8 text-blue-600"/>,
+      number: statsData.visitors_today,
+      label: 'VISITORS TODAY'
     }
   ];
 
@@ -184,7 +191,7 @@ const Searchbox = () => {
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
             {stats.map((stat, index) => (
               <div 
                 key={index}
@@ -194,7 +201,7 @@ const Searchbox = () => {
                 <div className="flex justify-center">
                   {stat.icon}
                 </div>
-                <h3 className="text-xl font-bold mt-2 mb-1">{stat.number}</h3>
+                <h3 className="text-2xl font-bold mt-2 mb-1">{stat.number}</h3>
                 <p className="text-gray-600">{stat.label}</p>
               </div>
             ))}

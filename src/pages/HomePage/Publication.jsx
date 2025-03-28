@@ -8,7 +8,7 @@ const Publication = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [years, setYears] = useState([]);
-
+const [selectedDepartment, setSelectedDepartment] = useState(null);
   // Fetch data from the API when component mounts
   useEffect(() => {
     const fetchDepartmentData = async () => {
@@ -65,10 +65,12 @@ const Publication = () => {
         });
         
         const sortedYears = Array.from(uniqueYears).sort();
+        const departments = deptMetrics.map(dept => dept.department);
         
         setDepartmentData(deptMetrics);
         setYearlyData(yearlyDataObj);
         setYears(sortedYears);
+        setSelectedDepartment(departments[0]);
         setError(null);
       } catch (err) {
         console.error('Error fetching department data:', err);
@@ -108,6 +110,7 @@ const Publication = () => {
       setDepartmentData(mockDepartmentData);
       setYearlyData(mockYearlyData);
       setYears(mockYears);
+      setSelectedDepartment(mockDepartmentData[0].department);
     };
 
     fetchDepartmentData();
@@ -143,16 +146,21 @@ const Publication = () => {
   }
 
   // Prepare data for the yearly trends bar chart
-  const prepareYearlyTrendsData = () => {
+  const prepareDepartmentYearlyData = () => {
     // Calculate total publications and citations for each year
     return years.map(year => {
       const yearData = { year };
       
-      const yearStats = yearlyData[year] || [];
+       const departmentYearData = (yearlyData[year] || [])
+        .find(item => item.department === selectedDepartment);
       
-      // Sum publications and citations across all departments for this year
-      yearData.total_publications = yearStats.reduce((sum, dept) => sum + (dept.total_publications || 0), 0);
-      yearData.total_citations = yearStats.reduce((sum, dept) => sum + (dept.total_citations || 0), 0);
+     if (departmentYearData) {
+        yearData.total_publications = departmentYearData.total_publications || 0;
+        yearData.total_citations = departmentYearData.total_citations || 0;
+      } else {
+        yearData.total_publications = 0;
+        yearData.total_citations = 0;
+      }
       
       return yearData;
     });
@@ -165,9 +173,9 @@ const Publication = () => {
   });
 
   // Get yearly trends data
-  const yearlyTrendsData = prepareYearlyTrendsData();
+    const yearlyTrendsData = prepareDepartmentYearlyData();
   const colors = generateColors();
-
+const departments = departmentData.map(dept => dept.department);
   return (
     <div className='bg-blue-200 mx-auto max-w-9xl p-4'>
       {/* Existing code for header image */}
@@ -220,7 +228,22 @@ const Publication = () => {
       {/* New Yearly Trends Bar Chart */}
       {years.length > 0 && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+          <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Yearly Publications and Citations</h3>
+          <div className="flex items-center space-x-2">
+              <label htmlFor="department-select" className="text-gray-600 mr-2">Department:</label>
+              <select 
+                id="department-select"
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                className="form-select block w-full mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              >
+                {departments.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+          </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -241,12 +264,12 @@ const Publication = () => {
                 <Legend />
                 <Bar 
                   dataKey="total_publications" 
-                  name="Total Publications" 
+                  name="Publications" 
                   fill={colors.publications} 
                 />
                 <Bar 
                   dataKey="total_citations" 
-                  name="Total Citations" 
+                  name="Citations" 
                   fill={colors.citations} 
                 />
               </BarChart>
@@ -255,7 +278,7 @@ const Publication = () => {
         </div>
       )}
 
-      {/* Existing code for Summary Cards */}
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {departmentData.map((dept, index) => (
           <div 

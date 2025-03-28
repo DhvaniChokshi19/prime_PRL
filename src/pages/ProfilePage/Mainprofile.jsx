@@ -22,7 +22,13 @@ import {
   GlobeLock,
   BookMarked,
 } from 'lucide-react';
-
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 // Set base URL for axios
 axios.defaults.baseURL = 'http://localhost:8000';
 
@@ -52,9 +58,10 @@ const Mainprofile = () => {
   const [error, setError] = useState(null);
   const { profileId: urlProfileId } = useParams();
   const [publicationsFilter, setPublicationsFilter] = useState(null);
-  // Convert URL parameter to a number, default to 1 if not provided
-  const profileId = parseInt(urlProfileId, 10) || 1;
-
+  // Convert URL parameter to a number
+   const profileId = parseInt(urlProfileId, 10);
+  console.log("Raw profileId from URL:", profileId);
+const API_BASE_URL = 'http://localhost:8000';
   // Updated state to match backend response structure
   const [profileData, setProfileData] = useState({
     profile: {
@@ -271,16 +278,17 @@ const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by
 
     // Handle year selection toggle
     const handleYearToggle = (year) => {
-      setSelectedYears(prev => 
-        prev.includes(year) 
-          ? prev.filter(y => y !== year)
-          : [...prev, year]
-      );
+       setSelectedYears(prev => 
+      prev.includes(year) 
+        ? prev.filter(y => y !== year)
+        : [...prev, year]
+    );
     };
    return (
-      <div>
-        <div className="flex items-center space-x-2 mb-4">
-          <h3 className="text-lg font-semibold mr-4">Select Years:</h3>
+    <div className="flex">
+      <div className="w-1/4 pr-4 max-h-60 overflow-y-auto">
+        <h3 className="text-lg font-semibold mb-4">Select Years</h3>
+        <div className="space-y-2">
           {allYears.map(year => (
             <div key={year} className="flex items-center space-x-2">
               <Checkbox
@@ -297,6 +305,8 @@ const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by
             </div>
           ))}
         </div>
+      </div>
+      <div className="w-3/4">
         <ResponsiveContainer width="90%" height={200}>
           <BarChart data={filteredStats}>
             <XAxis dataKey="year" />
@@ -307,6 +317,7 @@ const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by
             <Bar dataKey="Citations" name="Citations" fill="#10B981" barSize={18} />
           </BarChart>
         </ResponsiveContainer>
+      </div>
       </div>
     );
   };
@@ -323,7 +334,7 @@ setActiveTab('Publication');
       {/* Header Section */}
       <div className="flex gap-6 mb-8 bg-gray-100 p-6 rounded-lg">
         <img 
-          src={profileData.profile.image_url || "/api/placeholder/400/320"}
+          src={`${API_BASE_URL}`+profileData.profile.image_url || "/api/placeholder/400/320"}
           alt="Profile"
           className="w-48 h-48 rounded-lg object-cover"
         />
