@@ -31,7 +31,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-const API_BASE_URL = 'http://localhost:8000';
+import axiosInstance, { API_BASE_URL } from '../../api/axios';
 
 const Profiles = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,40 +78,29 @@ const Profiles = () => {
 
   const fetchAllFacultyData = async () => {
     setLoading(true);
-    try {
-      // Fetch all data without pagination parameters
-      let url = `${API_BASE_URL}/api/search`;
-      
-      // Add search term if present
-      if (searchTerm) {
-        url += `?query=${encodeURIComponent(searchTerm)}`;
-      }
-      
-      console.log("Fetching all data from:", url);
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log("Fetched all data:", data);
-      
-      setAllFacultyData(data);
-    } catch (error) {
-      console.error("Error fetching faculty data:", error);
-      setAllFacultyData([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    // Construct the URL for searching
+    let url = `/api/search`;
+    
+    const params = searchTerm ? { query: searchTerm } : {};
+    
+    console.log("Fetching all data with axios");
+    
+    const response = await axiosInstance.get(url, {
+      params: params,
+      withCredentials: true,
+    });
+    
+    console.log("Fetched all data:", response.data);
+    
+    setAllFacultyData(response.data);
+  } catch (error) {
+    console.error("Error fetching faculty data:", error);
+    setAllFacultyData([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const applyFiltersAndPagination = () => {
     // Start with all faculty data

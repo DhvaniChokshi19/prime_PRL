@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { Button } from '@/components/ui/button';
 import { Camera } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
+
 
 const ProfileImageUpload = ({ profileImage, onImageUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   
-  const API_BASE_URL = 'http://localhost:8000';
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,8 +47,7 @@ const ProfileImageUpload = ({ profileImage, onImageUpdate }) => {
     try {
       setLoading(true);
        const token = getTokenFromCookies();
-      const response = await axios.put(
-        `${API_BASE_URL}/api/profile/image`, 
+      const response = await axiosInstance.put(`/api/profile/image`, 
         formData,
         {
           headers: {

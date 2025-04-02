@@ -1,6 +1,6 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-
+import { API_BASE_URL } from '../../api/axios';
 /**
  * Exports researcher profile data to a PDF document
  * @param {Object} profileData - The complete profile data object
@@ -15,16 +15,9 @@ const handleExport = async (profileData, publicationsData, chartData) => {
     const margin = 15;
     const contentWidth = pageWidth - (margin * 2);
     let yPosition = margin;
-    
-    // // Add title
-    // doc.setFont('helvetica', 'bold');
-    // doc.setFontSize(16);
-    // doc.text('Researcher Profile', pageWidth / 2, yPosition, { align: 'center' });
-    // yPosition += 10;
-    
-    // Add profile image if available
+  
     if (profileData.profile.image_url) {
-      const API_BASE_URL = 'http://localhost:8000';
+     
       const imgUrl = `${API_BASE_URL}${profileData.profile.image_url}`;
       
       try {

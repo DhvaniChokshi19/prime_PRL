@@ -9,7 +9,7 @@ import {
   Edit,
   Trash2
 } from 'lucide-react';
-import axios from 'axios';
+import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,7 +73,7 @@ const Projects = () => {
     setIsLoading(true);
     try {
       const token = getAuthToken();
-      const response = await axios.get('api/profile/students/view', {
+      const response = await axiosInstance.get('api/profile/students/view', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -157,7 +157,7 @@ const Projects = () => {
         ? '/api/profile/students/edit' 
         : '/api/profile/students/add';
 
-      const response = await axios.put(endpoint, studentForm, {
+      const response = await axiosInstance.put(endpoint, studentForm, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -196,7 +196,7 @@ const Projects = () => {
     try {
       const token = getAuthToken();
 
-      await axios.delete('/api/profile/students/delete', {
+      await axiosInstance.delete('/api/profile/students/delete', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance  from '../../api/axios';
 const Persons = () => {
   const [persons, setPersons] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -8,13 +8,12 @@ const Persons = () => {
   const [resultsCount, setResultsCount] = useState(0);
   const resultsPerPage = 10;
 
-axios.defaults.baseURL = 'http://localhost:8000';
   useEffect(() => {
     const fetchPersons = async () => {
       try {
         setLoading(true);
         
-        const response = await axios.get('/api/profile', {params: { page: currentPage, limit: resultsPerPage }
+        const response = await axiosInstance.get('/api/profile', {params: { page: currentPage, limit: resultsPerPage }
         });
         if (!response.ok) {
           throw new Error('Failed to fetch profiles');

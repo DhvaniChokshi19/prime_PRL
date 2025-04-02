@@ -7,7 +7,7 @@ import Profiles from "./pages/Searchdisplay/profiles";
 import {Navigate, BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Footers from "./pages/Searchdisplay/Footers";
 import Headers from "./pages/ProfilePage/Headers";
-import Mainprofile from "./pages/ProfilePage/mainprofile";
+import Mainprofile from "./pages/ProfilePage/Mainprofile";
 import Loginbox from "./pages/LoginPage/Loginbox";
 import Publication from "./pages/HomePage/Publication";
 import Header from './pages/HomePage/Header';

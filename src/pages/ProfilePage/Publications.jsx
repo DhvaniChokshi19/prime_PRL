@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Lock, ExternalLink, Award, ChevronDown } from 'lucide-react';
-import axios from 'axios';
+import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { Button } from '@/components/ui/button';
 
 const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
@@ -34,7 +34,7 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
         setIsLoading(true);
         
         // Fetch all publications
-        const publicationsResponse = await axios.get('/api/profile/publications', {
+        const publicationsResponse = await axiosInstance.get('/api/profile/publications', {
           params: { profile_id: profileId }
         });
         
@@ -44,7 +44,7 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
         if (!topPublications || !topPublications.length) {
           try {
             // Try to fetch profile data which includes top publications
-            const profileResponse = await axios.get('/api/profile', {
+            const profileResponse = await axiosInstance.get('/api/profile', {
               params: { profile_id: profileId }
             });
             

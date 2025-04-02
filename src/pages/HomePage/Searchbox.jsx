@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import homeimg from '../../assets/bg1.jpg';
 import { UserRound, Newspaper, BookMarked, AtSign, Eye } from 'lucide-react';
-import axios from 'axios';
-const API_BASE_URL = 'http://localhost:8000';
+import axiosInstance, { API_BASE_URL } from '../../api/axios';
 
+axiosInstance.defaults.headers.common['Content-Type'] = 'application/json';
+axiosInstance.defaults.withCredentials = true;
 const Searchbox = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,19 +30,12 @@ const Searchbox = () => {
   useEffect(() => {
     const fetchStatsData = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
+        const response = await axiosInstance.get('/');
         
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const data = await response.json();
+        }        
+        const data = response.data
         setStatsData({
          total_profiles: data.total_profiles.toLocaleString(),
           total_publications: data.total_publications.toLocaleString(),
@@ -125,33 +119,29 @@ const Searchbox = () => {
             }
           });
         }
-        // Make API call to Django backend
-        const response = await fetch(`${API_BASE_URL}/api/search?${queryParams.toString()}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const searchResults = await response.json();
-        console.log("Search results received:", searchResults);
-        // Navigate to search results page with the results as state
-        navigate('/search', { 
-          state: { results: searchResults },
-          search: queryParams.toString()
-        });
-      } catch (error) {
-        console.error('Search error:', error);
-        // Still navigate to search page, but let that page handle the error
-        navigate(`/search?${new URLSearchParams({ query: searchTerm }).toString()}`);
-      }
+       const response = await axiosInstance.get('/api/search', {
+        params: queryParams
+        // No need to specify withCredentials or headers as they're set globally
+      });
+      
+      console.log("Search results received:", response.data);
+      
+      // Create URLSearchParams for navigation
+      const urlParams = new URLSearchParams();
+      urlParams.append('query', searchTerm);
+      
+      // Navigate to search results page with the results as state
+      navigate('/search', { 
+        state: { results: response.data },
+        search: urlParams.toString()
+      });
+    } catch (error) {
+      console.error('Search error:', error);
+      // Still navigate to search page, but let that page handle the error
+      navigate(`/search?${new URLSearchParams({ query: searchTerm }).toString()}`);
     }
-  };
+  }
+};
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {

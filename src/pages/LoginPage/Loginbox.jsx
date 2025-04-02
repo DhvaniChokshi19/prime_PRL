@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { useNavigate,useLocation } from 'react-router-dom';
 import Cookies from 'js-cookie';
+axiosInstance.defaults.withCredentials = true;
 // Login component that handles both OTP request and verification
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -12,8 +13,7 @@ const Login = () => {
   const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-
-axios.defaults.baseURL = 'http://localhost:8000';
+// axiosInstance.defaults.withCredentials = true;
   useEffect(() => {
     // Countdown timer for OTP expiry (5 minutes)
     let timer;
@@ -29,7 +29,7 @@ axios.defaults.baseURL = 'http://localhost:8000';
     setError(null);
     
     try {
-      const response = await axios.post('/api/login/request-otp', { email });
+      const response = await axiosInstance.post('/api/login/request-otp', { email },);
       setOtpSent(true);
       setCountdown(300); // 5 minutes in seconds
       setError(null);
@@ -46,7 +46,7 @@ axios.defaults.baseURL = 'http://localhost:8000';
     setError(null);
     
     try {
-      const response = await axios.post('/api/login/verify-otp', { email, otp });
+      const response = await axiosInstance.post('/api/login/verify-otp', { email, otp });
       
       const {access, refresh, id} = response.data;
        if (access, refresh) {

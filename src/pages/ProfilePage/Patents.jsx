@@ -9,7 +9,7 @@ import {
   Edit, 
   Trash2 
 } from 'lucide-react';
-import axios from 'axios';
+import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,7 +81,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
     try {
       setIsLoading(true);
       const token = getAuthToken();
-      const response = await axios.get('api/profile/patents/view', {
+      const response = await axiosInstance.get('api/profile/patents/view', {
         headers: {
           'Authorization': token ? `Bearer ${token}` : undefined,
           'Content-Type': 'application/json'
@@ -152,7 +152,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
         ? { ...patentForm } 
         : patentForm;
 
-      const response = await axios.put(endpoint, payload, {
+      const response = await axiosInstance.put(endpoint, payload, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : undefined,
           'Content-Type': 'application/json'
@@ -185,7 +185,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
     setIsLoading(true);
     try {
       const token = getAuthToken();
-      await axios.delete(`/api/profile/patents/delete/${patentId}`, {
+      await axiosInstance.delete(`/api/profile/patents/delete/${patentId}`, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : undefined,
           'Content-Type': 'application/json'

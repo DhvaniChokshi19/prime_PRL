@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import pubimg from '../../assets/pub_bg.jpg';
-
+import axiosInstance, { API_BASE_URL } from '../../api/axios';
 const Publication = () => {
   const [departmentData, setDepartmentData] = useState([]);
   const [yearlyData, setYearlyData] = useState({});
@@ -9,18 +9,12 @@ const Publication = () => {
   const [error, setError] = useState(null);
   const [years, setYears] = useState([]);
 const [selectedDepartment, setSelectedDepartment] = useState(null);
-  // Fetch data from the API when component mounts
+  
   useEffect(() => {
     const fetchDepartmentData = async () => {
-      try {
-        setIsLoading(true);
-        
-        const API_BASE_URL =  'http://localhost:8000';
-        const apiUrl = `${API_BASE_URL}/api/departments`;
-        
-        console.log('Fetching data from:', apiUrl);
-        
-        const response = await fetch(apiUrl, {
+        try {
+        setIsLoading(true);        
+        const response = await axiosInstance.get('/api/departments', {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -29,11 +23,7 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
         
         console.log('Response status:', response.status);
         
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const data = await response.json();
+        const data = response.data;
         
         const deptMetrics = [];
         const yearlyDataObj = {};

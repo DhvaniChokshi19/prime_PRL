@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axiosInstance, { API_BASE_URL } from '../../api/axios'
 import { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import ProfileImageUpload from './ProfileImageUpload';
-axios.defaults.baseURL = 'http://localhost:8000';
+
 
 // Tooltips component
 const Tooltips = ({ text, children }) => {
@@ -62,7 +62,6 @@ const Mainprofile = () => {
   
    const profileId = urlProfileId ? parseInt(urlProfileId, 10) : null;
 
-const API_BASE_URL = 'http://localhost:8000';
   
   const [profileData, setProfileData] = useState({
     profile: {
@@ -95,7 +94,7 @@ const API_BASE_URL = 'http://localhost:8000';
     const fetchProfileData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/profile', {
+        const response = await axiosInstance.get('/api/profile', {
           params: { profile_id: profileId }
         });
         
@@ -116,7 +115,7 @@ const API_BASE_URL = 'http://localhost:8000';
   useEffect(() => {
     const fetchPublicationsData = async () => {
       try {
-        const response = await axios.get('/api/profile/publications', {
+        const response = await axiosInstance.get('/api/profile/publications', {
           params: { profile_id: profileId }
         });
         setPublicationsData(response.data);

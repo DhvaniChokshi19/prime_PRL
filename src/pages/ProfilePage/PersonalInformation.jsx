@@ -22,7 +22,7 @@ import {
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
 import { toast } from "@/hooks/use-toast";
-import axios from 'axios';
+import axiosInstance, { API_BASE_URL } from '../../api/axios';
 
 const PersonalInformation = ({ profileData, onProfileUpdate}) => {
   const [loading, setLoading] = useState(false);
@@ -50,7 +50,7 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
     designation: profile.designation || '',
     department: profile.department || '',
     expertise: profile.expertise || '',
-    aboutme:personalInfo.about_me ||'',
+    about_me:personalInfo.about_me ||'',
     email: personalInfo.email || '',
     website_url: personalInfo.website_url || '',
     address: personalInfo.address || ''
@@ -86,14 +86,14 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
         designation: profile.designation || '',
         department: profile.department || '',
         expertise: profile.expertise || '',
-        aboutme: personalInfo.about_me || '',
+        about_me: personalInfo.about_me || '',
         email: personalInfo.email || '',
         website_url: personalInfo.website_url || '',
         address: personalInfo.address || ''
       });
   }
   }, [profileData]);
-  console.log("Qualifications from API:", profileData?.qualifications);
+ 
  
  const getAuthToken = () => {
     const cookies = document.cookie.split('; ');
@@ -159,25 +159,23 @@ const handleProfessionalFormChange = (e) => {
   const personalInfoData = {
         gender: personalForm.gender,
         address: personalForm.address,
-        about_me: personalForm.aboutme,
+        about_me: personalForm.about_me,
         website_url: personalForm.website_url
       };
       const authToken = getAuthToken();
       // Update personal information
-    await axios.put('api/profile/personal-information/edit', personalInfoData, {
+    await axiosInstance.put('api/profile/personal-information/edit', personalInfoData, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
       });
-      
-      // Show success message
       toast({
         title: "Success",
         description: "Personal information updated successfully",
         variant: "success"
       });
       
-      await axios.put('api/profile/edit', profileData, {
+      await axiosInstance.put('api/profile/edit', profileData, {
   headers: {
     'Authorization': `Bearer ${authToken}`
   }
@@ -207,7 +205,7 @@ const handleProfessionalFormChange = (e) => {
       
       if (professionalForm.id) {
         // Edit existing experience
-        await axios.put('api/profile/professional-experience/edit', professionalForm, {
+        await axiosInstance.put('api/profile/professional-experience/edit', professionalForm, {
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
@@ -220,7 +218,7 @@ const handleProfessionalFormChange = (e) => {
         });
       } else {
         // Add new experience
-        await axios.put('api/profile/professional-experience/add', professionalForm, {
+        await axiosInstance.put('api/profile/professional-experience/add', professionalForm, {
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
@@ -264,7 +262,7 @@ const handleProfessionalFormChange = (e) => {
       
       if (qualificationForm.id) {
         // Edit existing qualification
-        await axios.put('api/profile/qualifications/edit', qualificationForm, {
+        await axiosInstance.put('api/profile/qualifications/edit', qualificationForm, {
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
@@ -277,7 +275,7 @@ const handleProfessionalFormChange = (e) => {
         });
       } else {
         // Add new qualification
-        await axios.put('api/profile/qualifications/add', qualificationForm, {
+        await axiosInstance.put('api/profile/qualifications/add', qualificationForm, {
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
@@ -320,7 +318,7 @@ const handleHonorsFormSubmit = async () => {
     
     if (honorsForm.id) {
       // Edit existing award
-      await axios.put('api/profile/honors-awards/edit', honorsForm, {
+      await axiosInstance.put('api/profile/honors-awards/edit', honorsForm, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -333,7 +331,7 @@ const handleHonorsFormSubmit = async () => {
       });
     } else {
       // Add new award
-      await axios.put('api/profile/honors-awards/add', honorsForm, {
+      await axiosInstance.put('api/profile/honors-awards/add', honorsForm, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -379,7 +377,7 @@ const handleHonorsFormSubmit = async () => {
       setLoading(true);
       const authToken = getAuthToken();
      
-      await axios.delete(`api/profile/professional-experience/delete/${idToDelete}`, {
+      await axiosInstance.delete(`api/profile/professional-experience/delete/${idToDelete}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         },
@@ -422,7 +420,7 @@ const handleHonorsFormSubmit = async () => {
       setLoading(true);
       const authToken = getAuthToken();
      
-      await axios.delete(`api/profile/qualifications/delete/${idToDelete}`, {
+      await axiosInstance.delete(`api/profile/qualifications/delete/${idToDelete}`, {
         headers: {
           'Authorization': `Bearer ${authToken}`
         },
@@ -462,7 +460,7 @@ const handleDeleteAward = async () => {
     setLoading(true);
     const authToken = getAuthToken();
     
-    await axios.delete(`api/profile/honors-awards/delete/${idToDelete}`, {
+    await axiosInstance.delete(`api/profile/honors-awards/delete/${idToDelete}`, {
       headers: {
         'Authorization': `Bearer ${authToken}`
       }
@@ -522,7 +520,7 @@ const handleDeleteAward = async () => {
           </div>
           <p className="text-gray-600 mt-2">{profile.expertise || "Nanomaterials, Electrochemistry, Energy Storage Applications"}</p>
           <div>
-            <p className = "text-base text-gray-600">{personalInfo.aboutme || "About Me"}</p>
+            <p className = "text-base text-gray-600">{personalInfo.about_me || "About Me"}</p>
             </div>
         </div>
 
@@ -811,11 +809,11 @@ const handleDeleteAward = async () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="aboutme">About Me</Label>
+                <Label htmlFor="about_me">About Me</Label>
                 <Textarea
-                  id="aboutme"
-                  name="aboutme"
-                  value={personalForm.aboutme}
+                  id="about_me"
+                  name="about_me"
+                  value={personalForm.about_me}
                   onChange={handlePersonalFormChange}
                   placeholder="Tell us about yourself"
                   rows={3}
