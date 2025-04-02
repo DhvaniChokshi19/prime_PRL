@@ -31,10 +31,7 @@ const Searchbox = () => {
     const fetchStatsData = async () => {
       try {
         const response = await axiosInstance.get('/');
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }        
+              
         const data = response.data
         setStatsData({
          total_profiles: data.total_profiles.toLocaleString(),
@@ -121,7 +118,7 @@ const Searchbox = () => {
         }
        const response = await axiosInstance.get('/api/search', {
         params: queryParams
-        // No need to specify withCredentials or headers as they're set globally
+        
       });
       
       console.log("Search results received:", response.data);
@@ -137,7 +134,7 @@ const Searchbox = () => {
       });
     } catch (error) {
       console.error('Search error:', error);
-      // Still navigate to search page, but let that page handle the error
+      
       navigate(`/search?${new URLSearchParams({ query: searchTerm }).toString()}`);
     }
   }

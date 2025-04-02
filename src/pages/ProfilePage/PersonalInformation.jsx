@@ -37,7 +37,7 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
 
   // Extract data from profileData prop
   const profile = profileData?.profile || {};
-  const personalInfo = profileData?.personal_information?.[0] || {};
+  const personalInfo = profileData?.["personal_information: "]?.[0] || {};
   const professionalExperiences = profileData?.professional_experiences || [];
   const qualifications = profileData?.qualifications || [];
   const honorsAwards = profileData?.honors_and_awards || [];
@@ -51,8 +51,8 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
     department: profile.department || '',
     expertise: profile.expertise || '',
     about_me:personalInfo.about_me ||'',
-    email: personalInfo.email || '',
-    website_url: personalInfo.website_url || '',
+    email: profile.email || '',
+    website: profile.website || '',
     address: personalInfo.address || ''
   });
 
@@ -79,6 +79,8 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
   });
  // Update personal form state when profileData changes
   useEffect(() => {
+    console.log("profileData:", profileData);
+  console.log("personalInfo:", personalInfo);
     if (profileData) {
       setPersonalForm({
         name: profile.name || '',
@@ -87,8 +89,8 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
         department: profile.department || '',
         expertise: profile.expertise || '',
         about_me: personalInfo.about_me || '',
-        email: personalInfo.email || '',
-        website_url: personalInfo.website_url || '',
+        email: profile.email || '',
+        website: profile.website || '',
         address: personalInfo.address || ''
       });
   }
@@ -153,6 +155,7 @@ const handleProfessionalFormChange = (e) => {
         designation: personalForm.designation,
         department: personalForm.department,
         expertise: personalForm.expertise,
+        website: personalForm.website,
       };
   
     // personal information data
@@ -160,7 +163,6 @@ const handleProfessionalFormChange = (e) => {
         gender: personalForm.gender,
         address: personalForm.address,
         about_me: personalForm.about_me,
-        website_url: personalForm.website_url
       };
       const authToken = getAuthToken();
       // Update personal information
@@ -713,8 +715,8 @@ const handleDeleteAward = async () => {
               <Mail className="w-5 h-5 text-gray-500" />
               <span className="font-medium">Email</span>
             </div>
-            <a href={`mailto:${personalInfo.email || "nithyananad.prabhu@prl.com"}`}className="text-red-600 hover:underline" >
-              {personalInfo.email || "nithyananad.prabhu@prl.com"}
+            <a href={`mailto:${profile.email || "nithyananad.prabhu@prl.com"}`}className="text-red-600 hover:underline" >
+              {profile.email || "nithyananad.prabhu@prl.com"}
             </a>
           </div>
 
@@ -723,8 +725,8 @@ const handleDeleteAward = async () => {
               <Globe className="w-5 h-5 text-gray-500" />
               <span className="font-medium">Website</span>
             </div>
-            <a href={personalInfo.website_url || "https://prl.edu/faculty/nithyananad"} className="text-red-600 hover:underline break-all">
-              {personalInfo.website_url || "https://prl.edu/faculty/nithyananad"}
+            <a href={profile.website || "https://prl.edu/faculty/nithyananad"} className="text-red-600 hover:underline break-all">
+              {profile.website || "https://prl.edu/faculty/nithyananad"}
             </a>
           </div>
         </div>
@@ -821,11 +823,11 @@ const handleDeleteAward = async () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="website_url">Website URL</Label>
+                <Label htmlFor="website">Website URL</Label>
                 <Input
-                  id="website_url"
-                  name="website_url"
-                  value={personalForm.website_url}
+                  id="website"
+                  name="website"
+                  value={personalForm.website}
                   onChange={handlePersonalFormChange}
                   placeholder="Enter your website URL"
                 />
