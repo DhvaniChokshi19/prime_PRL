@@ -48,16 +48,19 @@ axios.defaults.baseURL = 'http://localhost:8000';
     try {
       const response = await axios.post('/api/login/verify-otp', { email, otp });
       
-      const {access, refresh, user ,profile_id} = response.data;
+      const {access, refresh, id} = response.data;
        if (access, refresh) {
-        
+
        Cookies.set('authToken', access, { expires: 7, secure: true, sameSite: 'Strict' });
 
-            // Store refresh token in localStorage
       localStorage.setItem('refreshToken', refresh);
       }
-      console.log(response);
-      navigate(`/profile/${profile_id}`);
+      console.log('Response data:', response.data);
+      if (id) {
+        navigate(`/profile/${id}`);
+      } else {
+        setError('Profile ID not found in response. Please contact support.');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid OTP. Please try again.');
     } finally {

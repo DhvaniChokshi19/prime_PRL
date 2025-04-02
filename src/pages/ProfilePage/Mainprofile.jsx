@@ -14,6 +14,7 @@ import Patents from './Patents';
 import Publications from './Publications';
 import Network from './Network';
 import Projects from './Projects';
+import handleExportPDF from './handleExport';
 import { useParams } from 'react-router-dom';
 import { 
   User,
@@ -29,10 +30,10 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-// Set base URL for axios
+import ProfileImageUpload from './ProfileImageUpload';
 axios.defaults.baseURL = 'http://localhost:8000';
 
-// Tooltips component (kept as it was)
+// Tooltips component
 const Tooltips = ({ text, children }) => {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -44,7 +45,7 @@ const Tooltips = ({ text, children }) => {
     >
       {children}
       {showTooltip && (
-        <div className="absolute bottom-full mb-2 w-48 p-2 bg-white-900 text-gray text-xs rounded shadow-lg">
+        <div className="absolute bottom-full mb-2 w-48 p-2 bg-white-900 text-black text-xs rounded shadow-lg">
           {text}
         </div>
       )}
@@ -58,11 +59,11 @@ const Mainprofile = () => {
   const [error, setError] = useState(null);
   const { profileId: urlProfileId } = useParams();
   const [publicationsFilter, setPublicationsFilter] = useState(null);
-  // Convert URL parameter to a number
-   const profileId = parseInt(urlProfileId, 10);
-  console.log("Raw profileId from URL:", profileId);
+  
+   const profileId = urlProfileId ? parseInt(urlProfileId, 10) : null;
+
 const API_BASE_URL = 'http://localhost:8000';
-  // Updated state to match backend response structure
+  
   const [profileData, setProfileData] = useState({
     profile: {
       name: '',
@@ -246,10 +247,28 @@ const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by
     };
   };
 
-  // Handle export functionality (to be implemented)
   const handleExport = async () => {
-    // Implement export logic
-    console.log('Export functionality not yet implemented');
+    try {
+   
+    const dataForExport = {
+      profile: profileData.profile,
+      professional_experiences: profileData.professional_experiences || [],
+      qualifications: profileData.qualifications || [],
+      honors_and_awards: profileData.honors_and_awards || [],
+      citation_data: profileData.citation_data || [], 
+      publication_stats: profileData.publication_stats || [],
+    };
+     const { stats: chartData } = formatPublicationStats();
+    const result = await handleExportPDF(dataForExport, publicationsData,chartData);
+    
+    if (result) {
+      console.log('PDF successfully downloaded');
+    } else {
+      console.error('Error downloading PDF');
+    }
+  } catch (error) {
+    console.error('Export error:', error);
+  }
   };
 
   if (loading) {
@@ -265,7 +284,7 @@ const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by
   const { stats: formattedPublicationStats, yearRangeOptions } = formatPublicationStats();
 
   const PublicationBarChart = () => {
-    // Extract unique years from publication stats
+    
     const allYears = formattedPublicationStats.map(stat => stat.year);
     
     // State for selected years
@@ -306,7 +325,7 @@ const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by
           ))}
         </div>
       </div>
-      <div className="w-3/4">
+      <div className="w-3/4 publication-chart-container">
         <ResponsiveContainer width="90%" height={200}>
           <BarChart data={filteredStats}>
             <XAxis dataKey="year" />
@@ -333,11 +352,18 @@ setActiveTab('Publication');
     <div className="max-w-7xl mx-auto p-6">
       {/* Header Section */}
       <div className="flex gap-6 mb-8 bg-gray-100 p-6 rounded-lg">
-        <img 
-          src={`${API_BASE_URL}`+profileData.profile.image_url || "/api/placeholder/400/320"}
-          alt="Profile"
-          className="w-48 h-48 rounded-lg object-cover"
-        />
+     <ProfileImageUpload 
+    profileImage={`${API_BASE_URL}${profileData.profile.image_url}` || null}
+    onImageUpdate={(newImageUrl) => {
+      setProfileData(prevData => ({
+        ...prevData,
+        profile: { 
+          ...prevData.profile, 
+          image_url: newImageUrl.replace(API_BASE_URL, '') 
+        }
+      }));
+    }}
+  />
         <div className="flex-1">
           <div className="flex justify-between items-start">
             <div>
@@ -453,11 +479,8 @@ setActiveTab('Publication');
                 <ul className="space-y-2 text-base">
                   <li>Total career publications: {researchMetrics[0].value}</li>
                   <li>Publication years: {yearRangeOptions}</li>
-                  <li>Mean Impact Factor: {
-                    publicationsData.length > 0 
-                      ? (publicationsData.reduce((sum, pub) => sum + (pub.impact_factor || 0), 0) / publicationsData.length).toFixed(2) 
-                      : "N/A"
-                  }</li>
+                  <li>Altmetrics Count: 
+                  </li>
                   <li>Average citations per paper: {
                     parseInt(researchMetrics[0].value) > 0 
                       ? (parseInt(researchMetrics[1].value) / parseInt(researchMetrics[0].value)).toFixed(1) 

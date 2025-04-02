@@ -12,31 +12,23 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
-    // If top publications are provided via props, use them
     if (topPublications && Array.isArray(topPublications) && topPublications.length > 0) {
       setTopPubs(topPublications);
     }
-
-    // If all publications data is provided, use it instead of fetching
     if (data && Array.isArray(data) && data.length > 0) {
       setPublications(data);
       setIsLoading(false);
-      
-      // If top publications weren't provided via props, derive them from all publications
       if (!topPublications || !topPublications.length) {
         const sortedByCitations = [...data]
           .sort((a, b) => (b.cited_by || 0) - (a.cited_by || 0));
         setTopPubs(sortedByCitations.slice(0, 10));
       }
       
-      // Update parent component if needed
       if (onDataUpdate) {
         onDataUpdate(data);
       }
       return;
     }
-
-    // Only fetch data if not provided
     const fetchData = async () => {
       try {
         setIsLoading(true);
@@ -130,8 +122,72 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
     setShowAll(true);
   };
 
-  const displayedPublications = sortedPublications();
-
+ const renderAuthors = (publication) => {
+    if (!publication.co_authors) return null;
+   
+    if (!publication.prl_authors || !Array.isArray(publication.prl_authors) || publication.prl_authors.length === 0) {
+      return <p className="text-gray-600">{publication.co_authors}</p>;
+    }
+    const allAuthors = publication.co_authors.split(', ').map(author => author.trim());
+    
+    const prlAuthorsMap = {};
+    const prlAuthorNameVariations = {};
+    
+    publication.prl_authors.forEach(author => {
+      
+      prlAuthorsMap[author.id] = author;
+      
+      const cleanName = author.name.replace(/^(Dr\.|Mr\.|Ms\.|Mrs\.|Prof\.) /, '').trim();
+      prlAuthorNameVariations[cleanName] = author.id;
+      prlAuthorNameVariations[author.name] = author.id;
+      
+      const nameParts = cleanName.split(' ');
+      if (nameParts.length > 1) {
+        const lastName = nameParts[nameParts.length - 1];
+        const firstInitial = nameParts[0][0];
+        prlAuthorNameVariations[`${lastName} ${firstInitial}.`] = author.id;
+        prlAuthorNameVariations[`${lastName} ${firstInitial}`] = author.id;
+      }
+    });
+    const prlAuthorsInList = [];
+    const nonPrlAuthors = [];
+    
+    allAuthors.forEach(authorName => {
+      const cleanName = authorName.trim().replace(/\.$/, '');
+      const authorId = prlAuthorNameVariations[cleanName];
+      
+      if (authorId && prlAuthorsMap[authorId]) {
+        prlAuthorsInList.push({ name: authorName, id: authorId });
+      } else {
+        nonPrlAuthors.push(authorName);
+      }
+    });
+    return (
+      <p className="text-gray-600">
+      
+        {prlAuthorsInList.map((author, index) => (
+          <React.Fragment key={`prl-${author.id}`}>
+            {index > 0 && ', '}
+            <a 
+              href={`/profile/${author.id}`}
+              className="text-blue-600 hover:underline"
+            >
+              {author.name}
+            </a>
+          </React.Fragment>
+        ))}
+        {prlAuthorsInList.length > 0 && nonPrlAuthors.length > 0 && ', '}
+        
+        {nonPrlAuthors.map((name, index) => (
+          <React.Fragment key={`non-prl-${index}`}>
+            {index > 0 && ', '}
+            {name}
+          </React.Fragment>
+        ))}
+      </p>
+    );
+  };
+   const displayedPublications = sortedPublications();
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
@@ -181,7 +237,7 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
                       {pub.open_access === true && <ExternalLink className="w-4 h-4 text-green-500" />}
                     </div>
                   </div>
-                  <p className="text-gray-600">{pub.co_authors}</p>
+                  {renderAuthors(pub)}
                   <div className="flex flex-wrap gap-4 text-sm">
                     <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
                     {pub.open_access && <span className="text-green-600">Open access</span>}
