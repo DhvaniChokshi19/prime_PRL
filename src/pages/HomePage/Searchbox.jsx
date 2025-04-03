@@ -11,7 +11,7 @@ const Searchbox = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     all: false,
-    name: false,
+    name: true,
     designation: false,
     department: false,
     expertise: false
@@ -54,19 +54,19 @@ const Searchbox = () => {
       icon: <UserRound className="h-8 w-8 text-blue-600" />,
       number: statsData.total_profiles,
       label: 'PROFILES',
-      route: '/person'
+      
     },
     {
       icon: <Newspaper className="h-8 w-8 text-blue-600"/>,
       number: statsData.total_publications,
       label: 'PUBLICATIONS',
-      route: '/Publication'
+      
     },
     {
       icon: <BookMarked className="h-8 w-8 text-blue-600"/>,
       number: statsData.total_citations,
       label: 'CITATIONS',
-      route: '/Publication'
+     
     },
     {
       icon: <AtSign className="h-8 w-8 text-blue-600"/>,
@@ -183,7 +183,6 @@ const Searchbox = () => {
               <div 
                 key={index}
                 className="bg-white rounded-lg shadow-md p-6 text-center cursor-pointer"
-                onClick={() => stat.route && handleNavigate(stat.route)}
               >
                 <div className="flex justify-center">
                   {stat.icon}

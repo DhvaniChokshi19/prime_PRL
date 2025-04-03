@@ -1,11 +1,24 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import prllogo from '../../assets/prl-logo.png';
 import prlogo from '../../assets/prime.png';
-import { LogIn } from 'lucide-react'
+import { LogIn, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 const Headers = () => {
 
 const navigate = useNavigate();
+ const [isLoggedIn, setIsLoggedIn] = useState(false);
+ useEffect(() => {
+    const checkLoginStatus = () => {
+      const authToken = Cookies.get('authToken');
+      setIsLoggedIn(!!authToken);
+    };
+    checkLoginStatus();
+    const intervalId = setInterval(checkLoginStatus, 1000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
+
 const handleHomeClick=()=>{
   navigate('/');
 };
@@ -36,8 +49,8 @@ const handleLoginClick=()=>{
         onClick={handleLoginClick}
         icon={<LogIn />}
         className="px-7 py-3 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 flex items-center gap-2">
-          <span>Login</span>
-          <LogIn size={20} />
+          <span>{isLoggedIn ? 'Logout' : 'Login'}</span>
+          {isLoggedIn ? <LogOut size={20} /> : <LogIn size={20} />}
         </button>
       </div>
     </div>

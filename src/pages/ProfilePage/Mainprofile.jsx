@@ -157,7 +157,7 @@ const Mainprofile = () => {
     { name: 'Publication', icon: BookOpen },
     { name: 'Patent', icon: ScrollText },
     { name: 'Project', icon: BookMarked },
-    { name: 'Networks', icon: GlobeLock },
+    // { name: 'Networks', icon: GlobeLock },
   ];
 
   // Render content based on active tab
@@ -185,11 +185,11 @@ const Mainprofile = () => {
           onDataUpdate={(data) => updateComponentData('Projects', data)} 
           profileId={profileId} 
         />;
-      case 'Networks':
-        return <Network 
-          onDataUpdate={(data) => updateComponentData('Network', data)} 
-          profileId={profileId} 
-        />;
+      // case 'Networks':
+      //   return <Network 
+      //     onDataUpdate={(data) => updateComponentData('Network', data)} 
+      //     profileId={profileId} 
+      //   />;
       default:
         return <PersonalInformation 
           onDataUpdate={(data) => updateComponentData('PersonalInformation', data)} 
@@ -422,7 +422,7 @@ setActiveTab('Publication');
                         >
                           {profileData.profile.orcid_url 
                 ? profileData.profile.orcid_url.split('/').pop() 
-                : "N/A"}
+                : ""}
                         </a>
                       </p>
                     </div>
@@ -439,7 +439,7 @@ setActiveTab('Publication');
                         >
                           {profileData.profile.scopus_url
                 ? profileData.profile.scopus_url.split('=').pop()
-                : "N/A"}
+                : ""}
                         </a>
                       </p>
                     </div>
@@ -448,14 +448,14 @@ setActiveTab('Publication');
                     <img src={publons} alt="Publons" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Publons Id</p>
-                      <p className="text-sm text-blue-600">{profileData.profile.publons_id || "N/A"}</p>
+                      <p className="text-sm text-blue-600">{profileData.profile.publons_id || ""}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <img src={googlei} alt="Google Scholar" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Google Scholar Id</p>
-                      <p className="text-sm text-blue-600">{profileData.profile.google_scholar_id || "N/A"}</p>
+                      <p className="text-sm text-blue-600">{profileData.profile.google_scholar_id || ""}</p>
                     </div>
                   </div>
                 </div>
@@ -478,8 +478,6 @@ setActiveTab('Publication');
                 <ul className="space-y-2 text-base">
                   <li>Total career publications: {researchMetrics[0].value}</li>
                   <li>Publication years: {yearRangeOptions}</li>
-                  <li>Altmetrics Count: 
-                  </li>
                   <li>Average citations per paper: {
                     parseInt(researchMetrics[0].value) > 0 
                       ? (parseInt(researchMetrics[1].value) / parseInt(researchMetrics[0].value)).toFixed(1) 
@@ -512,8 +510,6 @@ setActiveTab('Publication');
           </button>
         ))}
       </div>
-
-      {/* Content Section */}
       <div className="mt-6">
         {renderContent()}
       </div>

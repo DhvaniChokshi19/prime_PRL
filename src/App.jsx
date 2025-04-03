@@ -11,7 +11,6 @@ import Mainprofile from "./pages/ProfilePage/Mainprofile";
 import Loginbox from "./pages/LoginPage/Loginbox";
 import Publication from "./pages/HomePage/Publication";
 import Header from './pages/HomePage/Header';
-import Persons from "./pages/HomePage/persons";
 
 // Home page component
 const Home = () => {

@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { Button } from '@/components/ui/button';
 import { Camera } from 'lucide-react';
 import { toast } from "@/hooks/use-toast";
 
-
 const ProfileImageUpload = ({ profileImage, onImageUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      try {
+        const token = getTokenFromCookies();
+        setIsLoggedIn(!!token);
+      } catch (error) {
+        setIsLoggedIn(false);
+      }
+    };
+    
+    checkLoginStatus();
+  }, []);
 
   const handleImageChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -16,6 +28,7 @@ const ProfileImageUpload = ({ profileImage, onImageUpdate }) => {
       setPreviewImage(URL.createObjectURL(file));
     }
   };
+
   const getTokenFromCookies = () => {
     const cookies = document.cookie.split('; ');
     const tokenCookie = cookies.find(row => row.startsWith('authToken='));
@@ -27,6 +40,7 @@ const ProfileImageUpload = ({ profileImage, onImageUpdate }) => {
     
     throw new Error('No authentication token found in cookies');
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -46,8 +60,8 @@ const ProfileImageUpload = ({ profileImage, onImageUpdate }) => {
     
     try {
       setLoading(true);
-       const token = getTokenFromCookies();
-      const response = await axiosInstance.put(`/api/profile/image`, 
+      const token = getTokenFromCookies();
+      const response = await axiosInstance.put(`/api/profile/image`,
         formData,
         {
           headers: {
@@ -80,47 +94,50 @@ const ProfileImageUpload = ({ profileImage, onImageUpdate }) => {
 
   return (
     <div className="relative">
-      {/* Current profile image */}
       <img 
-        src={previewImage || profileImage || `${API_BASE_URL}/api/placeholder/150/150`} 
-        alt="Profile" 
+        src={previewImage || profileImage || `${API_BASE_URL}/api/placeholder/150/150`}
+        alt="Profile"
         className="w-48 h-48 rounded-lg object-cover"
       />
-      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 hover:opacity-100 transition-opacity rounded-lg">
-        <form onSubmit={handleSubmit}>
-          <input
-            type="file"
-            id="profileImage"
-            name="profileImage"
-            accept="image/*"
-            onChange={handleImageChange}
-          />
-          <label htmlFor="profileImage">
-            <Button
-              type="button"
-              variant="secondary"
-              className="flex items-center gap-2"
-              disabled={loading}
-            >
-              <Camera size={16} />
-              Change Photo
-            </Button>
-          </label>
-          
-          {previewImage && (
-            <div className="mt-2 flex justify-center">
-              <Button 
-                type="submit" 
-                variant="primary"
+      
+      {isLoggedIn && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 hover:opacity-100 transition-opacity rounded-lg">
+          <form onSubmit={handleSubmit}>
+            <input
+              type="file"
+              id="profileImage"
+              name="profileImage"
+              accept="image/*"
+              onChange={handleImageChange}
+              
+            />
+            <label htmlFor="profileImage">
+              <Button
+                type="button"
+                variant="secondary"
+                className="flex items-center gap-2"
                 disabled={loading}
-                className="bg-blue-600 text-white hover:bg-blue-700"
               >
-                {loading ? "Uploading..." : "Save"}
+                <Camera size={16} />
+                Change Photo
               </Button>
-            </div>
-          )}
-        </form>
-      </div>
+            </label>
+            
+            {previewImage && (
+              <div className="mt-2 flex justify-center">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={loading}
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  {loading ? "Uploading..." : "Save"}
+                </Button>
+              </div>
+            )}
+          </form>
+        </div>
+      )}
     </div>
   );
 };

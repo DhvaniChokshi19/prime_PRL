@@ -32,7 +32,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import axiosInstance, { API_BASE_URL } from '../../api/axios';
-
+import ProfileSearchbox from './ProfileSearchbox';
 const Profiles = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,21 +55,22 @@ const Profiles = () => {
   // Extract search parameters from URL
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const query = searchParams.get('query');
-    
-    if (query) {
-      setSearchTerm(query);
-    }
-    
-    // Check if we have results passed via state
-    if (location.state && location.state.results) {
-      console.log("Results from state:", location.state.results);
-      setAllFacultyData(location.state.results);
-    } else {
-      // If no results in state, fetch them based on URL parameters
-      fetchAllFacultyData();
-    }
-  }, [location]);
+  const name = searchParams.get('name');
+  
+  if (name) {
+    setSearchTerm(name);
+  }
+  
+  // Check if we have results passed via state
+  if (location.state && location.state.results) {
+    console.log("Results from state:", location.state.results);
+    setAllFacultyData(location.state.results);
+    setCurrentPage(1); // Reset to first page with new results
+  } else {
+    // If no results in state, fetch them based on URL parameters
+    fetchAllFacultyData();
+  }
+}, [location.search]);
 
   // Apply filters, sorting, and pagination whenever data, filters, sort, or page changes
   useEffect(() => {
@@ -77,23 +78,22 @@ const Profiles = () => {
   }, [allFacultyData, activeFilters, sortBy, currentPage, searchTerm]);
 
   const fetchAllFacultyData = async () => {
-    setLoading(true);
+  setLoading(true);
   try {
-    // Construct the URL for searching
-    let url = `/api/search`;
+    const params = searchTerm ? { name: searchTerm } : {};
     
-    const params = searchTerm ? { query: searchTerm } : {};
+    console.log("Fetching data with params:", params);
     
-    console.log("Fetching all data with axios");
-    
-    const response = await axiosInstance.get(url, {
+    const response = await axiosInstance.get('/api/search', {
       params: params,
       withCredentials: true,
     });
     
-    console.log("Fetched all data:", response.data);
+    console.log("Fetched data:", response.data);
     
     setAllFacultyData(response.data);
+    
+    setCurrentPage(1);
   } catch (error) {
     console.error("Error fetching faculty data:", error);
     setAllFacultyData([]);
@@ -191,21 +191,9 @@ const Profiles = () => {
     navigate(`/profile/${profile_id}`);
   };
 
-  const handleSearch = (e) => {
-  e.preventDefault();
-  setCurrentPage(1);
-  
-  // Clear any previous results from state to ensure we're not using cached data
-  navigate(location.pathname, { state: null });
-  
-  // Always fetch fresh data when performing a search
-  fetchAllFacultyData();
-};
-
-  const handleSortChange = (value) => {
+ const handleSortChange = (value) => {
     setSortBy(value);
   };
-
   const departments = [
     'Astronomy and Astrophysics',
     'Atomic, Molecular and Optical Physics', 
@@ -284,14 +272,6 @@ const Profiles = () => {
     "Pending"
   ];
 
-  const institutions = [
-    "IIT Bombay",
-    "IIT Delhi",
-    "PRL Ahmedabad",
-    "IISER Pune",
-    "ISRO Ahmedabad",
-    "ISRO Bangalore",
-  ];
 
   // Show error message if no data is available
   const displayData = displayFacultyData.length > 0 ? displayFacultyData : { error: "No faculty data available" };
@@ -300,18 +280,7 @@ const Profiles = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Search Bar */}
       <div className="w-full bg-white shadow-sm py-6 px-7 mb-6">
-        <form onSubmit={handleSearch} className="max-w-3xl mx-auto relative">
-          <input
-            type="text"
-            placeholder="Search for faculty, department, expertise..."
-            className="w-full p-3 pr-12 text-lg rounded-lg border border-black-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button type="submit" className="absolute right-4 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer">
-            <Search className="text-gray-400 h-5 w-5" />
-          </button>
-        </form>
+       <ProfileSearchbox/>
       </div>
 
       <div className="flex p-6 gap-6">
@@ -359,33 +328,6 @@ const Profiles = () => {
                   </div>
                 </AccordionContent>
               </AccordionItem>
-
-              <AccordionItem value="expertise">
-                <AccordionTrigger>Expertise</AccordionTrigger>
-                <AccordionContent>
-                  {/* Add expertise filters here */}
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="institution">
-                <AccordionTrigger>Institution</AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-2">
-                    {institutions.map((institution) => (
-                      <div key={institution} className="flex items-center space-x-2">
-                        <Checkbox id={institution}
-                        checked={activeFilters.institutions.includes(institution)}
-                          onCheckedChange={() => handleFilterChange('institutions', institution)}
-                         />
-                        <label htmlFor={institution} className="text-sm">
-                          {institution}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
               <AccordionItem value="state">
                 <AccordionTrigger>State</AccordionTrigger>
                 <AccordionContent>

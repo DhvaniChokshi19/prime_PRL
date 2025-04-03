@@ -114,8 +114,6 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
       </div>
     );
   }
-
-  // Show error state
   if (error) {
     return (
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
@@ -168,7 +166,6 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
 const departments = departmentData.map(dept => dept.department);
   return (
     <div className='bg-blue-200 mx-auto max-w-9xl p-4'>
-      {/* Existing code for header image */}
       <div className="relative w-screen h-48">
         <img 
           src={pubimg} 
@@ -249,15 +246,18 @@ const departments = departmentData.map(dept => dept.department);
                   height={60}
                   interval={0}
                 />
-                <YAxis />
+                <YAxis yAxisId="left" orientation="left" />
+                <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
                 <Bar 
+                  yAxisId="left"
                   dataKey="total_publications" 
                   name="Publications" 
                   fill={colors.publications} 
                 />
                 <Bar 
+                  yAxisId="right"
                   dataKey="total_citations" 
                   name="Citations" 
                   fill={colors.citations} 

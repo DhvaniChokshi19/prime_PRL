@@ -333,10 +333,10 @@ const Projects = () => {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-4">Loading students...</div>
+            <div className="text-center py-4">Loading Projects...</div>
           ) : students.length === 0 ? (
             <div className="text-center py-4 text-gray-500">
-              No students found. Add a student to get started.
+              No Projects found. Add a Project to get started.
             </div>
           ) : (
             students.map((student) => (
@@ -448,7 +448,7 @@ const Projects = () => {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="bg-white">
                       <AlertDialogHeader>
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>

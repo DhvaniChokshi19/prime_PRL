@@ -13,16 +13,36 @@ const Login = () => {
   const [countdown, setCountdown] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-// axiosInstance.defaults.withCredentials = true;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+   useEffect(() => {
+     const checkLoginStatus = () => {
+      const authToken = Cookies.get('authToken');
+      setIsLoggedIn(!!authToken);
+    };
+    checkLoginStatus();
+    const intervalId = setInterval(checkLoginStatus, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   useEffect(() => {
-    // Countdown timer for OTP expiry (5 minutes)
+    
     let timer;
     if (countdown > 0) {
       timer = setTimeout(() => setCountdown(countdown - 1), 1000);
     }
     return () => clearTimeout(timer);
   }, [countdown]);
-
+ useEffect(() => {
+    const authToken = Cookies.get('authToken');
+    if (authToken) {
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+    }
+    return () => {
+      delete axiosInstance.defaults.headers.common['Authorization'];
+    };
+  }, [isLoggedIn]);
   const handleRequestOTP = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -50,10 +70,10 @@ const Login = () => {
       
       const {access, refresh, id} = response.data;
        if (access, refresh) {
-
-       Cookies.set('authToken', access, { expires: 7, secure: true, sameSite: 'Strict' });
-
-      localStorage.setItem('refreshToken', refresh);
+ Cookies.set('authToken', access, { expires: 7, secure: true, sameSite: 'Strict' });
+        Cookies.set('refresh_token', refresh, { expires: 30, secure: true, sameSite: 'Strict' });
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`; 
+      setIsLoggedIn(true);
       }
       console.log('Response data:', response.data);
       if (id) {
@@ -67,13 +87,70 @@ const Login = () => {
       setLoading(false);
     }
   };
+const handleLogout = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const authToken = Cookies.get('authToken');      
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      };
+      
+      const response = await axiosInstance.get('api/logout',config);
+      
+      // Clear cookies and local storage
+      Cookies.remove('authToken');
+      Cookies.remove('refresh_token');
+      delete axiosInstance.defaults.headers.common['Authorization'];
+      
+      setIsLoggedIn(false);
+      navigate('/'); 
+      
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to logout. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' + secs : secs}`;
   };
+  if (isLoggedIn) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">PRIME Account</h1>
+            <p className="mt-2 text-gray-600">You are currently logged in</p>
+          </div>
 
+          {error && (
+            <div className="p-3 text-sm text-red-800 bg-red-100 rounded-md">
+              {error}
+            </div>
+          )}
+
+          <div className="mt-8">
+            <button
+              onClick={handleLogout}
+              disabled={loading}
+              className={`w-full px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
+                loading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {loading ? 'Logging out...' : 'Log Out'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow">

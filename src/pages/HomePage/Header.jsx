@@ -2,6 +2,7 @@ import React from 'react';
 import prllogo from '../../assets/prl-logo.png';
 import prlogo from '../../assets/prime.png';
 import { useNavigate } from 'react-router-dom';
+import Publication from './Publication';
 const Header = () => {
   const navigate = useNavigate();
   const handleFeature= ()=>{
@@ -9,11 +10,14 @@ const Header = () => {
     featuresSection?.scrollIntoView({ behavior: 'smooth' });
   }
   const handleHome =()=>{
-
+navigate('/');
   }
   const handleContact=()=>{
 const footersection = document.getElementById('footer');
     footersection?.scrollIntoView({ behavior: 'smooth' });
+}
+const handleDepartment=()=>{
+  navigate('/Publication');
 }
   return (
     <header className="w-full">
@@ -38,6 +42,8 @@ const footersection = document.getElementById('footer');
             onClick={handleFeature}>
               Features
             </li>
+            <li className='hover:text-gray-300 text-xl'
+            onClick={handleDepartment}>Department Statistics</li>
             <li className="hover:text-gray-300 text-xl"
             onClick={handleContact}>
                Contact Us

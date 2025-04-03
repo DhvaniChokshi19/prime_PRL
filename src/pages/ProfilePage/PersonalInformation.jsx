@@ -34,14 +34,21 @@ const PersonalInformation = ({ profileData, onProfileUpdate}) => {
   const [deleteQualificationAlertOpen, setDeleteQualificationAlertOpen] = useState(false);
 const [awardToDelete, setAwardToDelete] = useState(null);
 const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
-
+  const [showLoginError, setShowLoginError] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   // Extract data from profileData prop
   const profile = profileData?.profile || {};
   const personalInfo = profileData?.["personal_information: "]?.[0] || {};
   const professionalExperiences = profileData?.professional_experiences || [];
   const qualifications = profileData?.qualifications || [];
   const honorsAwards = profileData?.honors_and_awards || [];
-
+const [localProfileData, setLocalProfileData] = useState({
+    profile: {},
+    personal_information: [],
+    professional_experiences: [],
+    qualifications: [],
+    honors_and_awards: []
+  });
   // Initial form states
   const [personalForm, setPersonalForm] = useState({
     
@@ -53,7 +60,8 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
     about_me:personalInfo.about_me ||'',
     email: profile.email || '',
     website: profile.website || '',
-    address: personalInfo.address || ''
+    address: personalInfo.address || '',
+    state:profile.state ||'',
   });
 
   const [professionalForm, setProfessionalForm] = useState({
@@ -77,11 +85,29 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
     award_name: '',
     awarding_authority: ''
   });
- // Update personal form state when profileData changes
+ useEffect(() => {
+    const checkAuthStatus = () => {
+      try {
+        const token = getAuthToken();
+        setIsAuthenticated(!!token);
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
+    };
+    
+    checkAuthStatus();
+  }, []);
   useEffect(() => {
-    console.log("profileData:", profileData);
-  console.log("personalInfo:", personalInfo);
     if (profileData) {
+      const formattedData = {
+        ...profileData,
+        personal_information: profileData["personal_information: "] || []
+      };
+      
+      setLocalProfileData(formattedData);
+  //   console.log("profileData:", profileData);
+  // console.log("personalInfo:", personalInfo);
+    
       setPersonalForm({
         name: profile.name || '',
         gender: personalInfo.gender || '',
@@ -91,7 +117,9 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
         about_me: personalInfo.about_me || '',
         email: profile.email || '',
         website: profile.website || '',
-        address: personalInfo.address || ''
+        state: profile.state ||'',
+        address: personalInfo.address || '',
+        
       });
   }
   }, [profileData]);
@@ -108,6 +136,19 @@ const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
     
     throw new Error('No authentication token found Please Login again');
   };
+   const checkAuthentication = () => {
+    if (!isAuthenticated) {
+      setShowLoginError(true);
+      toast({
+        title: "Authentication Error",
+        description: "Please login to perform this action",
+        variant: "destructive"
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handlePersonalFormChange = (e) => {
     const { name, value } = e.target;
     setPersonalForm(prev => ({
@@ -146,6 +187,7 @@ const handleProfessionalFormChange = (e) => {
 
   // Handle personal form submission
   const handlePersonalFormSubmit = async () => {
+    if (!checkAuthentication()) return;
     try {
       setLoading(true);
       
@@ -156,6 +198,7 @@ const handleProfessionalFormChange = (e) => {
         department: personalForm.department,
         expertise: personalForm.expertise,
         website: personalForm.website,
+        state: personalForm.state,
       };
   
     // personal information data
@@ -182,6 +225,17 @@ const handleProfessionalFormChange = (e) => {
     'Authorization': `Bearer ${authToken}`
   }
 });
+setLocalProfileData(prev => ({
+        ...prev,
+        profile: {
+          ...prev.profile,
+          ...profileData
+        },
+        personal_information: [{
+          ...prev.personal_information?.[0] || {},
+          ...personalInfoData
+        }]
+      }));
      // Close edit mode
       setEditMode(null);
     
@@ -201,6 +255,7 @@ const handleProfessionalFormChange = (e) => {
   };      
 // Handle professional experience form submission (add/edit)
   const handleProfessionalFormSubmit = async () => {
+     if (!checkAuthentication()) return;
     try {
       setLoading(true);
       const authToken = getAuthToken();
@@ -212,7 +267,12 @@ const handleProfessionalFormChange = (e) => {
             'Authorization': `Bearer ${authToken}`
           }
         });
-        
+        setLocalProfileData(prev => ({
+          ...prev,
+          professional_experiences: prev.professional_experiences.map(exp => 
+            exp.id === professionalForm.id ? professionalForm : exp
+          )
+        }));
         toast({
           title: "Success",
           description: "Professional experience updated successfully",
@@ -225,6 +285,16 @@ const handleProfessionalFormChange = (e) => {
             'Authorization': `Bearer ${authToken}`
           }
         });
+        const newExperience = response.data?.experience || {
+          ...professionalForm,
+          id: Date.now() // Fallback ID if API doesn't return it
+        };
+        
+        // Update local state
+        setLocalProfileData(prev => ({
+          ...prev,
+          professional_experiences: [...prev.professional_experiences, newExperience]
+        }));
         
         toast({
           title: "Success",
@@ -258,6 +328,7 @@ const handleProfessionalFormChange = (e) => {
   };
 // Handle qualification form submission (add/edit)
   const handleQualificationFormSubmit = async () => {
+     if (!checkAuthentication()) return;
     try {
       setLoading(true);
       const authToken = getAuthToken();
@@ -269,7 +340,12 @@ const handleProfessionalFormChange = (e) => {
             'Authorization': `Bearer ${authToken}`
           }
         });
-        
+        setLocalProfileData(prev => ({
+          ...prev,
+          qualifications: prev.qualifications.map(qual => 
+            qual.id === qualificationForm.id ? qualificationForm : qual
+          )
+        }));
         toast({
           title: "Success",
           description: "Qualification updated successfully",
@@ -282,6 +358,16 @@ const handleProfessionalFormChange = (e) => {
             'Authorization': `Bearer ${authToken}`
           }
         });
+        const newQualification = response.data?.qualification || {
+          ...qualificationForm,
+          id: Date.now() 
+        };
+        
+        // Update local state
+        setLocalProfileData(prev => ({
+          ...prev,
+          qualifications: [...prev.qualifications, newQualification]
+        }));
         
         toast({
           title: "Success",
@@ -314,6 +400,7 @@ const handleProfessionalFormChange = (e) => {
     }
   };
 const handleHonorsFormSubmit = async () => {
+   if (!checkAuthentication()) return;
   try {
     setLoading(true);
     const authToken = getAuthToken();
@@ -325,7 +412,13 @@ const handleHonorsFormSubmit = async () => {
           'Authorization': `Bearer ${authToken}`
         }
       });
-      
+      setLocalProfileData(prev => ({
+          ...prev,
+          honors_and_awards: prev.honors_and_awards.map(award => 
+            award.id === honorsForm.id ? honorsForm : award
+          )
+        }));
+        
       toast({
         title: "Success",
         description: "Award updated successfully",
@@ -338,7 +431,17 @@ const handleHonorsFormSubmit = async () => {
           'Authorization': `Bearer ${authToken}`
         }
       });
-      
+        const newAward = response.data?.award || {
+          ...honorsForm,
+          id: Date.now() // Fallback ID if API doesn't return it
+        };
+        
+        // Update local state
+        setLocalProfileData(prev => ({
+          ...prev,
+          honors_and_awards: [...prev.honors_and_awards, newAward]
+        }));
+        
       toast({
         title: "Success",
         description: "Award added successfully",
@@ -372,6 +475,7 @@ const handleHonorsFormSubmit = async () => {
 };
 // Handle professional experience deletion
   const handleDeleteExperience = async () => {
+     if (!checkAuthentication()) return;
     if (!experienceToDelete) return;
     console.log("Full experienceToDelete object:", experienceToDelete);
     const idToDelete = experienceToDelete.id;
@@ -386,7 +490,10 @@ const handleHonorsFormSubmit = async () => {
       data: { id: idToDelete },
 
       });
-      
+      setLocalProfileData(prev => ({
+        ...prev,
+        professional_experiences: prev.professional_experiences.filter(exp => exp.id !== idToDelete)
+      }));
       toast({
         title: "Success",
         description: "Professional experience deleted successfully",
@@ -414,6 +521,7 @@ const handleHonorsFormSubmit = async () => {
   };
 // Handle qualification deletion
   const handleDeleteQualification = async () => {
+     if (!checkAuthentication()) return;
     if (!qualificationToDelete) return;
    
     const idToDelete = qualificationToDelete.id;
@@ -428,7 +536,10 @@ const handleHonorsFormSubmit = async () => {
         },
         data: { id: idToDelete },
       });
-      
+       setLocalProfileData(prev => ({
+        ...prev,
+        qualifications: prev.qualifications.filter(qual => qual.id !== idToDelete)
+      }));
       toast({
         title: "Success",
         description: "Qualification deleted successfully",
@@ -455,6 +566,7 @@ const handleHonorsFormSubmit = async () => {
     }
   };
 const handleDeleteAward = async () => {
+  if (!checkAuthentication()) return;
   if (!awardToDelete) return;
   const idToDelete = awardToDelete.id;
   
@@ -467,7 +579,10 @@ const handleDeleteAward = async () => {
         'Authorization': `Bearer ${authToken}`
       }
     });
-    
+     setLocalProfileData(prev => ({
+        ...prev,
+        honors_and_awards: prev.honors_and_awards.filter(award => award.id !== idToDelete)
+      }));
     toast({
       title: "Success",
       description: "Award deleted successfully",
@@ -493,17 +608,34 @@ const handleDeleteAward = async () => {
     setLoading(false);
   }
 };
-
+const LoginErrorDialog = () => (
+    <Dialog open={showLoginError} onOpenChange={setShowLoginError}>
+      <DialogContent className="sm:max-w-[400px]">
+        <DialogHeader>
+          <DialogTitle>Authentication Required</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <p>Please log in to perform this action.</p>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button>Close</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
   return (
     <Card className="w-full border-none bg-white">
       <CardContent className="p-6">
-       
+       <LoginErrorDialog />
         {/* Basic Information Section */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-2 mb-4">
             <SquareUser className="w-6 h-6 text-gray-500" />
             <h3 className="text-xl font-semibold">Personal Information</h3>
           </div>
+          {isAuthenticated && (
           <Button 
             onClick={() => setEditMode('personal')}
             className="flex items-center gap-2"
@@ -511,6 +643,7 @@ const handleDeleteAward = async () => {
             Edit
             <Edit size={20} />
           </Button>
+           )}
         </div>
 
         <div className="mb-6">
@@ -519,6 +652,7 @@ const handleDeleteAward = async () => {
             <p className="text-lg text-gray-600">{personalInfo.gender || "Male"}</p>
             <p className="text-lg text-red-600">{profile.designation || "Research Scientist"}</p>
             <p className="text-lg text-gray-600">{profile.department || "Electrical Engineering"}</p>
+            <p className='text-lg text-gray-600'>{profile.state || "Location not provided"}</p>
           </div>
           <p className="text-gray-600 mt-2">{profile.expertise || "Nanomaterials, Electrochemistry, Energy Storage Applications"}</p>
           <div>
@@ -546,6 +680,7 @@ const handleDeleteAward = async () => {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
+                     {isAuthenticated && (
                     <Button 
                       size="icon" 
                        onClick={() => {
@@ -557,12 +692,15 @@ const handleDeleteAward = async () => {
                         start_year: exp.start_year,
                         end_year: exp.end_year
                       });
+                      
                       setSelectedExperience(exp);
                       setEditMode('professional');
-                    }}
+                    }}  
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
+                    )};
+                    {isAuthenticated && (
                     <Button 
                       size="icon"
                       variant="destructive"
@@ -574,6 +712,7 @@ const handleDeleteAward = async () => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -587,6 +726,7 @@ const handleDeleteAward = async () => {
                 <GraduationCap className="w-6 h-6 text-gray-500" />
                 <h3 className="text-xl font-semibold">Qualification</h3>
               </div>
+               {isAuthenticated && (
               <Button
                 onClick={() => {
                   setQualificationForm({
@@ -599,6 +739,7 @@ const handleDeleteAward = async () => {
                 }} >
                 <PlusCircle className="h-4 w-4" />
               </Button>
+               )}
             </div>
             <div className="space-y-4 pl-4 border-l-2 border-gray-200">
               {qualifications.map((qual, index) => (
@@ -608,6 +749,7 @@ const handleDeleteAward = async () => {
                     <p className="text-gray-600">{qual.authority}</p>
                     <p className="text-sm text-gray-500">{qual.year}</p>
                   </div>
+                   {isAuthenticated && (
                   <div className="flex items-center gap-2">
                     <Button  
                       size="icon"   
@@ -636,6 +778,7 @@ const handleDeleteAward = async () => {
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
+                   )}
                 </div>
               ))}
             </div>
@@ -649,6 +792,7 @@ const handleDeleteAward = async () => {
               <Award className="w-6 h-6 text-gray-500" />
               <h3 className="text-xl font-semibold">Awards and Recognition</h3>
             </div>
+             {isAuthenticated && (
             <Button 
               size="icon"
                onClick={() => {
@@ -663,6 +807,7 @@ const handleDeleteAward = async () => {
             >
               <PlusCircle className="h-4 w-4" />
             </Button>
+             )}
           </div>
           <div className="space-y-4 pl-4 border-l-2 border-gray-200">
             {honorsAwards.map((award, index) => (
@@ -674,6 +819,7 @@ const handleDeleteAward = async () => {
                     <p className="text-sm text-gray-500">{award.awarding_authority}</p>
                   </div>
                 </div>
+                 {isAuthenticated && (
                 <div className="flex items-center gap-2">
                   <Button 
                     size="icon" 
@@ -702,6 +848,7 @@ const handleDeleteAward = async () => {
             <Trash2 className="h-4 w-4" />
           </Button>
                 </div>
+                 )}
               </div>
             ))}
           </div>
@@ -722,7 +869,7 @@ const handleDeleteAward = async () => {
 
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
-              <Globe className="w-5 h-5 text-gray-500" />
+              <Globe className="w-5 h-5 text-gray-500 " />
               <span className="font-medium">Website</span>
             </div>
             <a href={profile.website || "https://prl.edu/faculty/nithyananad"} className="text-red-600 hover:underline break-all">
@@ -742,7 +889,7 @@ const handleDeleteAward = async () => {
           </div>
         </div>
            <Dialog open={editMode === 'personal'} onOpenChange={(open) => !open && setEditMode(null)}>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[550px] bg-white">
             <DialogHeader>
               <DialogTitle>Edit Personal Information</DialogTitle>
             </DialogHeader>
@@ -832,7 +979,16 @@ const handleDeleteAward = async () => {
                   placeholder="Enter your website URL"
                 />
               </div>
-              
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  name="state"
+                  value={personalForm.state}
+                  onChange={handlePersonalFormChange}
+                  placeholder="Enter your State"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
                 <Textarea
@@ -983,7 +1139,7 @@ const handleDeleteAward = async () => {
 </Dialog>
         {/* Delete Professional Experience Alert Dialog */}
         <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-white">
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -1063,7 +1219,7 @@ const handleDeleteAward = async () => {
         </Dialog>
          {/* Delete Qualification Alert Dialog */}
         <AlertDialog open={deleteQualificationAlertOpen} onOpenChange={setDeleteQualificationAlertOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-white">
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -1087,7 +1243,7 @@ const handleDeleteAward = async () => {
         </AlertDialog> 
   
   <AlertDialog open={deleteAwardAlertOpen} onOpenChange={setDeleteAwardAlertOpen}>
-  <AlertDialogContent>
+  <AlertDialogContent className="bg-white">
     <AlertDialogHeader>
       <AlertDialogTitle>Are you sure?</AlertDialogTitle>
       <AlertDialogDescription>

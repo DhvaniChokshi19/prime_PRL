@@ -9,7 +9,7 @@ const Header = () => {
     featuresSection?.scrollIntoView({ behavior: 'smooth' });
   }
   const handleHome =()=>{
-
+navigate('/');
   }
   const handleContact=()=>{
 const footersection = document.getElementById('footer');
