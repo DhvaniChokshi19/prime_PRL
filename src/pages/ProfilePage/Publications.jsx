@@ -232,10 +232,19 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
                       {pub.title}
                       {!showAll && <Award className="inline-block ml-2 w-4 h-4 text-yellow-500" />}
                     </h4>
-                    <div className="flex-shrink-0">
-                      {pub.open_access === false && <Lock className="w-4 h-4 text-gray-500" />}
-                      {pub.open_access === true && <ExternalLink className="w-4 h-4 text-green-500" />}
-                    </div>
+                    {pub.open_access && (
+                      <Lock className="w-4 h-4 text-green-500" />
+                    )}
+                    {pub.doi && (
+                      <a 
+                        href={`https://doi.org/${pub.doi}`}
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className=" hover:underline"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
                   </div>
                   {renderAuthors(pub)}
                   <div className="flex flex-wrap gap-4 text-sm">

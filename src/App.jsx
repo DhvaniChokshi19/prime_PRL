@@ -11,6 +11,7 @@ import Mainprofile from "./pages/ProfilePage/Mainprofile";
 import Loginbox from "./pages/LoginPage/Loginbox";
 import Publication from "./pages/HomePage/Publication";
 import Header from './pages/HomePage/Header';
+// import { AuthProvider } from "./context/AuthContext";
 
 // Home page component
 const Home = () => {
@@ -69,6 +70,7 @@ function App() {
  
 
   return (
+    
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />

@@ -872,8 +872,8 @@ const LoginErrorDialog = () => (
               <Globe className="w-5 h-5 text-gray-500 " />
               <span className="font-medium">Website</span>
             </div>
-            <a href={profile.website || "https://prl.edu/faculty/nithyananad"} className="text-red-600 hover:underline break-all">
-              {profile.website || "https://prl.edu/faculty/nithyananad"}
+            <a href={profile.website || "Add your website"} className="text-red-600 hover:underline break-all">
+              {profile.website || "Add your website"}
             </a>
           </div>
         </div>
