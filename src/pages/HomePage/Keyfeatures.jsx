@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Database, LineChart, Shield, Users, Eye, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import benefit from "../../assets/benefits.png";
 import {
   Carousel,
   CarouselContent,
@@ -101,6 +102,11 @@ const featureGroups = [];
           <CarouselNext className="right-0 md:-right-12" />
         </Carousel>
       </div>
+      <div className="flex justify-center w-full h-full">
+            <div className="px-4 mt-12 ">
+              <img src={benefit} alt="benefits" className="mx-auto" />
+            </div>
+          </div>
     </div>
   );
 };

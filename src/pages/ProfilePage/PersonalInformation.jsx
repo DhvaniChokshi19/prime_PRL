@@ -667,7 +667,22 @@ const LoginErrorDialog = () => (
               <div className="flex items-center space-x-2">
                 <Briefcase className="w-6 h-6 text-gray-500" />
                 <h3 className="text-xl font-semibold">Professional Experience</h3>
-              </div>              
+              </div> 
+              {isAuthenticated && (
+              <Button
+                onClick={() => {
+                 setProfessionalForm({
+                    id: null,
+                        position: "",
+                        organization: '',
+                        start_year:'',
+                        end_year: ''
+                  });
+                  setEditMode('professional');
+                }} >
+                <PlusCircle className="h-4 w-4" />
+              </Button>
+               )}             
             </div>
             <div className="space-y-4 pl-4 border-l-2 border-gray-200">
               {professionalExperiences.map((exp, index) => (

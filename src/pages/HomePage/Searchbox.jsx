@@ -10,14 +10,11 @@ const Searchbox = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
-    all: false,
     name: true,
     designation: false,
     department: false,
     expertise: false
   });
-
-  // Add state for stats data
   const [statsData, setStatsData] = useState({
    total_profiles: '0',
     total_publications: '0', 
@@ -26,7 +23,6 @@ const Searchbox = () => {
     visitors_today: '0'
   });
 
-  // Fetch stats data on component mount
   useEffect(() => {
     const fetchStatsData = async () => {
       try {
@@ -76,8 +72,8 @@ const Searchbox = () => {
     {
       icon: <Eye className="h-8 w-8 text-blue-600"/>,
       number: statsData.visitors_today,
-      label: 'VISITORS TODAY'
-    }
+      label: 'H-index'
+    },
   ];
 
   const handleLearnMoreClick = () => {
@@ -85,61 +81,58 @@ const Searchbox = () => {
     featuresSection?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSearch = async (e) => {
-    // Prevent default form submission behavior
+const handleSearch = async (e) => {
     e.preventDefault();
     
     // Only proceed if there's a search term
     if (searchTerm.trim()) {
       try {
-        // Build the query parameters
-        const queryParams = new URLSearchParams();
+        const apiQueryParams = new URLSearchParams();
+        const navigationQueryParams = new URLSearchParams();
         
-        // Check which filters are active
         const activeFilters = Object.entries(filters).filter(([_, isActive]) => isActive);
         
-        // If no specific filters are checked or "all" is checked, search in all fields
-        if (activeFilters.length === 0 || filters.all) {
-           Object.entries({
-            name: searchTerm,
-            designation: searchTerm,
-            department: searchTerm,
-            expertise: searchTerm
-          }).forEach(([key, value]) => {
-            queryParams.append(key, value);
-          });
+        if (activeFilters.length === 0) {
+          apiQueryParams.append('name', searchTerm);
+          navigationQueryParams.append('name', searchTerm);
         } else {
           // Add searchTerm for each active filter
           activeFilters.forEach(([filter, _]) => {
-            if (filter !== 'all') {
-              queryParams.append(filter, searchTerm);
-            }
+            apiQueryParams.append(filter, searchTerm);
+            navigationQueryParams.append(filter, searchTerm);
           });
         }
-       const response = await axiosInstance.get('/api/search', {
-        params: queryParams
         
-      });
-      
-      console.log("Search results received:", response.data);
-      
-      // Create URLSearchParams for navigation
-      const urlParams = new URLSearchParams();
-      urlParams.append('query', searchTerm);
-      
-      // Navigate to search results page with the results as state
-      navigate('/search', { 
-        state: { results: response.data },
-        search: urlParams.toString()
-      });
-    } catch (error) {
-      console.error('Search error:', error);
-      
-      navigate(`/search?${new URLSearchParams({ query: searchTerm }).toString()}`);
+        navigationQueryParams.append('q', searchTerm);
+        
+        console.log("API Search params:", apiQueryParams.toString());
+        console.log("Navigation params:", navigationQueryParams.toString());
+        
+        const response = await axiosInstance.get('/api/search', {
+          params: apiQueryParams
+        });
+        
+        console.log("Search results received:", response.data);
+   
+        navigate(`/search?${navigationQueryParams.toString()}`, {
+          state: { 
+            results: response.data,
+            searchTerm: searchTerm,
+            filters: Object.keys(filters).filter(key => filters[key])
+          }
+        });
+      } catch (error) {
+        console.error('Search error:', error);
+        navigate(`/search?${navigationQueryParams.toString()}`, {
+          state: { 
+            searchTerm: searchTerm,
+            filters: Object.keys(filters).filter(key => filters[key]),
+            error: true
+          }
+        });
+      }
     }
-  }
-};
-
+  };
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleSearch(e);
@@ -152,14 +145,13 @@ const Searchbox = () => {
 
   return (
     <div className="bg-white">
-      {/* Hero section with full-width image and overlay text */}
-      <div className="relative w-full h-screen">
+      <div className="relative w-full h-screen">    
         <img 
           src={homeimg} 
           alt="Dashboard" 
-          className="w-full h-full object-cover"
+          className="w-full h-100 object-cover"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-40"> {/* Dark overlay for better text readability */}
+        <div className="absolute inset-0 bg-whitw bg-opacity-40"> 
           <div className="container mx-auto px-8 h-full flex items-center">
             <div className="text-white space-y-6 max-w-2xl">
               <h1 className="text-6xl font-bold">
@@ -177,17 +169,17 @@ const Searchbox = () => {
             </div>
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 px-8">
+        <div className="absolute bottom-0 left-0 right-0 transform translate-y-1/2 px-5">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
             {stats.map((stat, index) => (
               <div 
                 key={index}
-                className="bg-white rounded-lg shadow-md p-6 text-center cursor-pointer"
+                className="bg-white rounded-lg shadow-md p-2 text-center cursor-pointer"
               >
                 <div className="flex justify-center">
                   {stat.icon}
                 </div>
-                <h3 className="text-2xl font-bold mt-2 mb-1">{stat.number}</h3>
+                <h3 className="text-2xl font-bold mt-1 mb-1">{stat.number}</h3>
                 <p className="text-gray-600">{stat.label}</p>
               </div>
             ))}

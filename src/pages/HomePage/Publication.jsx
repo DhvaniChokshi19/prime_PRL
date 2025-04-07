@@ -2,17 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import pubimg from '../../assets/pub_bg.jpg';
 import axiosInstance, { API_BASE_URL } from '../../api/axios';
+import { useNavigate } from 'react-router-dom';
+
 const Publication = () => {
   const [departmentData, setDepartmentData] = useState([]);
   const [yearlyData, setYearlyData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [years, setYears] = useState([]);
-const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const navigate = useNavigate();
   
+
+  const departmentIdMap = {
+    'Astronomy and Astrophysics': 1,
+    'Atomic, Molecular and Optical Physics': 2,
+    'Geosciences': 3,
+    'Planetary Sciences': 4,
+    'Space and Atmospheric Sciences': 5,
+    'Theoretical Physics': 6,
+    'Udaipur Solar Observatory': 7,
+    'Workshop': 8,
+    'CNIT Services': 9,
+    'Medical Services': 10,
+    'Administration': 11,
+    'CMG Services': 12,
+    'Library Services': 13,
+    'Unknown': 14,
+    'Others': 15
+  };
+
   useEffect(() => {
     const fetchDepartmentData = async () => {
-        try {
+      try {
         setIsLoading(true);        
         const response = await axiosInstance.get('/api/departments', {
           headers: {
@@ -31,7 +53,7 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
         
         data.forEach(item => {
           if (item.hasOwnProperty('total_profiles')) {
-            // Department metrics data
+           
             deptMetrics.push(item);
           } else if (item.hasOwnProperty('publication_stats')) {
             // Yearly publication stats data
@@ -104,9 +126,13 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
     };
 
     fetchDepartmentData();
-  }, []); // Empty dependency array means this effect runs once on mount
+  }, []); 
 
-  // Show loading state
+  const handlePublicationClick = (department) => {
+    const departmentId = departmentIdMap[department] || 11;
+    navigate(`/DepartmentArticles/${departmentId}`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -114,6 +140,7 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
       </div>
     );
   }
+  
   if (error) {
     return (
       <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
@@ -132,17 +159,15 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
       </div>
     );
   }
-
-  // Prepare data for the yearly trends bar chart
+  
   const prepareDepartmentYearlyData = () => {
-    // Calculate total publications and citations for each year
     return years.map(year => {
       const yearData = { year };
       
-       const departmentYearData = (yearlyData[year] || [])
+      const departmentYearData = (yearlyData[year] || [])
         .find(item => item.department === selectedDepartment);
       
-     if (departmentYearData) {
+      if (departmentYearData) {
         yearData.total_publications = departmentYearData.total_publications || 0;
         yearData.total_citations = departmentYearData.total_citations || 0;
       } else {
@@ -156,14 +181,15 @@ const [selectedDepartment, setSelectedDepartment] = useState(null);
 
   // Generate colors for the bar chart
   const generateColors = () => ({
-    publications: '#3B82F6', // blue
-    citations: '#10B981'     // green
+    publications: '#3B82F6', 
+    citations: '#10B981'     
   });
 
   // Get yearly trends data
-    const yearlyTrendsData = prepareDepartmentYearlyData();
+  const yearlyTrendsData = prepareDepartmentYearlyData();
   const colors = generateColors();
-const departments = departmentData.map(dept => dept.department);
+  const departments = departmentData.map(dept => dept.department);
+  
   return (
     <div className='bg-blue-200 mx-auto max-w-9xl p-4'>
       <div className="relative w-screen h-48">
@@ -183,7 +209,6 @@ const departments = departmentData.map(dept => dept.department);
         </div>
       </div>
 
-      {/* Existing code for Department Metrics Overview */}
       <div className="mb-8 bg-white p-6 rounded-lg shadow-md mt-6 max-w-8xl">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">Department Metrics Overview</h3>
         <div className="h-80">
@@ -212,7 +237,6 @@ const departments = departmentData.map(dept => dept.department);
         </div>
       </div>
 
-      {/* New Yearly Trends Bar Chart */}
       {years.length > 0 && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
           <div className="flex justify-between items-center mb-4">
@@ -268,7 +292,6 @@ const departments = departmentData.map(dept => dept.department);
         </div>
       )}
 
-      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {departmentData.map((dept, index) => (
           <div 
@@ -280,11 +303,21 @@ const departments = departmentData.map(dept => dept.department);
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="bg-blue-100 p-2 rounded">
                 <p className="text-xs text-blue-700 font-semibold">Publications</p>
-                <p className="text-lg font-bold text-blue-600">{dept.total_publications}</p>
+                <p 
+                  onClick={() => handlePublicationClick(dept.department)} 
+                  className="text-lg font-bold text-blue-600 cursor-pointer hover:underline"
+                >
+                  {dept.total_publications}
+                </p>
               </div>
               <div className="bg-green-100 p-2 rounded">
                 <p className="text-xs text-green-700 font-semibold">Profiles</p>
-                <p className="text-lg font-bold text-green-600">{dept.total_profiles}</p>
+                <a 
+                  href={`http://${window.location.hostname}:5173/search?department=${dept.department}&q=${dept.department}`} 
+                  className="text-lg font-bold text-green-600 hover:underline"
+                >
+                  {dept.total_profiles}
+                </a>
               </div>
               <div className="bg-yellow-100 p-2 rounded">
                 <p className="text-xs text-yellow-700 font-semibold">Citations</p>

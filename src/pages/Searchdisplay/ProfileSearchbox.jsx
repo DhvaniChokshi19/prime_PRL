@@ -6,7 +6,6 @@ const ProfileSearchBox = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
-    all: false,
     name: true,
     designation: false,
     department: false,
@@ -26,8 +25,8 @@ const ProfileSearchBox = () => {
         // Check which filters are active
         const activeFilters = Object.entries(filters).filter(([_, isActive]) => isActive);
         
-        // If no specific filters are checked or "all" is checked, search in all fields
-        if (activeFilters.length === 0 || filters.all) {
+        // If no specific filters are checked
+        if (activeFilters.length === 0) {
           Object.entries({
             name: searchTerm,
             designation: searchTerm,

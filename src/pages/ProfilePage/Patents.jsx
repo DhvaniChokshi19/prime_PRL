@@ -36,7 +36,7 @@ const INITIAL_FORM_STATE = {
   patent_number: '',
   authors: '',
   subject: '',
-  status: 'Filed',
+  status: '',
   date_filed: '',
   date_published: '',
   country: ''
@@ -218,7 +218,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
       patent_number: patent.patent_number || '',
       authors: patent.authors || '',
       subject: patent.subject || '',
-      status: patent.status || 'Filed',
+      status: patent.status || '',
       date_filed: patent.date_filed || '',
       date_published: patent.date_published || '',
       country: patent.country || ''
@@ -237,7 +237,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
     return statusColors[status] || 'bg-gray-100 text-gray-800';
   };
 
-  // For development - comment out in production
+  
   if (error && process.env.NODE_ENV === 'development') {
     // Use fallback data in development when API fails
     const fallbackData = [

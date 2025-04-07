@@ -1,7 +1,6 @@
 import React ,{useState} from "react";
 import Searchbox from "./pages/HomePage/Searchbox";
 import Keyfeatures from "./pages/HomePage/Keyfeatures";
-import Benefits from "./pages/HomePage/Benefits";
 import Footer from "./pages/HomePage/Footer"; 
 import Profiles from "./pages/Searchdisplay/profiles";
 import {Navigate, BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -11,8 +10,8 @@ import Mainprofile from "./pages/ProfilePage/Mainprofile";
 import Loginbox from "./pages/LoginPage/Loginbox";
 import Publication from "./pages/HomePage/Publication";
 import Header from './pages/HomePage/Header';
-// import { AuthProvider } from "./context/AuthContext";
-
+import DepartmentArticles from "./pages/HomePage/DepartmentArticle";
+import { useParams } from "react-router-dom";
 // Home page component
 const Home = () => {
   return (
@@ -20,7 +19,6 @@ const Home = () => {
      <Header />
       <Searchbox />
       <Keyfeatures />
-      <Benefits />
       <Footer />
     </>
   );
@@ -58,11 +56,15 @@ const PublicationP=()=>{
     </>
   )
 }
-const PersonsP=()=>{
+const DepartmentAr = () => {
+  // Using useParams hook to get parameters from the URL
+  const { department_id } = useParams();
+  
   return(
     <>
-    <Header></Header>
-    <Persons></Persons></>
+      <Header></Header>
+      <DepartmentArticles department_id={department_id} />
+    </>
   )
 }
 
@@ -81,8 +83,7 @@ function App() {
           element={<LoginP/>} 
         />
         <Route path="/Publication"element={<PublicationP />}/>
-        <Route path='/Person'element={<PersonsP/>}/>
-        
+         <Route path="/DepartmentArticles/:department_id" element={<DepartmentAr />} />  
       </Routes>
     </Router>
   );

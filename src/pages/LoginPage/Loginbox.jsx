@@ -70,8 +70,8 @@ const Login = () => {
       
       const {access, refresh, id} = response.data;
        if (access, refresh) {
- Cookies.set('authToken', access, { expires: 7, secure: true, sameSite: 'Strict' });
-        Cookies.set('refresh_token', refresh, { expires: 30, secure: true, sameSite: 'Strict' });
+ Cookies.set('authToken', access, { expires: 7, sameSite: 'Strict' });
+        Cookies.set('refresh_token', refresh, { expires: 30, sameSite: 'Strict' });
         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`; 
       setIsLoggedIn(true);
       }
@@ -90,9 +90,14 @@ const Login = () => {
 const handleLogout = async () => {
     setLoading(true);
     setError(null);
-    
-    try {
-      const authToken = Cookies.get('authToken');      
+    const authToken = Cookies.get('authToken');
+    const userId = location.pathname.split('/').pop();
+  Cookies.remove('authToken');
+  Cookies.remove('refresh_token');
+  delete axiosInstance.defaults.headers.common['Authorization'];
+  
+  setIsLoggedIn(false)
+    try {   
       const config = {
         headers: {
           'Authorization': `Bearer ${authToken}`
@@ -100,14 +105,11 @@ const handleLogout = async () => {
       };
       
       const response = await axiosInstance.get('api/logout',config);
-      
-      // Clear cookies and local storage
-      Cookies.remove('authToken');
-      Cookies.remove('refresh_token');
-      delete axiosInstance.defaults.headers.common['Authorization'];
-      
-      setIsLoggedIn(false);
-      navigate('/'); 
+    if (userId) {
+      navigate(`/profile/${userId}`);
+    } else {
+      navigate('/');
+    }
       
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to logout. Please try again.');

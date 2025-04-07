@@ -4,7 +4,7 @@ import { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } fro
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Download } from 'lucide-react';
+import { Download, Newspaper } from 'lucide-react';
 import orcid from "../../assets/image.png";
 import scopus from "../../assets/image 16.png";
 import googlei from "../../assets/image 18.png";
@@ -16,6 +16,7 @@ import Network from './Network';
 import Projects from './Projects';
 import handleExportPDF from './handleExport';
 import { useParams } from 'react-router-dom';
+import Thesis from './Thesis';
 import { 
   User,
   ScrollText,
@@ -31,6 +32,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import ProfileImageUpload from './ProfileImageUpload';
+
 
 
 // Tooltips component
@@ -127,7 +129,7 @@ const Mainprofile = () => {
     fetchPublicationsData();
   }, [profileId]);
 
-  // Update component data function
+
   const updateComponentData = (componentName, data) => {
     switch(componentName) {
       case 'PersonalInformation':
@@ -143,9 +145,9 @@ const Mainprofile = () => {
       case 'Publications':
         setPublicationsData(data);
         break;
-      case 'Patents':
-        setProfileData(prevData => ({ ...prevData, patents: data }));
-        break;
+      // case 'Patents':
+      //   setProfileData(prevData => ({ ...prevData, patents: data }));
+      //   break;       
       default:
         break;
     }
@@ -157,10 +159,10 @@ const Mainprofile = () => {
     { name: 'Publication', icon: BookOpen },
     { name: 'Patent', icon: ScrollText },
     { name: 'Project', icon: BookMarked },
-    // { name: 'Networks', icon: GlobeLock },
+    {name: 'Thesis', icon: Newspaper},
   ];
 
-  // Render content based on active tab
+
   const renderContent = () => {
     switch (activeTab) {
       case 'Personal Information':
@@ -185,11 +187,11 @@ const Mainprofile = () => {
           onDataUpdate={(data) => updateComponentData('Projects', data)} 
           profileId={profileId} 
         />;
-      // case 'Networks':
-      //   return <Network 
-      //     onDataUpdate={(data) => updateComponentData('Network', data)} 
-      //     profileId={profileId} 
-      //   />;
+      case 'Thesis':
+        return <Thesis
+        onDataUpdate={(data) => updateComponentData('Thesis', data)}
+        profileId={profileId}
+        />
       default:
         return <PersonalInformation 
           onDataUpdate={(data) => updateComponentData('PersonalInformation', data)} 
@@ -205,11 +207,11 @@ const Mainprofile = () => {
     
     const citationData = profileData.citation_data?.[0] || {};
     const hIndex = citationData.h_index || Math.floor(Math.sqrt(totalCitations));
-    const iIndex = publicationsData.filter(pub => (pub.cited_by || 0) >= 10).length;
+   
 const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
     return [
       { 
-        label: 'Publications', 
+        label: 'Journal Articles', 
         value: totalPublications.toString(),
         tooltip: 'Total number of publications'
       },
@@ -223,11 +225,6 @@ const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by
         value: hIndex.toString(),
         tooltip: 'Measure of research productivity and impact'
       },
-      { 
-        label: 'I-Index', 
-        value: iIndex.toString(),
-        tooltip: 'Number of publications with at least 10 citations'
-      }
     ];
   };
 
@@ -368,13 +365,6 @@ setActiveTab('Publication');
             <div>
               <div className="flex items-start gap-x-96 mb-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <span>
-                    {profileId && (
-                      <div className="text-gray-600">
-                        ID: {profileId}
-                      </div>
-                    )}
-                  </span>
                 </div>
                 <Button 
                   variant="outline" 
@@ -387,7 +377,7 @@ setActiveTab('Publication');
                 </Button>
               </div>
               <h1 className="text-2xl font-bold mb-2">{profileData.profile.name || "Dr. Name"}</h1>
-              <p className="text-lg text-gray-600">{profileData.profile.designation || "Research Scientist"}</p>
+              <p className="text-lg text-gray-600">{profileData.profile.designation || "Designation"}</p>
               <p className="text-lg text-gray-600">{profileData.profile.department || "Department"}</p>
               <p className="text-gray-600">{profileData.profile.expertise || "Research Areas"}</p>
               <p className="text-gray-600">{profileData.profile.state || "Location"}</p>
@@ -476,7 +466,7 @@ setActiveTab('Publication');
               <h3 className="font-semibold mb-4">Research Impact Factor</h3>
               <div className="h-48 overflow-y-auto">
                 <ul className="space-y-2 text-base">
-                  <li>Total career publications: {researchMetrics[0].value}</li>
+                  <li>Total career publications(PRL): {researchMetrics[0].value}</li>
                   <li>Publication years: {yearRangeOptions}</li>
                   <li>Average citations per paper: {
                     parseInt(researchMetrics[0].value) > 0 

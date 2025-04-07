@@ -6,10 +6,10 @@ body {
   font-family: "Inter", sans-serif;
 }
 .Logo {
-  @apply w-24 h-28 ml-5 mt-3;
+  @apply w-24 h-28 ml-5 mt-1;
 }
 .Mainlogo{
-  @apply w-1/2 ml-52 mt-2
+  @apply w-1/2 ml-52 mt-1;
 }
 
 @layer base {}

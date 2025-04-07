@@ -1,49 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Lock, ExternalLink, Award, ChevronDown } from 'lucide-react';
-import axiosInstance, { API_BASE_URL } from '../../api/axios';
+import axiosInstance from '../../api/axios';
 import { Button } from '@/components/ui/button';
 
-const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
-  const [publications, setPublications] = useState([]);
-  const [topPubs, setTopPubs] = useState([]);
+const DepartmentArticles = ({ department_id }) => {
+  const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+  const [departmentName, setDepartmentName] = useState('');
 
- useEffect(() => {
-  if (data && Array.isArray(data)) {
-    // External data is provided, no need to fetch
-    return;
-  }
-  
-  const fetchData = async () => {
-    // API calls here
+  const departmentIdToName = {
+    1: 'Astronomy and Astrophysics',
+    2: 'Atomic, Molecular and Optical Physics',
+    3: 'Geosciences',
+    4: 'Planetary Sciences',
+    5: 'Space and Atmospheric Sciences',
+    6: 'Theoretical Physics',
+    7: 'Udaipur Solar Observatory',
+    8: 'Workshop',
+    9: 'CNIT Services',
+    10: 'Medical Services',
+    11: 'Administration',
+    12: 'Library Services',
+    13: 'Unknown',
+    14: 'Others'
   };
-  
-  fetchData();
-}, [profileId, data]);
 
-// Separate effect for processing data
-useEffect(() => {
-  if (data && Array.isArray(data)) {
-    setPublications(data);
-    setIsLoading(false);
-    
-    // Process top publications
-    if (!topPublications || !topPublications.length) {
-      const sortedByCitations = [...data]
-        .sort((a, b) => (b.cited_by || 0) - (a.cited_by || 0));
-      setTopPubs(sortedByCitations.slice(0, 10));
-    }
-    
-    if (onDataUpdate) {
-      onDataUpdate(data);
-    }
-  }
-}, [data, topPublications, onDataUpdate]);
+  useEffect(() => {
+    const fetchDepartmentArticles = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get(`/api/departments/${department_id}`);
+        setArticles(response.data);
+        setDepartmentName(departmentIdToName[department_id] || 'Unknown Department');
+      } catch (err) {
+        setError('Failed to load department articles');
+        console.error('Error fetching department articles:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Format publication date to show only year
+    fetchDepartmentArticles();
+  }, [department_id]);
+
   const formatYear = (dateString) => {
     if (!dateString) return '';
     try {
@@ -53,15 +55,14 @@ useEffect(() => {
     }
   };
 
-  // Sort publications based on selected option
-  const sortedPublications = () => {
-    const publicationsToSort = showAll ? publications : topPubs;
-    
-    if (!Array.isArray(publicationsToSort) || publicationsToSort.length === 0) {
+  const sortedArticles = () => {
+    if (!Array.isArray(articles) || articles.length === 0) {
       return [];
     }
     
-    return [...publicationsToSort].sort((a, b) => {
+    const displayArticles = showAll ? articles : articles.slice(0, 10);
+    
+    return [...displayArticles].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
           return new Date(b.publication_date || 0) - new Date(a.publication_date || 0);
@@ -83,16 +84,16 @@ useEffect(() => {
     setShowAll(true);
   };
 
- const renderAuthors = (publication) => {
-     if (!publication.co_authors) return null;
+  const renderAuthors = (article) => {
+    if (!article.co_authors) return null;
     
-    if (!publication.prl_authors || !Array.isArray(publication.prl_authors)) {
-      return <p className="text-gray-600">{publication.co_authors}</p>;
+    if (!article.prl_authors || !Array.isArray(article.prl_authors)) {
+      return <p className="text-gray-600">{article.co_authors}</p>;
     }
-    const authorsList = publication.co_authors.split(', ');
+
+    const authorsList = article.co_authors.split(', ');
     
-    const prlAuthorsMap = publication.prl_authors.reduce((map, author) => {
- 
+    const prlAuthorsMap = article.prl_authors.reduce((map, author) => {
       const simpleName = author.name.replace(/^(Dr\.|Mr\.|Ms\.|Mrs\.|Prof\.) /, '').trim();
       map[simpleName] = author;
       map[author.name] = author;
@@ -105,12 +106,11 @@ useEffect(() => {
       }
       return map;
     }, {});
-     return (
+
+    return (
       <p className="text-gray-600">
         {authorsList.map((authorName, index) => {
-          
           const cleanName = authorName.trim().replace(/\.$/, '');
-          
           const prlAuthor = prlAuthorsMap[cleanName];
           
           if (prlAuthor) {
@@ -137,14 +137,16 @@ useEffect(() => {
       </p>
     );
   };
-  const displayedPublications = sortedPublications();
+
+  const displayedArticles = sortedArticles();
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <BookOpen className="w-6 h-6 text-gray-500" />
-          <h3 className="text-xl font-semibold">
-             Journal Articles 
+          <h3 className="text-2xl font-semibold">
+            {departmentName} Publications
           </h3>
           <p>(Data Source: Scopus) </p>
         </div>
@@ -171,89 +173,84 @@ useEffect(() => {
       ) : (
         <>
           <div className="space-y-6 pl-4 border-l-2 border-gray-200">
-            {displayedPublications.length > 0 ? (
-              displayedPublications.map((pub, index) => (
+            {displayedArticles.length > 0 ? (
+              displayedArticles.map((article, index) => (
                 <div key={index} className="space-y-2">
                   <div className="flex items-start justify-between gap-4">
                     <h4 className="font-semibold">
-                      {pub.title}
-                      {!showAll && <Award className="inline-block ml-2 w-4 h-4 text-yellow-500" />}
+                      {article.title}
                     </h4>
                     
-                    {pub.doi && (
+                    {article.doi && (
                       <a 
-                        href={`https://doi.org/${pub.doi}`}
+                        href={`https://doi.org/${article.doi}`}
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className=" hover:underline"
+                        className="hover:underline"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     )}
                   </div>
-                  {renderAuthors(pub)}
+                  {renderAuthors(article)}
                 
                   <div className="flex flex-wrap gap-4 text-sm">
                     <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
-                    {pub.open_access && <span className="text-green-600">Open access</span>}
-                     <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Cited by:{pub.cited_by}</span>
+                    {article.open_access && <span className="text-green-600 flex items-center"><Lock className="w-3 h-3 mr-1" />Open access</span>}
+                    <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Cited by: {article.cited_by}</span>
                     <span className="text-gray-600">
-                      {pub.publication_name}
-                      {pub.volume && `, Volume ${pub.volume}`}
-                      {pub.issue && `, Issue ${pub.issue}`}
-                      {pub.pagerange && `, Pages ${pub.pagerange}`}
-                      {pub.publication_date && `, ${formatYear(pub.publication_date)}`}
+                      {article.publication_name}
+                      {article.volume && `, Volume ${article.volume}`}
+                      {article.issue && `, Issue ${article.issue}`}
+                      {article.pagerange && `, Pages ${article.pagerange}`}
+                      {article.publication_date && `, ${formatYear(article.publication_date)}`}
                     </span>
                   </div>
-                  {pub.doi && (
-
+                  {article.doi && (
                     <p className="text-blue-600 text-sm">
                       <a 
-                        href={`https://doi.org/${pub.doi}`} 
+                        href={`https://doi.org/${article.doi}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="hover:underline"
                       >
-                        DOI: {pub.doi}
+                        DOI: {article.doi}
                       </a>
-                     
                     </p>
-                    
                   )}
-                  {(pub.cited_by !== undefined) && (
-                     <div className="flex flex-wrap gap-4 text-sm">                   
-                    <span className="text-gray-600">
-                      {` Fb cite: ${pub.fb_cite}`}
-                      {` , X cite: ${pub.x_cite}`}
-                      {` , News cite: ${pub.news_cite}`}
-                      { ` ,Blog cite: ${pub.blog_cite}`}
-                      { ` ,Accounts cite: ${pub.accounts_cite}`}
-                      { ` ,Dimenions id: ${pub.dimensions_id}`}
-                       { ` ,Alt score: ${pub.alt_score}`}
-                      { ` ,Mendeley cite: ${pub.mendeley_cite}`}
-                      { ` ,Plumx captures: ${pub.plumx_captures}`}
-                      { ` ,Plumx citations: ${pub.plumx_citations}`}
-                      
-                    </span>
-                  </div>
-                    
-                    
+                  {(article.cited_by !== undefined) && (
+                    <div className="text-sm text-gray-500">
+                      <details className="mt-2">
+                        <summary className="cursor-pointer hover:text-blue-600">View metrics</summary>
+                        <div className="grid grid-cols-2 gap-2 p-2 mt-2 bg-gray-50 rounded-md">
+                          <span>Facebook: {article.fb_cite || 0}</span>
+                          <span>Twitter: {article.x_cite || 0}</span>
+                          <span>News: {article.news_cite || 0}</span>
+                          <span>Blog: {article.blog_cite || 0}</span>
+                          <span>Accounts: {article.accounts_cite || 0}</span>
+                          <span>Altmetric score: {article.alt_score || 0}</span>
+                          <span>Mendeley: {article.mendeley_cite || 0}</span>
+                          <span>PlumX captures: {article.plumx_captures || 0}</span>
+                          <span>PlumX citations: {article.plumx_citations || 0}</span>
+                        </div>
+                      </details>
+                    </div>
                   )}
                 </div>
               ))
             ) : (
-              <div className="text-gray-500 text-center py-4">No publications found</div>
+              <div className="text-gray-500 text-center py-4">No publications found for this department</div>
             )}
           </div>
           
-          {!showAll && topPubs.length > 0 && publications.length > topPubs.length && (
+          {!showAll && articles.length > 10 && (
             <div className="flex justify-center mt-6">
               <Button
                 variant="outline"
                 onClick={handleViewMoreClick}
                 className="flex items-center gap-2"
               >
-                View All Publications
+                View All Publications ({articles.length})
                 <ChevronDown size={16} />
               </Button>
             </div>
@@ -264,4 +261,4 @@ useEffect(() => {
   );
 };
 
-export default Publications;
+export default DepartmentArticles;
