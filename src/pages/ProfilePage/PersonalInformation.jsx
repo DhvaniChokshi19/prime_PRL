@@ -36,8 +36,6 @@ const [awardToDelete, setAwardToDelete] = useState(null);
 const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
   const [showLoginError, setShowLoginError] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  
   const profile = profileData?.profile || {};
   const personalInfo = profileData?.["personal_information: "]?.[0] || {};
   const professionalExperiences = profileData?.professional_experiences || [];
@@ -130,7 +128,75 @@ const [localProfileData, setLocalProfileData] = useState({
       });
   }
   }, [profileData]);
- 
+ const getCurrentProfileIdFromUrl = () => {
+    const pathSegments = window.location.pathname.split('/');
+    const idIndex = pathSegments.findIndex(segment => segment === 'profile') + 1;
+    
+    if (idIndex > 0 && idIndex < pathSegments.length) {
+      return pathSegments[idIndex];
+    }
+    
+    return null;
+  };
+ const fetchUpdatedData = async () => {
+    if (!isAuthenticated) return;
+    
+    try {
+      setLoading(true);
+          const id = profile.id || getCurrentProfileIdFromUrl();    
+    if (!id) {
+      throw new Error('Profile ID not found');
+    }
+      const profileDataResponse = await axiosInstance.get(`api/profile/view?id=${id}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const personalInfoResponse = await axiosInstance.get(`api/profile/personal-information/view?id=${id}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+     
+      const experiencesResponse = await axiosInstance.get(`api/profile/professional-experience/view?id=${id}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const qualificationsResponse = await axiosInstance.get(`api/profile/qualifications/view?id=${id}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const awardsResponse = await axiosInstance.get(`api/profile/honors-awards/view?id=${id}`, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      setLocalProfileData(prev => ({
+        ...prev,
+        profile: profileDataResponse.data?.profile || {},
+        personal_information: [profileDataResponse.data?.personal_information || {}],
+        professional_experiences: experiencesResponse.data?.professional_experiences || [],
+        qualifications: qualificationsResponse.data?.qualifications || [],
+        honors_and_awards: awardsResponse.data?.honors_and_awards || []
+      }));
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+      
+    } catch (error) {
+      console.error("Error fetching updated profile data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh profile data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
  
  const getAuthToken = () => {
     const cookies = document.cookie.split('; ');
@@ -252,9 +318,7 @@ setLocalProfileData(prev => ({
      // Close edit mode
       setEditMode(null);
     
-      if (onProfileUpdate) {
-        onProfileUpdate();
-      }
+     await fetchUpdatedData();
     } catch (error) {
       console.error("Error updating personal information:", error);
       toast({
@@ -291,7 +355,7 @@ setLocalProfileData(prev => ({
           variant: "success"
         });
       } else {
-        // Add new experience
+       
         const response = await axiosInstance.put('api/profile/professional-experience/add', professionalForm, {
           headers: {
             'Authorization': `Bearer ${authToken}`
@@ -324,9 +388,7 @@ setLocalProfileData(prev => ({
         start_year: '',
         end_year: ''
       });
-      if (onProfileUpdate) {
-        onProfileUpdate();
-      }
+       await fetchUpdatedData();
     } catch (error) {
       console.error("Error handling professional experience:", error);
       toast({
@@ -396,10 +458,7 @@ setLocalProfileData(prev => ({
         authority: '',
         year: ''
       });
-      
-      if (onProfileUpdate) {
-        onProfileUpdate();
-      }
+       await fetchUpdatedData();
     } catch (error) {
       console.error("Error handling qualification:", error);
       toast({
@@ -470,10 +529,7 @@ const handleHonorsFormSubmit = async () => {
       award_name: '',
       awarding_authority: ''
     });
-    
-    if (onProfileUpdate) {
-      onProfileUpdate();
-    }
+     await fetchUpdatedData();
   } catch (error) {
     console.error("Error handling award:", error);
     toast({
@@ -515,11 +571,7 @@ const handleHonorsFormSubmit = async () => {
       // Close delete alert
       setDeleteAlertOpen(false);
       setExperienceToDelete(null);
-      
-      // Refresh profile data
-      if (onProfileUpdate) {
-        onProfileUpdate();
-      }
+      await fetchUpdatedData();
     } catch (error) {
       console.error("Error deleting professional experience:", error);
       toast({
@@ -562,10 +614,7 @@ const handleHonorsFormSubmit = async () => {
       setDeleteQualificationAlertOpen(false);
       setQualificationToDelete(null);
       
-      // Refresh profile data
-      if (onProfileUpdate) {
-        onProfileUpdate();
-      }
+      await fetchUpdatedData();
     } catch (error) {
       console.error("Error deleting qualification:", error);
       toast({
@@ -604,11 +653,7 @@ const handleDeleteAward = async () => {
     // Close delete alert
     setDeleteAwardAlertOpen(false);
     setAwardToDelete(null);
-    
-    // Refresh profile data
-    if (onProfileUpdate) {
-      onProfileUpdate();
-    }
+   await fetchUpdatedData();
   } catch (error) {
     console.error("Error deleting award:", error);
     toast({
