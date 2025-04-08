@@ -406,12 +406,12 @@ setActiveTab('Publication');
                       <p className="text-sm font-medium">Orcid Id</p>
                       <p className="text-sm text-blue-600">
                         <a 
-                          href={profileData.profile.orcid_url} 
+                          href={profileData.profile.orc_id} 
                           target="_blank" 
                           rel="noopener noreferrer"
                         >
-                          {profileData.profile.orcid_url 
-                ? profileData.profile.orcid_url.split('/').pop() 
+                          {profileData.profile.orc_id 
+                ? profileData.profile.orc_id.split('/').pop() 
                 : ""}
                         </a>
                       </p>

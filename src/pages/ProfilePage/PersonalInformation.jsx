@@ -60,6 +60,10 @@ const [localProfileData, setLocalProfileData] = useState({
     about_me:personalInfo.about_me ||'',
     email: profile.email || '',
     website: profile.website || '',
+    scopus_id: profile.scopus_id || '',
+    orc_id: profile.orc_id || '',
+    google_scholar_id: profile.google_scholar_id || '',
+    publons_id: profile.publons_id || '',
     address: personalInfo.address || '',
     state:profile.state ||'',
   });
@@ -105,9 +109,7 @@ const [localProfileData, setLocalProfileData] = useState({
       };
       
       setLocalProfileData(formattedData);
-  //   console.log("profileData:", profileData);
-  // console.log("personalInfo:", personalInfo);
-    
+
       setPersonalForm({
         name: profile.name || '',
         gender: personalInfo.gender || '',
@@ -117,6 +119,10 @@ const [localProfileData, setLocalProfileData] = useState({
         about_me: personalInfo.about_me || '',
         email: profile.email || '',
         website: profile.website || '',
+        scopus_id: profile.scopus_id || '',
+        orc_id: profile.orc_id || '',
+        google_scholar_id: profile.google_scholar_id || '',
+        publons_id: profile.publons_id || '',
         state: profile.state ||'',
         address: personalInfo.address || '',
         
@@ -139,6 +145,7 @@ const [localProfileData, setLocalProfileData] = useState({
    const checkAuthentication = () => {
     if (!isAuthenticated) {
       setShowLoginError(true);
+      alert("Please login to perform this action");
       toast({
         title: "Authentication Error",
         description: "Please login to perform this action",
@@ -177,7 +184,7 @@ const handleProfessionalFormChange = (e) => {
     [name]: value
   }));
 };
-  // Handle gender select change
+
   const handleGenderChange = (value) => {
     setPersonalForm(prev => ({
       ...prev,
@@ -185,7 +192,7 @@ const handleProfessionalFormChange = (e) => {
     }));
   };
 
-  // Handle personal form submission
+ 
   const handlePersonalFormSubmit = async () => {
     if (!checkAuthentication()) return;
     try {
@@ -199,6 +206,11 @@ const handleProfessionalFormChange = (e) => {
         expertise: personalForm.expertise,
         website: personalForm.website,
         state: personalForm.state,
+        scopus_id: personalForm.scopus_id,
+        orc_id: personalForm.orc_id,
+        google_scholar_id: personalForm.google_scholar_id,
+        publons_id: personalForm.publons_id,
+    
       };
   
     // personal information data
@@ -208,7 +220,7 @@ const handleProfessionalFormChange = (e) => {
         about_me: personalForm.about_me,
       };
       const authToken = getAuthToken();
-      // Update personal information
+     
     await axiosInstance.put('api/profile/personal-information/edit', personalInfoData, {
         headers: {
           'Authorization': `Bearer ${authToken}`
@@ -253,7 +265,6 @@ setLocalProfileData(prev => ({
       setLoading(false);
     }
   };      
-// Handle professional experience form submission (add/edit)
   const handleProfessionalFormSubmit = async () => {
      if (!checkAuthentication()) return;
     try {
@@ -261,7 +272,7 @@ setLocalProfileData(prev => ({
       const authToken = getAuthToken();
       
       if (professionalForm.id) {
-        // Edit existing experience
+        
         await axiosInstance.put('api/profile/professional-experience/edit', professionalForm, {
           headers: {
             'Authorization': `Bearer ${authToken}`
@@ -295,7 +306,7 @@ setLocalProfileData(prev => ({
           ...prev,
           professional_experiences: [...prev.professional_experiences, newExperience]
         }));
-        
+        alert("Professional experience added successfully");
         toast({
           title: "Success",
           description: "Professional experience added successfully",
@@ -904,11 +915,11 @@ const LoginErrorDialog = () => (
           </div>
         </div>
            <Dialog open={editMode === 'personal'} onOpenChange={(open) => !open && setEditMode(null)}>
-          <DialogContent className="sm:max-w-[550px] bg-white">
+          <DialogContent className="sm:max-w-4xl h-svh  bg-white">
             <DialogHeader>
               <DialogTitle>Edit Personal Information</DialogTitle>
             </DialogHeader>
-            <div className="grid gap-4 py-4 bg-white" >
+            <div className="grid gap-4 py-2 bg-white" >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
@@ -938,7 +949,7 @@ const LoginErrorDialog = () => (
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="designation">Designation</Label>
                   <Input
@@ -959,9 +970,7 @@ const LoginErrorDialog = () => (
                     placeholder="Enter your department"
                   />
                 </div>
-              </div>
-              
-              <div className="space-y-2">
+                 <div className="space-y-2">
                 <Label htmlFor="expertise">Areas of Expertise</Label>
                 <Input
                   id="expertise"
@@ -972,6 +981,9 @@ const LoginErrorDialog = () => (
                 />
               </div>
               
+              </div>
+              
+             
               <div className="space-y-2">
                 <Label htmlFor="about_me">About Me</Label>
                 <Textarea
@@ -983,17 +995,50 @@ const LoginErrorDialog = () => (
                   rows={3}
                 />
               </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="website">Website URL</Label>
-                <Input
-                  id="website"
-                  name="website"
-                  value={personalForm.website}
-                  onChange={handlePersonalFormChange}
-                  placeholder="Enter your website URL"
+                            
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className='space-y-2'>
+                <Label htmlFor="scopus_id">Scopus id</Label>
+                <Input 
+                id="scopus_id"
+                name="scopus_id"
+                value={personalForm.scopus_id}
+                onChange={handlePersonalFormChange}
+                placeholder="Enter your Scopus ID"
                 />
-              </div>
+                </div>
+                <div className='space-y-2'>
+                <Label htmlFor="orc_id">Orc id</Label>
+                <Input
+                id="orc_id"
+                name="orc_id"
+                value={personalForm.orc_id}
+                onChange={handlePersonalFormChange}
+                placeholder="Enter your Orc ID"
+                />
+                </div>
+                <div className='space-y-2'>
+                <Label htmlFor="google_scholar_id">Google Scholar ID</Label>
+                <Input
+                id="google_scholar_id"
+                name="google_scholar_id"
+                value={personalForm.google_scholar_id}
+                onChange={handlePersonalFormChange}
+                placeholder="Enter your Google Scholar ID"
+                />
+                </div>
+                <div className='space-y-2'>
+                <Label htmlFor="publons_id">Publons ID</Label>
+                <Input
+                id="publons_id"
+                name="publons_id"
+                value={personalForm.publons_id}
+                onChange={handlePersonalFormChange}
+                placeholder="Enter your Publons ID"
+                />
+                </div>
+</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="state">State</Label>
                 <Input
@@ -1014,6 +1059,17 @@ const LoginErrorDialog = () => (
                   placeholder="Enter your address"
                   rows={2}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="website">Website URL</Label>
+                <Input
+                  id="website"
+                  name="website"
+                  value={personalForm.website}
+                  onChange={handlePersonalFormChange}
+                  placeholder="Enter your website URL"
+                />
+              </div>
               </div>
             </div>
             <DialogFooter>

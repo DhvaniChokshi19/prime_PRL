@@ -53,7 +53,7 @@ const Publication = () => {
         
         data.forEach(item => {
           if (item.hasOwnProperty('total_profiles')) {
-           
+            // Department metrics data
             deptMetrics.push(item);
           } else if (item.hasOwnProperty('publication_stats')) {
             // Yearly publication stats data
@@ -101,11 +101,11 @@ const Publication = () => {
       console.log('Loading mock data');
       
       const mockDepartmentData = [
-        { department: "Computer Science", total_publications: 356, total_citations: 4250, total_profiles: 42 },
-        { department: "Physics", total_publications: 285, total_citations: 3800, total_profiles: 36 },
-        { department: "Mathematics", total_publications: 198, total_citations: 2100, total_profiles: 28 },
-        { department: "Chemistry", total_publications: 245, total_citations: 3200, total_profiles: 32 },
-        { department: "Biology", total_publications: 320, total_citations: 4100, total_profiles: 38 }
+        { department: "Computer Science", total_publications: 356, total_citations: 4250, total_profiles: 42, "h-index": 25 },
+        { department: "Physics", total_publications: 285, total_citations: 3800, total_profiles: 36, "h-index": 22 },
+        { department: "Mathematics", total_publications: 198, total_citations: 2100, total_profiles: 28, "h-index": 18 },
+        { department: "Chemistry", total_publications: 245, total_citations: 3200, total_profiles: 32, "h-index": 20 },
+        { department: "Biology", total_publications: 320, total_citations: 4100, total_profiles: 38, "h-index": 24 }
       ];
       
       const mockYears = ["2021", "2022", "2023", "2024"];
@@ -182,7 +182,8 @@ const Publication = () => {
   // Generate colors for the bar chart
   const generateColors = () => ({
     publications: '#3B82F6', 
-    citations: '#10B981'     
+    citations: '#10B981',
+    hIndex: '#8B5CF6'
   });
 
   // Get yearly trends data
@@ -231,6 +232,7 @@ const Publication = () => {
               <Legend />
               <Bar yAxisId="left" dataKey="total_publications" name="Publications" fill="#3B82F6" />
               <Bar yAxisId="left" dataKey="total_profiles" name="Profiles" fill="#10B981" />
+              <Bar yAxisId="left" dataKey="h-index" name="H-Index" fill="#8B5CF6" />
               <Bar yAxisId="right" dataKey="total_citations" name="Citations" fill="#F59E0B" />
             </BarChart>
           </ResponsiveContainer>
@@ -300,7 +302,7 @@ const Publication = () => {
             style={{ borderLeftColor: '#3B82F6' }}
           >
             <h4 className="font-bold text-gray-700 mb-2 truncate" title={dept.department}>{dept.department}</h4>
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-4 gap-2 text-center">
               <div className="bg-blue-100 p-2 rounded">
                 <p className="text-xs text-blue-700 font-semibold">Publications</p>
                 <p 
@@ -322,6 +324,10 @@ const Publication = () => {
               <div className="bg-yellow-100 p-2 rounded">
                 <p className="text-xs text-yellow-700 font-semibold">Citations</p>
                 <p className="text-lg font-bold text-yellow-600">{dept.total_citations?.toLocaleString()}</p>
+              </div>
+              <div className="bg-purple-100 p-2 rounded">
+                <p className="text-xs text-purple-700 font-semibold">H-Index</p>
+                <p className="text-lg font-bold text-purple-600">{dept["h-index"]}</p>
               </div>
             </div>
           </div>

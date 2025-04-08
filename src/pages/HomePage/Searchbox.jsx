@@ -50,6 +50,7 @@ const Searchbox = () => {
       icon: <UserRound className="h-8 w-8 text-blue-600" />,
       number: statsData.total_profiles,
       label: 'PROFILES',
+      onClick: () => handleNavigate(`/search?name=*&q=*`)
       
     },
     {
@@ -72,7 +73,7 @@ const Searchbox = () => {
     {
       icon: <Eye className="h-8 w-8 text-blue-600"/>,
       number: statsData.visitors_today,
-      label: 'H-index'
+      label: 'Visitors'
     },
   ];
 
@@ -149,7 +150,7 @@ const handleSearch = async (e) => {
         <img 
           src={homeimg} 
           alt="Dashboard" 
-          className="w-full h-100 object-cover"
+          className="w-full h-screen object-cover"
         />
         <div className="absolute inset-0 bg-whitw bg-opacity-40"> 
           <div className="container mx-auto px-8 h-full flex items-center">
@@ -179,8 +180,19 @@ const handleSearch = async (e) => {
                 <div className="flex justify-center">
                   {stat.icon}
                 </div>
-                <h3 className="text-2xl font-bold mt-1 mb-1">{stat.number}</h3>
+                   {stat.onClick && (
+                  <button 
+                    className="text-black mt-2"
+                    onClick={stat.onClick}
+                  >
+<h3 className="text-2xl font-bold mt-1 mb-1">{stat.number}</h3>
+                  </button>
+                )}
+                {!stat.onClick && (
+                  <h3 className="text-2xl font-bold mt-1 mb-1">{stat.number}</h3>
+                )}
                 <p className="text-gray-600">{stat.label}</p>
+              
               </div>
             ))}
           </div>
