@@ -4,7 +4,6 @@ import { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } fro
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Download, Newspaper } from 'lucide-react';
 import orcid from "../../assets/image.png";
 import scopus from "../../assets/image 16.png";
 import googlei from "../../assets/image 18.png";
@@ -12,7 +11,6 @@ import publons from "../../assets/image 17.png";
 import PersonalInformation from './PersonalInformation';
 import Patents from './Patents';
 import Publications from './Publications';
-import Network from './Network';
 import Projects from './Projects';
 import handleExportPDF from './handleExport';
 import { useParams } from 'react-router-dom';
@@ -21,8 +19,9 @@ import {
   User,
   ScrollText,
   BookOpen,
-  GlobeLock,
   BookMarked,
+  Newspaper,
+   Download,
 } from 'lucide-react';
 import { 
   Select, 
@@ -79,6 +78,8 @@ const Mainprofile = () => {
       publons_url: '',
       orc_id:'',
       scopus_id:'',
+      publons_id:'',
+      google_scholar_id:'',
     },
     personal_information: [],
     qualifications: [],
@@ -406,12 +407,12 @@ setActiveTab('Publication');
                       <p className="text-sm font-medium">Orcid Id</p>
                       <p className="text-sm text-blue-600">
                         <a 
-                          href={profileData.profile.orc_id} 
+                          href={profileData.profile.orcid_url} 
                           target="_blank" 
                           rel="noopener noreferrer"
                         >
-                          {profileData.profile.orc_id 
-                ? profileData.profile.orc_id.split('/').pop() 
+                          {profileData.profile.orcid_url
+                ? profileData.profile.orcid_url.split('/').pop() 
                 : ""}
                         </a>
                       </p>
@@ -438,14 +439,35 @@ setActiveTab('Publication');
                     <img src={publons} alt="Publons" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Publons Id</p>
-                      <p className="text-sm text-blue-600">{profileData.profile.publons_id || ""}</p>
+                      <p className="text-sm text-blue-600">
+                        <a 
+                          href={profileData.profile.publons_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          {profileData.profile.publons_url
+                ? profileData.profile.publons_url.split('=').pop()  
+                : ""}
+                        </a>
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <img src={googlei} alt="Google Scholar" className="w-8 h-8" />
                     <div>
                       <p className="text-sm font-medium">Google Scholar Id</p>
-                      <p className="text-sm text-blue-600">{profileData.profile.google_scholar_id || ""}</p>
+                      <p className="text-sm text-blue-600">
+                        <a 
+                          href={profileData.profile.google_scholar_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          {profileData.profile.google_scholar_url
+                ? profileData.profile.google_scholar_url.split('=').pop() 
+                : ""}
+                        </a>
+                      </p>
+                      
                     </div>
                   </div>
                 </div>

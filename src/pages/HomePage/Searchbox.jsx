@@ -50,7 +50,7 @@ const Searchbox = () => {
       icon: <UserRound className="h-8 w-8 text-blue-600" />,
       number: statsData.total_profiles,
       label: 'PROFILES',
-      onClick: () => handleNavigate(`/search?name=*&q=*`)
+      href: `http://${window.location.hostname}:5173/search?name=*&q=*`
       
     },
     {
@@ -180,18 +180,21 @@ const handleSearch = async (e) => {
                 <div className="flex justify-center">
                   {stat.icon}
                 </div>
-                   {stat.onClick && (
+                   
                   <button 
                     className="text-black mt-2"
-                    onClick={stat.onClick}
+                    onClick={() => {
+                      if (stat.href) {
+                        window.open(stat.href, '_blank');
+                      } else {
+                        handleNavigate('/');
+                      }
+                    }  
+                    }
                   >
 <h3 className="text-2xl font-bold mt-1 mb-1">{stat.number}</h3>
                   </button>
-                )}
-                {!stat.onClick && (
-                  <h3 className="text-2xl font-bold mt-1 mb-1">{stat.number}</h3>
-                )}
-                <p className="text-gray-600">{stat.label}</p>
+              <p className="text-gray-600">{stat.label}</p>
               
               </div>
             ))}

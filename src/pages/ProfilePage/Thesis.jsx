@@ -74,18 +74,30 @@ const Thesis = ({ profileId, thesis: initialThesis, onDataUpdate }) => {
     
     return null;
   };
-
+const getCurrentProfileIdFromUrl = () => {
+    const pathSegments = window.location.pathname.split('/');
+    const idIndex = pathSegments.findIndex(segment => segment === 'profile') + 1;
+    
+    if (idIndex > 0 && idIndex < pathSegments.length) {
+      return pathSegments[idIndex];
+    }
+    
+    return null;
+  };
+  
   const fetchThesis = async () => {
     try {
       setIsLoading(true);
-      const token = getAuthToken();
-      const response = await axiosInstance.get('api/profile/thesis/view', {
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : undefined,
-          'Content-Type': 'application/json'
-        }
-      });
-      
+       const id = profileId || getCurrentProfileIdFromUrl();
+    
+    if (!id) {
+      throw new Error('Profile ID not found');
+    }
+    const response = await axiosInstance.get(`api/profile/thesis/view?id=${id}`, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
       setThesis(response.data);
       if (onDataUpdate) onDataUpdate(response.data);
       setError(null);
@@ -434,7 +446,7 @@ const Thesis = ({ profileId, thesis: initialThesis, onDataUpdate }) => {
         
         <Button 
           type="submit" 
-          className="w-full" 
+          className="w-full bg-yellow-600 hover:bg-green-600 text-white" 
           disabled={isLoading}
         >
           {isLoading ? 'Processing...' : (thesisForm.id ? 'Update Thesis' : 'Add Thesis')}
@@ -527,7 +539,7 @@ const Thesis = ({ profileId, thesis: initialThesis, onDataUpdate }) => {
           ) : error && thesis.length === 0 ? (
             <div className="text-center py-4 text-red-500">
               Error: {error}. Please try again.
-            </div>
+            </div>  
           ) : (
             renderThesisList(thesis)
           )}

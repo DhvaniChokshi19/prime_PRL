@@ -76,18 +76,28 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
     
     return null;
   };
-
+ const getCurrentProfileIdFromUrl = () => {
+    const pathSegments = window.location.pathname.split('/');
+    const idIndex = pathSegments.findIndex(segment => segment === 'profile') + 1;
+    
+    if (idIndex > 0 && idIndex < pathSegments.length) {
+      return pathSegments[idIndex];
+    }
+    
+    return null;
+  };
   const fetchPatents = async () => {
-    try {
+     try {
       setIsLoading(true);
-      const token = getAuthToken();
-      const response = await axiosInstance.get('api/profile/patents/view', {
-        headers: {
-          'Authorization': token ? `Bearer ${token}` : undefined,
+       const id = profileId || getCurrentProfileIdFromUrl();    
+    if (!id) {
+      throw new Error('Profile ID not found');
+    }
+      const response = await axiosInstance.get(`api/profile/patents/view?id=${id}`, {
+        headers: {          
           'Content-Type': 'application/json'
         }
-      });
-      
+      });      
       setPatents(response.data);
       if (onDataUpdate) onDataUpdate(response.data);
       setError(null);
@@ -465,7 +475,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
             <SelectTrigger>
               <SelectValue placeholder="Select Status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-yellow-50 w-40">
               <SelectItem value="Filed">Filed</SelectItem>
               <SelectItem value="Pending">Pending</SelectItem>
               <SelectItem value="Published">Published</SelectItem>
@@ -507,7 +517,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
         
         <Button 
           type="submit" 
-          className="w-full" 
+          className="w-full bg-yellow-600 text-white hover:bg-green-600" 
           disabled={isLoading}
         >
           {isLoading ? 'Processing...' : (patentForm.id ? 'Update Patent' : 'Add Patent')}

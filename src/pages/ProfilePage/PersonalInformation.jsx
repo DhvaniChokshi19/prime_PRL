@@ -36,7 +36,8 @@ const [awardToDelete, setAwardToDelete] = useState(null);
 const [deleteAwardAlertOpen, setDeleteAwardAlertOpen] = useState(false);
   const [showLoginError, setShowLoginError] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // Extract data from profileData prop
+
+  
   const profile = profileData?.profile || {};
   const personalInfo = profileData?.["personal_information: "]?.[0] || {};
   const professionalExperiences = profileData?.professional_experiences || [];
@@ -291,7 +292,7 @@ setLocalProfileData(prev => ({
         });
       } else {
         // Add new experience
-        await axiosInstance.put('api/profile/professional-experience/add', professionalForm, {
+        const response = await axiosInstance.put('api/profile/professional-experience/add', professionalForm, {
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
@@ -306,7 +307,7 @@ setLocalProfileData(prev => ({
           ...prev,
           professional_experiences: [...prev.professional_experiences, newExperience]
         }));
-        alert("Professional experience added successfully");
+       
         toast({
           title: "Success",
           description: "Professional experience added successfully",
@@ -888,8 +889,8 @@ const LoginErrorDialog = () => (
               <Mail className="w-5 h-5 text-gray-500" />
               <span className="font-medium">Email</span>
             </div>
-            <a href={`mailto:${profile.email || "nithyananad.prabhu@prl.com"}`}className="text-red-600 hover:underline" >
-              {profile.email || "nithyananad.prabhu@prl.com"}
+            <a href={`mailto:${profile.email || "abc@prl.com"}`}className="text-red-600 hover:underline" >
+              {profile.email || "abc@prl.com"}
             </a>
           </div>
 
@@ -898,8 +899,8 @@ const LoginErrorDialog = () => (
               <Globe className="w-5 h-5 text-gray-500 " />
               <span className="font-medium">Website</span>
             </div>
-            <a href={profile.website || "Add your website"} className="text-red-600 hover:underline break-all">
-              {profile.website || "Add your website"}
+            <a href={profile.website || "www.example.com"} className="text-red-600 hover:underline break-all">
+              {profile.website || "www.example.com"}
             </a>
           </div>
         </div>
@@ -991,8 +992,8 @@ const LoginErrorDialog = () => (
                   name="about_me"
                   value={personalForm.about_me}
                   onChange={handlePersonalFormChange}
-                  placeholder="Tell us about yourself"
-                  rows={3}
+                  placeholder="Tell us about yourself"x
+                  rows={2}
                 />
               </div>
                             
@@ -1127,13 +1128,13 @@ const LoginErrorDialog = () => (
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="end_year">End Year (or leave blank for current)</Label>
+                  <Label htmlFor="end_year">End Year </Label>
                   <Input
                     id="end_year"
                     name="end_year"
                     value={professionalForm.end_year}
                     onChange={handleProfessionalFormChange}
-                    placeholder="YYYY or blank for current"
+                    placeholder="YYYY"
                   />
                 </div>
               </div>
