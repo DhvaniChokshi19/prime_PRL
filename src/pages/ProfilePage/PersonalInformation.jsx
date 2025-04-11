@@ -264,28 +264,27 @@ const handleProfessionalFormChange = (e) => {
     if (!checkAuthentication()) return;
     try {
       setLoading(true);
-      
+       const originalProfile = localProfileData.profile || {};
+    const originalPersonalInfo = localProfileData.personal_information?.[0] || {};
       // Prepare profile data
-      const profileData = {
-        name: personalForm.name,
-        designation: personalForm.designation,
-        department: personalForm.department,
-        expertise: personalForm.expertise,
-        website: personalForm.website,
-        state: personalForm.state,
-        scopus_id: personalForm.scopus_id,
-        orc_id: personalForm.orc_id,
-        google_scholar_id: personalForm.google_scholar_id,
-        publons_id: personalForm.publons_id,
-    
-      };
-  
+     const profileData = {
+      name: personalForm.name || originalProfile.name,
+      designation: personalForm.designation || originalProfile.designation,
+      department: personalForm.department || originalProfile.department,
+      expertise: personalForm.expertise || originalProfile.expertise,
+      website: personalForm.website || originalProfile.website,
+      state: personalForm.state || originalProfile.state,
+      scopus_id: personalForm.scopus_id || originalProfile.scopus_id,
+      orc_id: personalForm.orc_id || originalProfile.orc_id,
+      google_scholar_id: personalForm.google_scholar_id || originalProfile.google_scholar_id,
+      publons_id: personalForm.publons_id || originalProfile.publons_id,
+    };
     // personal information data
   const personalInfoData = {
-        gender: personalForm.gender,
-        address: personalForm.address,
-        about_me: personalForm.about_me,
-      };
+      gender: personalForm.gender || originalPersonalInfo.gender,
+      address: personalForm.address || originalPersonalInfo.address,
+      about_me: personalForm.about_me || originalPersonalInfo.about_me,
+    };
       const authToken = getAuthToken();
      
     await axiosInstance.put('api/profile/personal-information/edit', personalInfoData, {

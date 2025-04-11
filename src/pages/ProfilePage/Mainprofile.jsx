@@ -446,7 +446,7 @@ setActiveTab('Publication');
                           rel="noopener noreferrer"
                         >
                           {profileData.profile.publons_url
-                ? profileData.profile.publons_url.split('=').pop()  
+                ? profileData.profile.publons_url.split('/').pop()  
                 : ""}
                         </a>
                       </p>
