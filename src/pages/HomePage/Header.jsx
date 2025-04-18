@@ -22,7 +22,7 @@ const handleDepartment=()=>{
   return (
     <header className="w-full">
       {/* Logos container */}
-      <div className="flex justify-center space-x-4 py-0">
+      <div className="flex justify-center space-x-4 py-1">
         <div className="Logo">
           <img src={prllogo} alt="PRL Logo" />
         </div>
@@ -31,7 +31,7 @@ const handleDepartment=()=>{
         </div>
       </div>
       {/* Navigation bar */}
-      <nav className="bg-blue-700 text-white py-1">
+      <nav className="bg-blue-900 text-white py-2">
         <div className="container mx-auto flex justify-center">
           <ul className="flex space-x-14">
             <li className="hover:text-gray-300 text-xl"

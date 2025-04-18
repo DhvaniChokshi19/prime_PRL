@@ -1,18 +1,6 @@
-import React, {useEffect, useRef} from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Database, LineChart, Shield, Users, Eye, Cpu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import benefit from "../../assets/benefits.png";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
-
-const Keyfeatures = () => {
+import React, { useEffect, useRef } from 'react';
+import { Cpu, Database, Eye, LineChart, Shield, Users } from "lucide-react";
+const KeyFeatures = () => {
   const features = [
     {
       icon: <Database className="h-8 w-8 text-blue-600" />,
@@ -37,7 +25,7 @@ const Keyfeatures = () => {
     {
       icon: <Eye className="h-8 w-8 text-blue-600" />,
       title: "Institutional Visibility",
-      description: "PRIME enhances PRL’s visibility by systematically showcasing research achievements, strengthening its reputation, and increasing its appeal to collaborators, funding agencies, and global academic communities."
+      description: "PRIME enhances PRL's visibility by systematically showcasing research achievements, strengthening its reputation, and increasing its appeal to collaborators, funding agencies, and global academic communities."
     },
     {
       icon: <Cpu className="h-8 w-8 text-blue-600" />,
@@ -45,70 +33,70 @@ const Keyfeatures = () => {
       description: "PRIME addresses the growing complexities of research ecosystems, offering flexibility to adapt to emerging challenges and advancements in research and technology."
     }
   ];
- const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [direction, setDirection] = React.useState('');
-  const [isAnimating, setIsAnimating] = React.useState(false);
+  const stats = [
+    {
+      icon: "🔓",
+      title: "Total Open Access",
+      value: "25,000+",
+      description: "Research papers accessible without barriers"
+    },
+    {
+      icon: "🔒",
+      title: "Total Closed Access",
+      value: "18,500+",
+      description: "Premium research publications available"
+    },
+    {
+      icon: "📊",
+      title: "Total Altmetric Score",
+      value: "750,000+",
+      description: "Cumulative engagement metrics across all publications"
+    },
+    {
+      icon: "📚",
+      title: "Total Thesis",
+      value: "42,300+",
+      description: "Complete academic theses in our database"
+    }
+  ];
 
-const plugin = useRef(
-    Autoplay({ delay: 3000, stopOnInteraction: true })
-  );
-
-const featureGroups = [];
-  for (let i = 0; i < features.length; i += 3) {
-    featureGroups.push(features.slice(i, i + 3));
-  }
   return (
-    <div id="key-features" className="max-w-7xl mx-auto px-4 py-64">
-      <h1 className="text-4xl font-bold text-center mb-12">Key Features</h1>
-      
-<div className="relative">
-        <Carousel
-          opts={{
-            align: "center",
-            loop: true,
-          }}
-          plugins={[plugin.current]}
-          className="w-full max-w-6xl mx-auto"
-          onMouseEnter={() => plugin.current.stop()}
-          onMouseLeave={() => plugin.current.play()}
-        >
-          <CarouselContent>
-            {featureGroups.map((group, groupIndex) => (
-              <CarouselItem key={groupIndex}>
-                <div className="flex flex-col md:flex-row gap-4 justify-center px-4">
-                  {group.map((feature, index) => (
-                    <Card 
-                      key={index} 
-                      className="shadow-lg bg-white hover:shadow-xl transition-all duration-1000 w-full md:w-64 h-96 flex-1"
-                    >
-                      <CardHeader>
-                        <div className="flex items-center gap-4">
-                          {feature.icon}
-                          <CardTitle className="text-xl">{feature.title}</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-gray-600 leading-relaxed">
-                          {feature.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="left-0 md:-left-12" />
-          <CarouselNext className="right-0 md:-right-12" />
-        </Carousel>
-      </div>
-      <div className="flex justify-center w-full h-full">
-            <div className="px-4 mt-12 ">
-              <img src={benefit} alt="benefits" className="mx-auto" />
+    <div id="key-features" className="max-w-7xl mx-auto  mt-96 px-4 py-20">
+      <div className="mb-10">        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
+          {stats.map((stat, index) => (
+            <div key={index} className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center">
+              <div className="text-5xl mb-4">{stat.icon}</div>
+              <h3 className="text-2xl font-bold text-center">{stat.title}</h3>
+              <p className="text-xl font-semibold text-blue-600 mt-2">{stat.value}</p>
+              <p className="text-gray-600 text-center mt-2">{stat.description}</p>
             </div>
-          </div>
+          ))}
+        </div>
+      </div>
+      
+      <div className="mt-20">
+        <h2 className="text-3xl font-bold text-center mb-10">Our Platform Benefits</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((feature, index) => (
+            <div 
+              key={index} 
+              className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                {feature.icon}
+                <h3 className="text-xl font-bold">{feature.title}</h3>
+              </div>
+              <p className="text-gray-600 leading-relaxed">
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+      
     </div>
   );
 };
 
-export default Keyfeatures;
+export default KeyFeatures;

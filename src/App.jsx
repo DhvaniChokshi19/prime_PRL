@@ -16,7 +16,7 @@ import { useParams } from "react-router-dom";
 const Home = () => {
   return (
     <>
-     <Header />
+     {/* <Header /> */}
       <Searchbox />
       <Keyfeatures />
       <Footer />

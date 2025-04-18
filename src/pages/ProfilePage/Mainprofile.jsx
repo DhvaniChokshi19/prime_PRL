@@ -448,7 +448,7 @@ setActiveTab('Publication');
                           {profileData.profile.publons_url
                 ? profileData.profile.publons_url.split('/').pop()  
                 : ""}
-                        </a>
+                        </a> 
                       </p>
                     </div>
                   </div>
