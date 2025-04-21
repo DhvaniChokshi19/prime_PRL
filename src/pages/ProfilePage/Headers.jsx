@@ -27,18 +27,17 @@ const handleLoginClick=()=>{
 };
 
   return (
-    <div className="flex justify-between items-center px-4 py-2">
+    <div className="flex justify-between items-center px-12 py-2">
      
-      <div className="flex space-x-4">
-        <div className="Logo">
+      <div className="flex space-x-4 items-center">
+        <div className="Logo ">
           <img src={prllogo} alt="PRL Logo" />
         </div>
-        <div className="Mainlogo">
+        <div className="Mainlogo ">
           <img src={prlogo} alt="Main Logo" />
         </div>
       </div>
 
-      {/* Right side - Navigation Buttons */}
       <div className="flex space-x-4">
         <button 
         onClick={handleHomeClick}

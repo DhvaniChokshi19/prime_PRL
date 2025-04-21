@@ -146,7 +146,7 @@ useEffect(() => {
           <h3 className="text-xl font-semibold">
              Journal Articles 
           </h3>
-          <p>(Data Source: Scopus) </p>
+          <p className='font-semibold text-red-700'>(Data Source: Scopus) </p>
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium">Sort By:</span>

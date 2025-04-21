@@ -15,6 +15,8 @@ import Projects from './Projects';
 import handleExportPDF from './handleExport';
 import { useParams } from 'react-router-dom';
 import Thesis from './Thesis';
+import fb from "../../assets/fb.jpg";
+import X from "../../assets/x.jpg";
 import { 
   User,
   ScrollText,
@@ -23,7 +25,9 @@ import {
   Newspaper,
   Download,
   FileText,
-  Quote
+  Quote,
+  Bookmark,
+
 } from 'lucide-react';
 import ProfileImageUpload from './ProfileImageUpload';
 
@@ -188,14 +192,18 @@ const Mainprofile = () => {
     }
   };
 
-  // Calculate research metrics
   const calculateMetrics = () => {
     const totalPublications = publicationsData.length;
     const totalCitations = publicationsData.reduce((sum, pub) => sum + (pub.cited_by || 0), 0);
     
     const citationData = profileData.citation_data?.[0] || {};
     const hIndex = citationData.h_index || Math.floor(Math.sqrt(totalCitations));
-   
+   const totalFbCites = publicationsData.reduce((sum, pub) => sum + (pub.fb_cite || 0), 0);
+  const totalXCites = publicationsData.reduce((sum, pub) => sum + (pub.x_cite || 0), 0);
+  const totalNewsCites = publicationsData.reduce((sum, pub) => sum + (pub.news_cite || 0), 0);
+  const totalPlumxCaptures = publicationsData.reduce((sum, pub) => sum + (pub.plumx_captures || 0), 0);
+  const totalPlumxCitations = publicationsData.reduce((sum, pub) => sum + (pub.plumx_citations || 0), 0);
+  
     const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
     return [
       { 
@@ -208,14 +216,44 @@ const Mainprofile = () => {
         label: 'Citations', 
         value: totalCitations.toString(),
         tooltip: 'Total number of citations',
-        icon: <Quote size={24} className="text-blue-600"/>,
+        icon: <Quote size={30} className="text-blue-600"/>,
       },
       { 
         label: 'H-Index', 
         value: hIndex.toString(),
         tooltip: 'Measure of research productivity and impact',
-        icon: <BookMarked size={24} className='text-blue-600' />,
+        icon: <BookMarked size={30} className='text-blue-600' />,
       },
+      { 
+      
+      value: totalFbCites.toString(),
+      tooltip: 'Total mentions on Facebook',
+      icon: <img src={fb} alt="Facebook" className="w-10 h-8" />,
+    },
+    { 
+     
+      value: totalXCites.toString(),
+      tooltip: 'Total mentions on X (Twitter)',
+      icon: <img src={X} alt="X" className="w-10 h-10" />,
+    },
+    { 
+     
+      value: totalNewsCites.toString(),
+      tooltip: 'Total mentions in news outlets',
+      icon: <Newspaper size={30} className="text-blue-600" />,
+    },
+    { 
+    
+      value: totalPlumxCaptures.toString(),
+      tooltip: 'Total PlumX captures (bookmarks, favorites, readers)',
+      icon: <Bookmark size={30} className="text-blue-600" />,
+    },
+    { 
+     
+      value: totalPlumxCitations.toString(),
+      tooltip: 'Total PlumX citations',
+      icon: <Quote size={30} className="text-white bg-orange-600" />,
+    },
     ];
   };
 
@@ -331,149 +369,146 @@ const Mainprofile = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-3">
-    
-      <div className="flex gap-4 mb-1 bg-gray-100 p-4 rounded-lg">
-        <ProfileImageUpload 
-          profileImage={`${API_BASE_URL}${profileData.profile.image_url}` || null}
-          onImageUpdate={(newImageUrl) => {
-            setProfileData(prevData => ({
-              ...prevData,
-              profile: { 
-                ...prevData.profile, 
-                image_url: newImageUrl.replace(API_BASE_URL, '') 
-              }
-            }));
-          }}
-        />
+   <div className="max-w-7xl mx-auto p-3">
+  <div className="flex gap-4 mb-1 bg-gray-100 p-4 rounded-lg shadow-md"> 
+    <ProfileImageUpload
+      profileImage={`${API_BASE_URL}${profileData.profile.image_url}` || null}
+      onImageUpdate={(newImageUrl) => {
+        setProfileData(prevData => ({
+          ...prevData,
+          profile: {
+            ...prevData.profile,
+            image_url: newImageUrl.replace(API_BASE_URL, '')
+          }
+        }));
+      }}
+    />
+    <div className="flex-1">
+      <div className="flex justify-between items-start w-full">
         <div className="flex-1">
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="flex items-start gap-x-96 mb-1">
-                <div className="flex items-center space-x-2 mb-1">
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleExport}
-                  className="flex items-center gap-2"
-                >
-                  <Download size={16} />
-                  <span>Export</span>
-                </Button>
-              </div>
-              <h1 className="text-2xl font-bold mb-2">{profileData.profile.name || "Dr. Name"}</h1>
-              <p className="text-lg text-gray-600">{profileData.profile.designation || "Designation"}</p>
-              <p className="text-lg text-gray-600">{profileData.profile.department || "Department"}</p>
-              <p className="text-gray-600">{profileData.profile.expertise || "Research Areas"}</p>
-              <p className="text-gray-600">{profileData.profile.state || "Location"}</p>
-            </div>
-            <Card className="w-72 border-none">
-              <CardContent className="pt-2">
-                <h3 className="font-semibold mb-2">Academic Identity</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <img src={orcid} alt="ORCID" className="w-8 h-8" />
-                    <div>
-                      <p className="text-sm font-medium">Orcid Id</p>
-                      <p className="text-sm text-blue-600">
-                        <a 
-                          href={profileData.profile.orcid_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          {profileData.profile.orcid_url
-                            ? profileData.profile.orcid_url.split('/').pop() 
-                            : ""}
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <img src={scopus} alt="Scopus" className="w-8 h-8" />
-                    <div>
-                      <p className="text-sm font-medium">Scopus Id</p>
-                      <p className="text-sm text-blue-600">
-                        <a 
-                          href={profileData.profile.scopus_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          {profileData.profile.scopus_url
-                            ? profileData.profile.scopus_url.split('=').pop()
-                            : ""}
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <img src={publons} alt="Publons" className="w-8 h-8" />
-                    <div>
-                      <p className="text-sm font-medium">Publons Id</p>
-                      <p className="text-sm text-blue-600">
-                        <a 
-                          href={profileData.profile.publons_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          {profileData.profile.publons_url
-                            ? profileData.profile.publons_url.split('/').pop()  
-                            : ""}
-                        </a> 
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <img src={googlei} alt="Google Scholar" className="w-8 h-8" />
-                    <div>
-                      <p className="text-sm font-medium">Google Scholar Id</p>
-                      <p className="text-sm text-blue-600">
-                        <a 
-                          href={profileData.profile.google_scholar_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          {profileData.profile.google_scholar_url
-                            ? profileData.profile.google_scholar_url.split('=').pop() 
-                            : ""}
-                        </a>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <h1 className="text-2xl font-bold mb-2">{profileData.profile.name || "Dr. Name"}</h1>
+          <p className="text-lg text-gray-600">{profileData.profile.designation || "Designation"}</p>
+          <p className="text-lg text-gray-600">{profileData.profile.department || "Department"}</p>
+          <p className="text-gray-600">{profileData.profile.expertise || "Research Areas"}</p>
+          <p className="text-gray-600">{profileData.profile.state || "Location"}</p>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExport}
+          className="flex items-center gap-2"
+        >
+          <Download size={16} />
+          <span>Export</span>
+        </Button>
       </div>
-<Card className="w-full mb-3 border-none bg-gray-100">
-  <CardContent className="p-6">
-    <h3 className="font-semibold mb-3">Research Metrics</h3>
-    <div className="grid grid-cols-3 gap-4">
-      {researchMetrics.map((metric, index) => (
-        <div key={index} className="bg-white p-3 rounded-lg shadow-md text-center flex flex-col items-center w-80">
-          <div>
-            {metric.icon}
+      
+      <div className="w-full flex items-center justify-between py-8 my-3">
+        {researchMetrics.map((metric, index) => (
+          <div key={index} className="flex items-center">
+            <div className="pr-2">
+              {metric.icon}
+            </div>
+            <div>
+              <Tooltips text={metric.tooltip || ''}>
+                <p className="text-2xl font-bold text-black">{metric.value}</p>
+                <p className="text-sm font-medium">{metric.label}</p>
+              </Tooltips>
+            </div>
+            {index < researchMetrics.length - 1 && (
+              <div className="mx-2 h-8 border-r border-gray-300"></div>
+            )}
           </div>
-          <Tooltips key={index} text={metric.tooltip || ''}>
-          <p className="text-3xl font-bold text-blue-600">{metric.value}</p>
-          <p className="text-lg font-medium">{metric.label}</p>
-          </Tooltips>
-          
-        </div>
-          
-      ))}
+        ))}
+      </div>
     </div>
-  </CardContent>
-</Card>
-      <Card className="w-full mb-8 border-none bg-gray-100">
+    
+    <Card className="w-72 border-none shadow-none">
+      <CardContent className="pt-2">
+        <h3 className="font-semibold mb-2">Academic Identity</h3>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <img src={orcid} alt="ORCID" className="w-8 h-8" />
+            <div>
+              <p className="text-sm font-medium">Orcid Id</p>
+              <p className="text-sm text-blue-600">
+                <a 
+                  href={profileData.profile.orcid_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  {profileData.profile.orcid_url
+                    ? profileData.profile.orcid_url.split('/').pop() 
+                    : ""}
+                </a>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <img src={scopus} alt="Scopus" className="w-8 h-8" />
+            <div>
+              <p className="text-sm font-medium">Scopus Id</p>
+              <p className="text-sm text-blue-600">
+                <a 
+                  href={profileData.profile.scopus_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  {profileData.profile.scopus_url
+                    ? profileData.profile.scopus_url.split('=').pop()
+                    : ""}
+                </a>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <img src={publons} alt="Publons" className="w-8 h-8" />
+            <div>
+              <p className="text-sm font-medium">Publons Id</p>
+              <p className="text-sm text-blue-600">
+                <a 
+                  href={profileData.profile.publons_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  {profileData.profile.publons_url
+                    ? profileData.profile.publons_url.split('/').pop()  
+                    : ""}
+                </a> 
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <img src={googlei} alt="Google Scholar" className="w-8 h-8" />
+            <div>
+              <p className="text-sm font-medium">Google Scholar Id</p>
+              <p className="text-sm text-blue-600">
+                <a 
+                  href={profileData.profile.google_scholar_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  {profileData.profile.google_scholar_url
+                    ? profileData.profile.google_scholar_url.split('=').pop() 
+                    : ""}
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+
+
+      <Card className="w-full mb-4 border-none bg-gray-100">
         <CardContent className="p-6">
           <div className="grid grid-cols-2 gap-4">
-            <div className="h-72">
+            <div className="h-64wh">
               <PublicationBarChart />
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Research Impact Factor</h3>
+              <h3 className="font-semibold mb-3">Research Impact Factor</h3>
               <div className="h-48 overflow-y-auto">
                 <ul className="space-y-2 text-base">
                   <li>Total career publications(PRL): {researchMetrics[0].value}</li>
@@ -483,11 +518,27 @@ const Mainprofile = () => {
                       ? (parseInt(researchMetrics[1].value) / parseInt(researchMetrics[0].value)).toFixed(1) 
                       : "0.0"
                   }</li>
+                  <li>Highest number of citations: {
+      publicationsData.length > 0 
+        ? Math.max(...publicationsData.map(pub => pub.cited_by || 0)) 
+        : 0
+    }</li>
                   <li className="cursor-pointer hover:text-blue-600 transition-colors" onClick={handlePublication}>
                     Publications with 20+ citations: {
                       publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length
                     }
                   </li>
+                  <li className="cursor-pointer hover:text-blue-600 transition-colors" onClick={() => {
+      setActiveTab('Publication');
+      setPublicationsFilter({
+        key: 'Cited by:',
+        minValue: 50,
+      });
+    }}>
+      Publications with 50+ citations: {
+        publicationsData.filter(pub => (pub.cited_by || 0) >= 50).length
+      }
+    </li>
                 </ul> 
               </div>
             </div>

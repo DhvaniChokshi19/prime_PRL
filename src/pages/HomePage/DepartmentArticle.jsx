@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BookOpen, Lock, ExternalLink, ChevronDown } from 'lucide-react';
 import axiosInstance from '../../api/axios';
 import { Button } from '@/components/ui/button';
+import pubimg from '../../assets/pub_bg.jpg';
 
 const DepartmentArticles = ({ department_id }) => {
   const [articles, setArticles] = useState([]);
@@ -37,12 +38,16 @@ const DepartmentArticles = ({ department_id }) => {
       try {
         setIsLoading(true);
         const response = await axiosInstance.get(`/api/departments/${department_id}`);
-        setArticles(response.data);
+        
+        // Sort the articles immediately when they come from the API
+        const sortedData = sortArticlesByType(response.data, sortBy);
+        setArticles(sortedData);
+        
         setDepartmentName(departmentIdToName[department_id] || 'Unknown Department');
         
         // Set initial year range based on available data
-        if (response.data && response.data.length > 0) {
-          const years = response.data
+        if (sortedData && sortedData.length > 0) {
+          const years = sortedData
             .map(article => article.publication_date ? new Date(article.publication_date).getFullYear() : null)
             .filter(year => year !== null);
           
@@ -64,7 +69,27 @@ const DepartmentArticles = ({ department_id }) => {
     };
 
     fetchDepartmentArticles();
-  }, [department_id]);
+  }, [department_id, sortBy]);
+
+  // Helper function to sort articles
+  const sortArticlesByType = (articlesToSort, sortType) => {
+    if (!Array.isArray(articlesToSort) || articlesToSort.length === 0) {
+      return [];
+    }
+    
+    return [...articlesToSort].sort((a, b) => {
+      switch (sortType) {
+        case 'newest':
+          return new Date(b.publication_date || 0) - new Date(a.publication_date || 0);
+        case 'oldest':
+          return new Date(a.publication_date || 0) - new Date(b.publication_date || 0);
+        case 'citations':
+          return (b.cited_by || 0) - (a.cited_by || 0);
+        default:
+          return 0;
+      }
+    });
+  };
 
   const formatYear = (dateString) => {
     if (!dateString) return '';
@@ -84,7 +109,8 @@ const DepartmentArticles = ({ department_id }) => {
     }
   };
 
-  const sortedArticles = () => {
+  // Use this function to apply filters and sorting
+  const getDisplayArticles = () => {
     if (!Array.isArray(articles) || articles.length === 0) {
       return [];
     }
@@ -100,21 +126,14 @@ const DepartmentArticles = ({ department_id }) => {
       return year >= fromYear && year <= toYear;
     });
     
-    const displayArticles = showAll ? filteredArticles : filteredArticles.slice(0, 10);
-    
-    return [...displayArticles].sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.publication_date || 0) - new Date(a.publication_date || 0);
-        case 'oldest':
-          return new Date(a.publication_date || 0) - new Date(b.publication_date || 0);
-        case 'citations':
-          return (b.cited_by || 0) - (a.cited_by || 0);
-        default:
-          return 0;
-      }
-    });
+    // Return all or just the first 10 based on showAll flag
+    return showAll ? filteredArticles : filteredArticles.slice(0, 10);
   };
+
+  // Effect to resort articles when sortBy changes
+  useEffect(() => {
+    setArticles(prev => sortArticlesByType([...prev], sortBy));
+  }, [sortBy]);
 
   const handleSortChange = (e) => {
     setSortBy(e.target.value);
@@ -186,7 +205,7 @@ const DepartmentArticles = ({ department_id }) => {
     );
   };
 
-  const displayedArticles = sortedArticles();
+  const displayedArticles = getDisplayArticles();
   const filteredCount = articles.filter(article => {
     const year = getArticleYear(article);
     if (!year) return false;
@@ -198,49 +217,60 @@ const DepartmentArticles = ({ department_id }) => {
   }).length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <BookOpen className="w-6 h-6 text-gray-500" />
-          <h3 className="text-2xl font-semibold">
-            {departmentName} Publications
-          </h3>
-          <p>(Data Source: Scopus) </p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium">Year:</span>
-            <div className="flex items-center space-x-1">
-              <input
-                type="number"
-                name="from"
-                placeholder="From"
-                value={yearRange.from}
-                onChange={handleYearChange}
-                className="w-20 px-2 py-1 border rounded-md text-sm"
-              />
-              <span>-</span>
-              <input
-                type="number"
-                name="to"
-                placeholder="To"
-                value={yearRange.to}
-                onChange={handleYearChange}
-                className="w-20 px-2 py-1 border rounded-md text-sm"
-              />
+    <div className='bg-blue-200 mx-auto max-w-9xl p-3'>
+      <div className="relative w-full h-40">
+        <img 
+          src={pubimg} 
+          alt="Dashboard" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 "> 
+          <div className="container mx-auto px-8 h-52">
+            <div className="flex items-center justify-between mb-2 mt-7">
+              <div className="flex items-center space-x-2">
+                <BookOpen className="w-8 h-8 text-gray-500" />
+                <h3 className="text-2xl font-semibold">
+                  {departmentName} Publications
+                </h3>
+                <p className="font-semibold text-red-700">(Data Source: Scopus) </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium">Year:</span>
+                  <div className="flex items-center space-x-1">
+                    <input
+                      type="number"
+                      name="from"
+                      placeholder="From"
+                      value={yearRange.from}
+                      onChange={handleYearChange}
+                      className="w-20 px-2 py-1 border rounded-md text-sm"
+                    />
+                    <span>-</span>
+                    <input
+                      type="number"
+                      name="to"
+                      placeholder="To"
+                      value={yearRange.to}
+                      onChange={handleYearChange}
+                      className="w-20 px-2 py-1 border rounded-md text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium">Sort By:</span>
+                  <select 
+                    className="px-3 py-1 border rounded-md text-sm"
+                    value={sortBy}
+                    onChange={handleSortChange}
+                  >
+                    <option value="newest">Date (newest)</option>
+                    <option value="oldest">Date (oldest)</option>
+                    <option value="citations">Citations</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium">Sort By:</span>
-            <select 
-              className="px-3 py-1 border rounded-md text-sm"
-              value={sortBy}
-              onChange={handleSortChange}
-            >
-              <option value="newest">Date (newest)</option>
-              <option value="oldest">Date (oldest)</option>
-              <option value="citations">Citations</option>
-            </select>
           </div>
         </div>
       </div>
@@ -253,7 +283,7 @@ const DepartmentArticles = ({ department_id }) => {
         <div className="text-red-500 text-center py-4">{error}</div>
       ) : (
         <>
-          <div className="space-y-6 pl-4 border-l-2 border-gray-200">
+          <div className="space-y-6 pl-4 border-l-2 border-gray-200 bg-white">
             {displayedArticles.length > 0 ? (
               displayedArticles.map((article, index) => (
                 <div key={index} className="space-y-2">

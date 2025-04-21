@@ -149,8 +149,6 @@ const Publication = () => {
       </div>
     );
   }
-
-  // If no data was returned
   if (departmentData.length === 0) {
     return (
       <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
@@ -179,21 +177,19 @@ const Publication = () => {
     });
   };
 
-  // Generate colors for the bar chart
   const generateColors = () => ({
     publications: '#3B82F6', 
     citations: '#10B981',
     hIndex: '#8B5CF6'
   });
 
-  // Get yearly trends data
   const yearlyTrendsData = prepareDepartmentYearlyData();
   const colors = generateColors();
   const departments = departmentData.map(dept => dept.department);
   
   return (
-    <div className='bg-blue-200 mx-auto max-w-9xl p-4'>
-      <div className="relative w-screen h-48">
+    <div className='bg-blue-200 mx-auto max-w-9xl p-3'>
+      <div className="relative w-full h-48">
         <img 
           src={pubimg} 
           alt="Dashboard" 
@@ -315,7 +311,7 @@ const Publication = () => {
               <div className="bg-green-100 p-2 rounded">
                 <p className="text-xs text-green-700 font-semibold">Profiles</p>
                 <a 
-                  href={`http://${window.location.hostname}:5173/search?department=${dept.department}&q=${dept.department}`} 
+                  href={`http://${window.location.hostname}:5000/search?department=${dept.department}&q=${dept.department}`} 
                   className="text-lg font-bold text-green-600 hover:underline"
                 >
                   {dept.total_profiles}

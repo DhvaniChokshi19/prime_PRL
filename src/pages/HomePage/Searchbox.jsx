@@ -344,7 +344,7 @@ const Searchbox = () => {
       icon: <UserRound className="h-8 w-8 text-blue-600" />,
       number: statsData.total_profiles,
       label: 'PROFILES',
-      href: `http://${window.location.hostname}:5173/search?name=*&q=*`
+      href: `http://${window.location.hostname}:5000/search?name=*&q=*`
     },
     {
       icon: <Newspaper className="h-8 w-8 text-blue-600"/>,
