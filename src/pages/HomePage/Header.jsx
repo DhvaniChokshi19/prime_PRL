@@ -21,7 +21,7 @@ const handleDepartment=()=>{
 }
   return (
     <header className="w-full">
-      {/* Logos container */}
+    
       <div className="flex justify-center space-x-4 py-1">
         <div className="Logo">
           <img src={prllogo} alt="PRL Logo" />
@@ -30,7 +30,7 @@ const handleDepartment=()=>{
           <img src={prlogo} alt="Main Logo" />
         </div>
       </div>
-      {/* Navigation bar */}
+    
       <nav className="bg-blue-900 text-white py-2">
         <div className="container mx-auto flex justify-center">
           <ul className="flex space-x-14">
@@ -43,7 +43,7 @@ const handleDepartment=()=>{
               Features
             </li>
             <li className='hover:text-gray-300 text-xl'
-            onClick={handleDepartment}>Department Statistics</li>
+            onClick={handleDepartment}>Division</li>
             <li className="hover:text-gray-300 text-xl"
             onClick={handleContact}>
                Contact Us

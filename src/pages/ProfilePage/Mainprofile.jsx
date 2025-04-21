@@ -21,18 +21,11 @@ import {
   BookOpen,
   BookMarked,
   Newspaper,
-   Download,
+  Download,
+  FileText,
+  Quote
 } from 'lucide-react';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import ProfileImageUpload from './ProfileImageUpload';
-
-
 
 // Tooltips component
 const Tooltips = ({ text, children }) => {
@@ -61,9 +54,8 @@ const Mainprofile = () => {
   const { profileId: urlProfileId } = useParams();
   const [publicationsFilter, setPublicationsFilter] = useState(null);
   
-   const profileId = urlProfileId ? parseInt(urlProfileId, 10) : null;
+  const profileId = urlProfileId ? parseInt(urlProfileId, 10) : null;
 
-  
   const [profileData, setProfileData] = useState({
     profile: {
       name: '',
@@ -130,7 +122,6 @@ const Mainprofile = () => {
     fetchPublicationsData();
   }, [profileId]);
 
-
   const updateComponentData = (componentName, data) => {
     switch(componentName) {
       case 'PersonalInformation':
@@ -146,9 +137,6 @@ const Mainprofile = () => {
       case 'Publications':
         setPublicationsData(data);
         break;
-      // case 'Patents':
-      //   setProfileData(prevData => ({ ...prevData, patents: data }));
-      //   break;       
       default:
         break;
     }
@@ -160,9 +148,8 @@ const Mainprofile = () => {
     { name: 'Publication', icon: BookOpen },
     { name: 'Patent', icon: ScrollText },
     { name: 'Project', icon: BookMarked },
-    {name: 'Thesis', icon: Newspaper},
+    { name: 'Thesis', icon: Newspaper },
   ];
-
 
   const renderContent = () => {
     switch (activeTab) {
@@ -175,7 +162,7 @@ const Mainprofile = () => {
         return <Publications 
           profileId={profileId}
           data={publicationsData}
-           filter={publicationsFilter} 
+          filter={publicationsFilter} 
           onDataUpdate={(data) => updateComponentData('Publications', data)}
         />;
       case 'Patent':
@@ -190,8 +177,8 @@ const Mainprofile = () => {
         />;
       case 'Thesis':
         return <Thesis
-        onDataUpdate={(data) => updateComponentData('Thesis', data)}
-        profileId={profileId}
+          onDataUpdate={(data) => updateComponentData('Thesis', data)}
+          profileId={profileId}
         />
       default:
         return <PersonalInformation 
@@ -209,27 +196,29 @@ const Mainprofile = () => {
     const citationData = profileData.citation_data?.[0] || {};
     const hIndex = citationData.h_index || Math.floor(Math.sqrt(totalCitations));
    
-const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
+    const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
     return [
       { 
         label: 'Journal Articles', 
         value: totalPublications.toString(),
-        tooltip: 'Total number of publications'
+        tooltip: 'Total number of publications',
+        icon: <FileText size={24} className="text-blue-600" />,
       },
       { 
         label: 'Citations', 
         value: totalCitations.toString(),
-        tooltip: 'Total number of citations'
+        tooltip: 'Total number of citations',
+        icon: <Quote size={24} className="text-blue-600"/>,
       },
       { 
         label: 'H-Index', 
         value: hIndex.toString(),
-        tooltip: 'Measure of research productivity and impact'
+        tooltip: 'Measure of research productivity and impact',
+        icon: <BookMarked size={24} className='text-blue-600' />,
       },
     ];
   };
 
-  // Format publication stats for charts
   const formatPublicationStats = () => {
     const stats = profileData.publication_stats || [];
     return {
@@ -246,26 +235,25 @@ const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by
 
   const handleExport = async () => {
     try {
-   
-    const dataForExport = {
-      profile: profileData.profile,
-      professional_experiences: profileData.professional_experiences || [],
-      qualifications: profileData.qualifications || [],
-      honors_and_awards: profileData.honors_and_awards || [],
-      citation_data: profileData.citation_data || [], 
-      publication_stats: profileData.publication_stats || [],
-    };
-     const { stats: chartData } = formatPublicationStats();
-    const result = await handleExportPDF(dataForExport, publicationsData,chartData);
-    
-    if (result) {
-      console.log('PDF successfully downloaded');
-    } else {
-      console.error('Error downloading PDF');
+      const dataForExport = {
+        profile: profileData.profile,
+        professional_experiences: profileData.professional_experiences || [],
+        qualifications: profileData.qualifications || [],
+        honors_and_awards: profileData.honors_and_awards || [],
+        citation_data: profileData.citation_data || [], 
+        publication_stats: profileData.publication_stats || [],
+      };
+      const { stats: chartData } = formatPublicationStats();
+      const result = await handleExportPDF(dataForExport, publicationsData, chartData);
+      
+      if (result) {
+        console.log('PDF successfully downloaded');
+      } else {
+        console.error('Error downloading PDF');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
     }
-  } catch (error) {
-    console.error('Export error:', error);
-  }
   };
 
   if (loading) {
@@ -276,96 +264,93 @@ const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by
     return <div className="text-red-500 text-center p-6">Error loading profile: {error}</div>;
   }
 
-  // Get metrics and formatted stats
   const researchMetrics = calculateMetrics();
   const { stats: formattedPublicationStats, yearRangeOptions } = formatPublicationStats();
 
   const PublicationBarChart = () => {
-    
     const allYears = formattedPublicationStats.map(stat => stat.year);
     
-    // State for selected years
     const [selectedYears, setSelectedYears] = useState(allYears);
 
-    // Filter publication stats based on selected years
     const filteredStats = formattedPublicationStats.filter(stat => 
       selectedYears.includes(stat.year)
     );
 
-    // Handle year selection toggle
     const handleYearToggle = (year) => {
-       setSelectedYears(prev => 
-      prev.includes(year) 
-        ? prev.filter(y => y !== year)
-        : [...prev, year]
-    );
+      setSelectedYears(prev => 
+        prev.includes(year) 
+          ? prev.filter(y => y !== year)
+          : [...prev, year]
+      );
     };
-   return (
-    <div className="flex">
-      <div className="w-1/4 pr-4 max-h-60 overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">Select Years</h3>
-        <div className="space-y-2">
-          {allYears.map(year => (
-            <div key={year} className="flex items-center space-x-2">
-              <Checkbox
-                id={`year-${year}`}
-                checked={selectedYears.includes(year)}
-                onCheckedChange={() => handleYearToggle(year)}
-              />
-              <label 
-                htmlFor={`year-${year}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {year}
-              </label>
-            </div>
-          ))}
+    
+    return (
+      <div className="flex">
+        <div className="w-1/4 pr-4 max-h-52 overflow-y-auto">
+          <h3 className="text-lg font-semibold mb-3">Select Years</h3>
+          <div className="space-y-2">
+            {allYears.map(year => (
+              <div key={year} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`year-${year}`}
+                  checked={selectedYears.includes(year)}
+                  onCheckedChange={() => handleYearToggle(year)}
+                />
+                <label 
+                  htmlFor={`year-${year}`}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  {year}
+                </label>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="w-3/4 publication-chart-container">
-        <ResponsiveContainer width="90%" height={200}>
-          <BarChart data={filteredStats}>
-            <XAxis dataKey="year" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="Publications" name="Publications" fill="#3B82F6" barSize={18} />
-            <Bar dataKey="Citations" name="Citations" fill="#10B981" barSize={18} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+        <div className="w-3/4 publication-chart-container">
+          <ResponsiveContainer width="90%" height={200}>
+            <BarChart data={filteredStats}>
+              <XAxis dataKey="year" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="Publications" name="Publications" fill="#3B82F6" barSize={18} />
+              <Bar dataKey="Citations" name="Citations" fill="#10B981" barSize={18} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     );
   };
-const handlePublication=()=>{
-setActiveTab('Publication');
-  
+
+  const handlePublication = () => {
+    setActiveTab('Publication');
     setPublicationsFilter({
       key: 'Cited by:',
       minValue: 20,
     });
-}
+  }
+
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      {/* Header Section */}
-      <div className="flex gap-6 mb-8 bg-gray-100 p-6 rounded-lg">
-     <ProfileImageUpload 
-    profileImage={`${API_BASE_URL}${profileData.profile.image_url}` || null}
-    onImageUpdate={(newImageUrl) => {
-      setProfileData(prevData => ({
-        ...prevData,
-        profile: { 
-          ...prevData.profile, 
-          image_url: newImageUrl.replace(API_BASE_URL, '') 
-        }
-      }));
-    }}
-  />
+    <div className="max-w-7xl mx-auto p-3">
+    
+      <div className="flex gap-4 mb-1 bg-gray-100 p-4 rounded-lg">
+        <ProfileImageUpload 
+          profileImage={`${API_BASE_URL}${profileData.profile.image_url}` || null}
+          onImageUpdate={(newImageUrl) => {
+            setProfileData(prevData => ({
+              ...prevData,
+              profile: { 
+                ...prevData.profile, 
+                image_url: newImageUrl.replace(API_BASE_URL, '') 
+              }
+            }));
+          }}
+        />
         <div className="flex-1">
           <div className="flex justify-between items-start">
             <div>
               <div className="flex items-start gap-x-96 mb-1">
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-1">
                 </div>
                 <Button 
                   variant="outline" 
@@ -382,24 +367,10 @@ setActiveTab('Publication');
               <p className="text-lg text-gray-600">{profileData.profile.department || "Department"}</p>
               <p className="text-gray-600">{profileData.profile.expertise || "Research Areas"}</p>
               <p className="text-gray-600">{profileData.profile.state || "Location"}</p>
-              
-              {/* Research Metrics */}
-              <div className="grid grid-cols-4 md:grid-cols-4 gap-2 mt-6">
-                {researchMetrics.map((metric, index) => (
-                  <Tooltips key={index} text={metric.tooltip || ''}>
-                    <div className="flex flex-col items-center p-4 bg-white rounded-lg shadow-md cursor-pointer">
-                      <p className="text-xl font-bold">{metric.value}</p>
-                      <p className="text-gray-600">{metric.label}</p>
-                    </div>
-                  </Tooltips>
-                ))}
-              </div>
             </div>
-
-            {/* Academic Identity Section */}
             <Card className="w-72 border-none">
-              <CardContent className="pt-4">
-                <h3 className="font-semibold mb-4">Academic Identity</h3>
+              <CardContent className="pt-2">
+                <h3 className="font-semibold mb-2">Academic Identity</h3>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <img src={orcid} alt="ORCID" className="w-8 h-8" />
@@ -412,8 +383,8 @@ setActiveTab('Publication');
                           rel="noopener noreferrer"
                         >
                           {profileData.profile.orcid_url
-                ? profileData.profile.orcid_url.split('/').pop() 
-                : ""}
+                            ? profileData.profile.orcid_url.split('/').pop() 
+                            : ""}
                         </a>
                       </p>
                     </div>
@@ -429,8 +400,8 @@ setActiveTab('Publication');
                           rel="noopener noreferrer"
                         >
                           {profileData.profile.scopus_url
-                ? profileData.profile.scopus_url.split('=').pop()
-                : ""}
+                            ? profileData.profile.scopus_url.split('=').pop()
+                            : ""}
                         </a>
                       </p>
                     </div>
@@ -446,8 +417,8 @@ setActiveTab('Publication');
                           rel="noopener noreferrer"
                         >
                           {profileData.profile.publons_url
-                ? profileData.profile.publons_url.split('/').pop()  
-                : ""}
+                            ? profileData.profile.publons_url.split('/').pop()  
+                            : ""}
                         </a> 
                       </p>
                     </div>
@@ -463,11 +434,10 @@ setActiveTab('Publication');
                           rel="noopener noreferrer"
                         >
                           {profileData.profile.google_scholar_url
-                ? profileData.profile.google_scholar_url.split('=').pop() 
-                : ""}
+                            ? profileData.profile.google_scholar_url.split('=').pop() 
+                            : ""}
                         </a>
                       </p>
-                      
                     </div>
                   </div>
                 </div>
@@ -476,15 +446,31 @@ setActiveTab('Publication');
           </div>
         </div>
       </div>
-
-      {/* Publications Chart */}
-      <Card className="w-full h-60 border-none bg-gray-100">
-        <CardContent className="p-2">
-          <div className="grid grid-cols-2 gap-2">
+<Card className="w-full mb-3 border-none bg-gray-100">
+  <CardContent className="p-6">
+    <h3 className="font-semibold mb-3">Research Metrics</h3>
+    <div className="grid grid-cols-3 gap-4">
+      {researchMetrics.map((metric, index) => (
+        <div key={index} className="bg-white p-3 rounded-lg shadow-md text-center flex flex-col items-center w-80">
+          <div>
+            {metric.icon}
+          </div>
+           <Tooltips key={index} text={metric.tooltip || ''}>
+          <p className="text-3xl font-bold text-blue-600">{metric.value}</p>
+          <p className="text-lg font-medium">{metric.label}</p>
+        </div>
+        </T
+      ))}
+    </div>
+  </CardContent>
+</Card>
+      <Card className="w-full mb-8 border-none bg-gray-100">
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 gap-4">
             <div className="h-72">
-                 <PublicationBarChart />
+              <PublicationBarChart />
             </div>
-            <div className="mt-3">
+            <div>
               <h3 className="font-semibold mb-4">Research Impact Factor</h3>
               <div className="h-48 overflow-y-auto">
                 <ul className="space-y-2 text-base">
@@ -495,9 +481,11 @@ setActiveTab('Publication');
                       ? (parseInt(researchMetrics[1].value) / parseInt(researchMetrics[0].value)).toFixed(1) 
                       : "0.0"
                   }</li>
-                  <li className="cursor-pointer hover:text-blue-600 transition-colors" onClick={handlePublication}>Publications with 20+ citations: {
-                    publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length
-                  }</li>
+                  <li className="cursor-pointer hover:text-blue-600 transition-colors" onClick={handlePublication}>
+                    Publications with 20+ citations: {
+                      publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length
+                    }
+                  </li>
                 </ul> 
               </div>
             </div>

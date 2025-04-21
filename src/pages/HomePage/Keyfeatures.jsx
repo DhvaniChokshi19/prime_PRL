@@ -37,25 +37,25 @@ const KeyFeatures = () => {
     {
       icon: "🔓",
       title: "Total Open Access",
-      value: "25,000+",
+      value: "",
       description: "Research papers accessible without barriers"
     },
     {
       icon: "🔒",
       title: "Total Closed Access",
-      value: "18,500+",
+      value: "",
       description: "Premium research publications available"
     },
     {
       icon: "📊",
       title: "Total Altmetric Score",
-      value: "750,000+",
+      value: "",
       description: "Cumulative engagement metrics across all publications"
     },
     {
       icon: "📚",
       title: "Total Thesis",
-      value: "42,300+",
+      value: "",
       description: "Complete academic theses in our database"
     }
   ];
