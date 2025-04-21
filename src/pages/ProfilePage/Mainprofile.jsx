@@ -455,11 +455,13 @@ const Mainprofile = () => {
           <div>
             {metric.icon}
           </div>
-           <Tooltips key={index} text={metric.tooltip || ''}>
+          <Tooltips key={index} text={metric.tooltip || ''}>
           <p className="text-3xl font-bold text-blue-600">{metric.value}</p>
           <p className="text-lg font-medium">{metric.label}</p>
+          </Tooltips>
+          
         </div>
-        </T
+          
       ))}
     </div>
   </CardContent>
