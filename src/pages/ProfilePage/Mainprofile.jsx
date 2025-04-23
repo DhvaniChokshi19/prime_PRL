@@ -53,9 +53,7 @@ const Tooltips = ({ text, children }) => {
     </div>
   );
 };
-
-// Moved outside Mainprofile component
-const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, setActiveTab, setPublicationsFilter }) => {
+const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, setActiveTab, setPublicationsFilter,publicationsMetrics,citationMetrics }) => {
   const handlePublicationFilter = (minValue) => {
     setActiveTab('Publication');
     setPublicationsFilter({
@@ -66,25 +64,26 @@ const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, set
 
   return (
     <div className="rounded-lg shadow-sm p-3 h-72">
-      <h3 className="font-semibold text-lg mb-2">Research Impact Factor</h3>
+       {/* <div className="w-full md:w-2/3 lg:w-1/2"> */}
+      <h3 className="font-semibold text-lg mb-2 ">Bibliometric and Citation Indicator</h3>
       <table className="w-full text-sm">
         <tbody>
           <tr>
-            <td className="py-1 font-medium">Total publications (PRL Affiliated):</td>
-            <td className="py-1 text-left">{metrics[0].value}</td>
+            <td className=" font-medium">Total publications ( with PRL Affiliation):</td>
+            <td className=" text-left">{metrics[0].value}</td>
           </tr>
           <tr >
             <td className="py-1 font-medium">Publication years:</td>
             <td className="py-1 text-leftt">{yearRangeOptions}</td>
           </tr>
-          <tr >
-            <td className="py-1 font-medium">Average citations per paper:</td>
-            <td className="py-1 text-left">
-              {parseInt(metrics[0].value) > 0 
-                ? (parseInt(metrics[1].value) / parseInt(metrics[0].value)).toFixed(1) 
-                : "0.0"}
-            </td>
-          </tr>
+          <tr>
+  <td className="py-1 font-medium">Average citations per paper:</td>
+  <td className="py-1 text-left">
+    {parseInt(publicationsMetrics[0].value) > 0 
+      ? (parseInt(citationMetrics[0].value) / parseInt(publicationsMetrics[0].value)).toFixed(1) 
+      : "0.0"}
+  </td>
+</tr>
           <tr >
             <td className="py-1 font-medium">Highest number of citations:</td>
             <td className="py-1 text-left">
@@ -122,6 +121,7 @@ const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, set
         </tbody>
       </table>
     </div>
+    // </div>
   );
 };
 
@@ -300,85 +300,86 @@ const Mainprofile = () => {
     const totalPlumxCaptures = publicationsData.reduce((sum, pub) => sum + (pub.plumx_captures || 0), 0);
     const totalPlumxCitations = publicationsData.reduce((sum, pub) => sum + (pub.plumx_citations || 0), 0);
 
-    return [
+        const publicationsMetrics = [
       { 
         label: 'Journal Articles', 
         value: totalPublications.toString(),
         tooltip: 'Total number of publications',
         icon: <FileText size={24} className="text-blue-600" />,
-        className: "border-r",
       },
       {
         label: 'Book Chapters',
         value: '0',
         tooltip: 'Total number of book chapters',
         icon: <NotebookText size={24} className="text-blue-600" />,
-        className: "border-r",
       },
       {
         label: 'Conference Papers',
         value: '0',
         tooltip: 'Total number of conference papers',
         icon: <BookText size={24} className="text-blue-600" />,
-        className: "border-r",  
       },
       {
         label: 'Review',
         value: '0',
         tooltip: 'Total number of reviews',
         icon: <SquareChartGantt size={24} className="text-blue-600" />,
-        className: "border-r",
-      },
+      }
+    ];
+    const citationMetrics = [
       { 
         label: 'Citations', 
         value: totalCitations.toString(),
         tooltip: 'Total number of citations',
         icon: <Quote size={30} className="text-blue-600"/>,
-        className: "border-r",
       },
       { 
         label: 'H-Index', 
         value: hIndex.toString(),
         tooltip: 'Measure of research productivity and impact',
-        icon: <BookMarked size={30} className='text-blue-600' />,
-        className: "border-r",
-      },
+        icon: <BookMarked size={30} className="text-blue-600" />,
+      }
+    ];
+
+    // Altmetrics (3rd row)
+    const altmetrics = [
       { 
-        label:'Total Facebook Mentions',
+        label: 'Total Facebook Mentions',
         value: totalFbCites.toString(),
         tooltip: 'Total mentions on Facebook',
         icon: <img src={fb} alt="Facebook" className="w-10 h-8" />,
-        className: "border-r",
       },
       { 
         label: 'Total Mentions on X',
         value: totalXCites.toString(),
         tooltip: 'Total mentions on X (Twitter)',
         icon: <img src={X} alt="X" className="w-10 h-10" />,
-        className: "border-r",
       },
       { 
         label: 'Total Mentions in News',
         value: totalNewsCites.toString(),
         tooltip: 'Total mentions in news outlets',
         icon: <Newspaper size={30} className="text-blue-600" />,
-        className: "border-r",
       },
       { 
         label: 'Total PlumX Captures',
         value: totalPlumxCaptures.toString(),
         tooltip: 'Total PlumX captures (bookmarks, favorites, readers)',
         icon: <Bookmark size={30} className="text-blue-600" />,
-        className: "border-r",
       },
       { 
         label: 'Total PlumX Citations', 
         value: totalPlumxCitations.toString(),
         tooltip: 'Total PlumX citations',
         icon: <Quote size={30} className="text-white bg-orange-600" />,
-        className: "border-r",
-      },
+      }
     ];
+
+    return {
+      publicationsMetrics,
+      citationMetrics,
+      altmetrics
+    };
   };
 
   const formatPublicationStats = () => {
@@ -426,9 +427,13 @@ const Mainprofile = () => {
     return <div className="text-red-500 text-center p-6">Error loading profile: {error}</div>;
   }
 
-  const researchMetrics = calculateMetrics();
+  const { publicationsMetrics, citationMetrics, altmetrics } = calculateMetrics();
   const { stats: formattedPublicationStats, yearRangeOptions } = formatPublicationStats();
-
+ const researchMetrics = [
+    ...publicationsMetrics,
+    ...citationMetrics,
+    ...altmetrics
+  ];
   const PublicationBarChart = () => {
     const allYears = formattedPublicationStats.map(stat => stat.year);
     
@@ -510,7 +515,21 @@ const Mainprofile = () => {
       </div>
     );
   };
-
+const renderMetricCards = (metrics) => {
+    return metrics.map((metric, index) => (
+      <div key={index} className="bg-blue-100 hover:bg-blue-200 transition-colors rounded p-1 cursor-pointer text-center w-40">
+        <div className="flex justify-center mb-2">
+          {metric.icon}
+        </div>
+        <Tooltips text={metric.tooltip || ''}>
+          <div className="flex flex-col items-center">
+            <p className="text-xl font-bold text-black text-center mb-1">{metric.value}</p>
+            <p className="text-base text-gray-600 text-center">{metric.label}</p>
+          </div>
+        </Tooltips>
+      </div>
+    ));
+  };
   return (
     <div className="max-w-7xl mx-auto p-3">
       <div className="flex gap-4 mb-1 bg-gray-50 border border-gray-300 p-3 rounded-lg shadow-md"> 
@@ -623,38 +642,41 @@ const Mainprofile = () => {
         </Card>
       </div>
       <Card className="w-full mt-2 border-none shadow-none">
-  <CardContent className="p-2">
-    <div className="max-w-full mx-auto my-1">
+  <CardContent className="p-2 ">
+    <div className="max-w-full ">
       <div className="bg-slate-50 rounded-xl shadow-lg overflow-hidden border border-gray-200 ">
-        <div className="p-4">
-          <div className="grid  grid-rows-2 grid-cols-1 md:grid-cols-6 gap-2">
-            {researchMetrics.map((metric, index) => (
-              <div key={index} className="bg-blue-100 hover:bg-blue-200 transition-colors rounded p-2 cursor-pointer">
-                <div className="flex justify-center  mb-2">
-                  {metric.icon}
+        <div className="p-1 border-b border-gray-200">
+                <h3 className="text-lg font-semibold mb-2 text-gray-700">Publications</h3>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-1">
+                  {renderMetricCards(publicationsMetrics)}
                 </div>
-                <Tooltips text={metric.tooltip || ''}>
-                  <div className="flex flex-col items-center">
-                    <p className="text-2xl font-bold text-black text-center mb-1">{metric.value}</p>
-                    <p className="text-sm text-gray-600 text-center">{metric.label}</p>
-                  </div>
-                </Tooltips>
-              </div>
-            ))}
-          </div>
         </div>
-      </div>
-    </div>
+              <div className="p-1 border-b border-gray-200">
+                <h3 className="text-lg font-semibold mb-2 text-gray-700">Citations/H-Index</h3>
+                <div className="grid grid-cols-5 gap-1">
+                  {renderMetricCards(citationMetrics)}
+                </div>
+              </div>
+              <div className="p-1">
+                <h3 className="text-lg font-semibold mb-2 text-gray-700">Altmetrics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+                  {renderMetricCards(altmetrics)}
+                </div>
+              </div>
+            </div>
+          </div>
   </CardContent>
 </Card>
-      <Card className="w-full mb-4 bg-gray-50 border border-gray-300">
-        <CardContent className="p-6">
-          <div className="grid grid-cols-2 gap-6">
+      <Card className="w-full mb-3 bg-gray-50 border border-gray-300">
+        <CardContent className="p-5">
+          <div className="grid grid-cols-2 gap-20">
             <div className="h-64wh">
               <PublicationBarChart />
             </div>
-            <div>
+            <div >
               <ResearchImpactFactor 
+              publicationsMetrics={publicationsMetrics}
+  citationMetrics={citationMetrics}
                 metrics={researchMetrics}
                 yearRangeOptions={yearRangeOptions}
                 publicationsData={publicationsData}
