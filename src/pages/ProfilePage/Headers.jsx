@@ -34,7 +34,7 @@ const handleLoginClick=()=>{
           <img src={prllogo} alt="PRL Logo" />
         </div>
         <div className="Mainlogo ">
-          <img src={prlogo} alt="Main Logo" />
+          <img onClick={handleHomeClick} src={prlogo} alt="Main Logo" />
         </div>
       </div>
 
