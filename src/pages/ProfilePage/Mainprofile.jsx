@@ -29,7 +29,6 @@ import {
   Bookmark,
   BookText,
   NotebookText,
-  FilePenLine,
   SquareChartGantt
 } from 'lucide-react';
 import ProfileImageUpload from './ProfileImageUpload';
@@ -53,7 +52,7 @@ const Tooltips = ({ text, children }) => {
     </div>
   );
 };
-const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, setActiveTab, setPublicationsFilter,publicationsMetrics,citationMetrics }) => {
+const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, setActiveTab, setPublicationsFilter,publicationsMetrics, }) => {
   const handlePublicationFilter = (minValue) => {
     setActiveTab('Publication');
     setPublicationsFilter({
@@ -64,7 +63,6 @@ const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, set
 
   return (
     <div className="rounded-lg shadow-sm p-3 h-72">
-       {/* <div className="w-full md:w-2/3 lg:w-1/2"> */}
       <h3 className="font-semibold text-lg mb-2 ">Bibliometric and Citation Indicator</h3>
       <table className="w-full text-sm">
         <tbody>
@@ -80,7 +78,7 @@ const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, set
   <td className="py-1 font-medium">Average citations per paper:</td>
   <td className="py-1 text-left">
     {parseInt(publicationsMetrics[0].value) > 0 
-      ? (parseInt(citationMetrics[0].value) / parseInt(publicationsMetrics[0].value)).toFixed(1) 
+      ? (parseInt(publicationsMetrics[4].value) / parseInt(publicationsMetrics[0].value)).toFixed(1) 
       : "0.0"}
   </td>
 </tr>
@@ -293,7 +291,6 @@ const Mainprofile = () => {
     const totalCitations = publicationsData.reduce((sum, pub) => sum + (pub.cited_by || 0), 0);
     
     const citationData = profileData.citation_data?.[0] || {};
-    const hIndex = citationData.h_index || Math.floor(Math.sqrt(totalCitations));
     const totalFbCites = publicationsData.reduce((sum, pub) => sum + (pub.fb_cite || 0), 0);
     const totalXCites = publicationsData.reduce((sum, pub) => sum + (pub.x_cite || 0), 0);
     const totalNewsCites = publicationsData.reduce((sum, pub) => sum + (pub.news_cite || 0), 0);
@@ -324,21 +321,13 @@ const Mainprofile = () => {
         value: '0',
         tooltip: 'Total number of reviews',
         icon: <SquareChartGantt size={24} className="text-blue-600" />,
-      }
-    ];
-    const citationMetrics = [
+      },
       { 
         label: 'Citations', 
         value: totalCitations.toString(),
         tooltip: 'Total number of citations',
         icon: <Quote size={30} className="text-blue-600"/>,
       },
-      { 
-        label: 'H-Index', 
-        value: hIndex.toString(),
-        tooltip: 'Measure of research productivity and impact',
-        icon: <BookMarked size={30} className="text-blue-600" />,
-      }
     ];
 
     // Altmetrics (3rd row)
@@ -377,7 +366,6 @@ const Mainprofile = () => {
 
     return {
       publicationsMetrics,
-      citationMetrics,
       altmetrics
     };
   };
@@ -427,11 +415,10 @@ const Mainprofile = () => {
     return <div className="text-red-500 text-center p-6">Error loading profile: {error}</div>;
   }
 
-  const { publicationsMetrics, citationMetrics, altmetrics } = calculateMetrics();
+  const { publicationsMetrics, altmetrics } = calculateMetrics();
   const { stats: formattedPublicationStats, yearRangeOptions } = formatPublicationStats();
  const researchMetrics = [
     ...publicationsMetrics,
-    ...citationMetrics,
     ...altmetrics
   ];
   const PublicationBarChart = () => {
@@ -647,16 +634,10 @@ const renderMetricCards = (metrics) => {
       <div className="bg-slate-50 rounded-xl shadow-lg overflow-hidden border border-gray-200 ">
         <div className="p-1 border-b border-gray-200">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">Publications</h3>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-1">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-1">
                   {renderMetricCards(publicationsMetrics)}
                 </div>
         </div>
-              <div className="p-1 border-b border-gray-200">
-                <h3 className="text-lg font-semibold mb-2 text-gray-700">Citations/H-Index</h3>
-                <div className="grid grid-cols-5 gap-1">
-                  {renderMetricCards(citationMetrics)}
-                </div>
-              </div>
               <div className="p-1">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">Altmetrics</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
@@ -676,7 +657,6 @@ const renderMetricCards = (metrics) => {
             <div >
               <ResearchImpactFactor 
               publicationsMetrics={publicationsMetrics}
-  citationMetrics={citationMetrics}
                 metrics={researchMetrics}
                 yearRangeOptions={yearRangeOptions}
                 publicationsData={publicationsData}

@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Lock, ExternalLink, Award, ChevronDown } from 'lucide-react';
+import { BookOpen, Lock, ExternalLink, ChevronDown, Newspaper, ComputerIcon, UserCheck,Quote, FolderOpen } from 'lucide-react';
+import fb from "../../assets/fb.jpg"
+import X from "../../assets/x.jpg"
+import altm from "../../assets/alt.png"
+import mend from "../../assets/mendley.png"
 import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { Button } from '@/components/ui/button';
-
+import { Tooltip } from 'recharts';
 const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   const [publications, setPublications] = useState([]);
   const [topPubs, setTopPubs] = useState([]);
@@ -33,7 +37,6 @@ useEffect(() => {
      if (!topPublications || !topPublications.length) {
         setTopPubs(sortedData.slice(0, 10));
       } else {
-        // If top publications are provided, use them
         setTopPubs(topPublications);
       }    
     if (onDataUpdate) {
@@ -52,7 +55,6 @@ useEffect(() => {
     }
   };
 
-  // Sort publications based on selected option
   const sortedPublications = () => {
     const publicationsToSort = showAll ? publications : topPubs;
     
@@ -183,7 +185,6 @@ useEffect(() => {
                       <div className="flex items-start justify-between gap-4">
                         <h4 className="font-semibold">
                           {pub.title}
-                          {/* {!showAll && <Award className="inline-block ml-2 w-4 h-4 text-yellow-500" />} */}
                         </h4>
                         
                         {pub.doi && (
@@ -224,19 +225,21 @@ useEffect(() => {
                         </p>
                       )}
                       {(pub.cited_by !== undefined) && (
-                        <div className="flex flex-wrap gap-4 text-sm">                   
-                          <span className="text-gray-600">
-                            {` Fb cite: ${pub.fb_cite}`}
-                            {` , X cite: ${pub.x_cite}`}
-                            {` , News cite: ${pub.news_cite}`}
-                            {` , Blog cite: ${pub.blog_cite}`}
-                            {` , Accounts cite: ${pub.accounts_cite}`}
-                            {` , Dimenions id: ${pub.dimensions_id}`}
-                            {` , Alt score: ${pub.alt_score}`}
-                            {` , Mendeley cite: ${pub.mendeley_cite}`}
-                            {` , Plumx captures: ${pub.plumx_captures}`}
-                            {` , Plumx citations: ${pub.plumx_citations}`}
-                          </span>
+                        <div className="text-sm text-gray-500">
+                          <details className="mt-2">
+  <summary className="cursor-pointer hover:text-blue-600">View metrics</summary>
+  <div className="flex flex-wrap gap-4 p-2 mt-2 bg-gray-50 rounded-md">
+    <span className="flex items-center"><img className="w-7 h-7 mr-1" src={fb} alt="Facebook" /> {pub.fb_cite || 0}</span>
+    <span className="flex items-center"><img className="w-7 h-7 mr-1" src={X} alt="X" /> {pub.x_cite || 0}</span>
+    <span className="flex items-center"><Newspaper className="w-5 h-5 text-orange-600 mr-1" /> {pub.news_cite || 0}</span>
+    <span className='flex items-center'><ComputerIcon className="w-5 h-5 text-black mr-1"/>Blog: {pub.blog_cite || 0}</span>
+    <span className="flex items-center"><UserCheck className='w-5 h-5 text-orange-500 mr-1'/>Accounts: {pub.accounts_cite || 0}</span>
+    <span className="flex items-center"><img className="w-7 h-7 " src={altm}></img> Altmetric: {pub.alt_score || 0}</span>
+    <span className="flex items-center"> <img className="w-7 h-7 " src={mend}></img>Mendeley: {pub.mendeley_cite || 0}</span>
+    <span className="flex items-center"><FolderOpen className='w-6 h-6 text-white bg-purple-500'/> PlumX captures: {pub.plumx_captures || 0}</span>
+    <span className="flex items-center"> <Quote size={22} className="text-white bg-orange-600" /> PlumX citations: {pub.plumx_citations || 0}</span>
+  </div>
+</details>
                         </div>
                       )}
                     </div>

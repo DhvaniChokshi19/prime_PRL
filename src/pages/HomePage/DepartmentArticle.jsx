@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Lock, ExternalLink, ChevronDown } from 'lucide-react';
+import { BookOpen, Lock, ExternalLink, ChevronDown, Newspaper,ComputerIcon, UserCheck,Quote, FolderOpen } from 'lucide-react';
 import axiosInstance from '../../api/axios';
 import { Button } from '@/components/ui/button';
 import pubimg from '../../assets/pub_bg.jpg';
-
+import fb from "../../assets/fb.jpg"
+import X from "../../assets/x.jpg"
+import altm from "../../assets/alt.png"
+import mend from "../../assets/mendley.png"
 const DepartmentArticles = ({ department_id }) => {
   const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -339,20 +342,20 @@ const DepartmentArticles = ({ department_id }) => {
                       {(article.cited_by !== undefined) && (
                         <div className="text-sm text-gray-500">
                           <details className="mt-2">
-                            <summary className="cursor-pointer hover:text-blue-600">View metrics</summary>
-                            <div className="grid grid-cols-2 gap-2 p-2 mt-2 bg-gray-50 rounded-md">
-                              <span>Facebook: {article.fb_cite || 0}</span>
-                              <span>Twitter: {article.x_cite || 0}</span>
-                              <span>News: {article.news_cite || 0}</span>
-                              <span>Blog: {article.blog_cite || 0}</span>
-                              <span>Accounts: {article.accounts_cite || 0}</span>
-                              <span>Altmetric score: {article.alt_score || 0}</span>
-                              <span>Mendeley: {article.mendeley_cite || 0}</span>
-                              <span>PlumX captures: {article.plumx_captures || 0}</span>
-                              <span>PlumX citations: {article.plumx_citations || 0}</span>
-                            </div>
-                          </details>
-                        </div>
+  <summary className="cursor-pointer hover:text-blue-600">View metrics</summary>
+  <div className="flex flex-wrap gap-4 p-2 mt-2 bg-gray-50 rounded-md">
+    <span className="flex items-center"><img className="w-7 h-7 mr-1" src={fb} alt="Facebook" /> {article.fb_cite || 0}</span>
+    <span className="flex items-center"><img className="w-7 h-7 mr-1" src={X} alt="X" /> {article.x_cite || 0}</span>
+    <span className="flex items-center"><Newspaper className="w-5 h-5 text-orange-600 mr-1" /> {article.news_cite || 0}</span>
+    <span className='flex items-center'><ComputerIcon className="w-5 h-5 text-black mr-1"/>Blog: {article.blog_cite || 0}</span>
+    <span className="flex items-center"><UserCheck className='w-5 h-5 text-orange-500 mr-1'/>Accounts: {article.accounts_cite || 0}</span>
+    <span className="flex items-center"><img className="w-7 h-7 " src={altm}></img> Altmetric: {article.alt_score || 0}</span>
+    <span className="flex items-center"> <img className="w-7 h-7 " src={mend}></img>Mendeley: {article.mendeley_cite || 0}</span>
+    <span className="flex items-center"><FolderOpen className='w-6 h-6 text-white bg-purple-500'/> PlumX captures: {article.plumx_captures || 0}</span>
+    <span className="flex items-center"> <Quote size={22} className="text-white bg-orange-600" /> PlumX citations: {article.plumx_citations || 0}</span>
+  </div>
+</details>
+</div>
                       )}
                     </div>
                   </div>
