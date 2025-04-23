@@ -13,37 +13,36 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
 
  useEffect(() => {
   if (data && Array.isArray(data)) {
-    // External data is provided, no need to fetch
+
     return;
   }
   
   const fetchData = async () => {
-    // API calls here
   };
   
   fetchData();
 }, [profileId, data]);
-
-// Separate effect for processing data
 useEffect(() => {
   if (data && Array.isArray(data)) {
+    const sortedData = [...data].sort((a, b) => 
+        new Date(b.publication_date || 0) - new Date(a.publication_date || 0)
+      );
     setPublications(data);
     setIsLoading(false);
-    
-    // Process top publications
-    if (!topPublications || !topPublications.length) {
-      const sortedByCitations = [...data]
-        .sort((a, b) => (b.cited_by || 0) - (a.cited_by || 0));
-      setTopPubs(sortedByCitations.slice(0, 10));
-    }
-    
+  
+     if (!topPublications || !topPublications.length) {
+        setTopPubs(sortedData.slice(0, 10));
+      } else {
+        // If top publications are provided, use them
+        setTopPubs(topPublications);
+      }    
     if (onDataUpdate) {
       onDataUpdate(data);
     }
   }
 }, [data, topPublications, onDataUpdate]);
 
-  // Format publication date to show only year
+
   const formatYear = (dateString) => {
     if (!dateString) return '';
     try {
@@ -174,71 +173,74 @@ useEffect(() => {
             {displayedPublications.length > 0 ? (
               displayedPublications.map((pub, index) => (
                 <div key={index} className="space-y-2">
-                  <div className="flex items-start justify-between gap-4">
-                    <h4 className="font-semibold">
-                      {pub.title}
-                      {!showAll && <Award className="inline-block ml-2 w-4 h-4 text-yellow-500" />}
-                    </h4>
-                    
-                    {pub.doi && (
-                      <a 
-                        href={`https://doi.org/${pub.doi}`}
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className=" hover:underline"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                  {renderAuthors(pub)}
-                
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
-                    {pub.open_access && <span className="text-green-600">Open access</span>}
-                     <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Cited by:{pub.cited_by}</span>
-                    <span className="text-gray-600">
-                      {pub.publication_name}
-                      {pub.volume && `, Volume ${pub.volume}`}
-                      {pub.issue && `, Issue ${pub.issue}`}
-                      {pub.pagerange && `, Pages ${pub.pagerange}`}
-                      {pub.publication_date && `, ${formatYear(pub.publication_date)}`}
+                  <div className="flex items-start gap-4">
+                  
+                    <span className="font-bold text-gray-600 min-w-6 mt-1">
+                      {index + 1}.
                     </span>
-                  </div>
-                  {pub.doi && (
 
-                    <p className="text-blue-600 text-sm">
-                      <a 
-                        href={`https://doi.org/${pub.doi}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="hover:underline"
-                      >
-                        DOI: {pub.doi}
-                      </a>
-                     
-                    </p>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-4">
+                        <h4 className="font-semibold">
+                          {pub.title}
+                          {/* {!showAll && <Award className="inline-block ml-2 w-4 h-4 text-yellow-500" />} */}
+                        </h4>
+                        
+                        {pub.doi && (
+                          <a 
+                            href={`https://doi.org/${pub.doi}`}
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                      {renderAuthors(pub)}
                     
-                  )}
-                  {(pub.cited_by !== undefined) && (
-                     <div className="flex flex-wrap gap-4 text-sm">                   
-                    <span className="text-gray-600">
-                      {` Fb cite: ${pub.fb_cite}`}
-                      {` , X cite: ${pub.x_cite}`}
-                      {` , News cite: ${pub.news_cite}`}
-                      { ` ,Blog cite: ${pub.blog_cite}`}
-                      { ` ,Accounts cite: ${pub.accounts_cite}`}
-                      { ` ,Dimenions id: ${pub.dimensions_id}`}
-                       { ` ,Alt score: ${pub.alt_score}`}
-                      { ` ,Mendeley cite: ${pub.mendeley_cite}`}
-                      { ` ,Plumx captures: ${pub.plumx_captures}`}
-                      { ` ,Plumx citations: ${pub.plumx_citations}`}
-                      
-                    </span>
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
+                        {pub.open_access && <span className="text-green-600">Open access</span>}
+                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Cited by: {pub.cited_by}</span>
+                        <span className="text-gray-600">
+                          {pub.publication_name}
+                          {pub.volume && `, Volume ${pub.volume}`}
+                          {pub.issue && `, Issue ${pub.issue}`}
+                          {pub.pagerange && `, Pages ${pub.pagerange}`}
+                          {pub.publication_date && `, ${formatYear(pub.publication_date)}`}
+                        </span>
+                      </div>
+                      {pub.doi && (
+                        <p className="text-blue-600 text-sm">
+                          <a 
+                            href={`https://doi.org/${pub.doi}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                          >
+                            DOI: {pub.doi}
+                          </a>
+                        </p>
+                      )}
+                      {(pub.cited_by !== undefined) && (
+                        <div className="flex flex-wrap gap-4 text-sm">                   
+                          <span className="text-gray-600">
+                            {` Fb cite: ${pub.fb_cite}`}
+                            {` , X cite: ${pub.x_cite}`}
+                            {` , News cite: ${pub.news_cite}`}
+                            {` , Blog cite: ${pub.blog_cite}`}
+                            {` , Accounts cite: ${pub.accounts_cite}`}
+                            {` , Dimenions id: ${pub.dimensions_id}`}
+                            {` , Alt score: ${pub.alt_score}`}
+                            {` , Mendeley cite: ${pub.mendeley_cite}`}
+                            {` , Plumx captures: ${pub.plumx_captures}`}
+                            {` , Plumx citations: ${pub.plumx_citations}`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                    
-                    
-                  )}
                 </div>
               ))
             ) : (

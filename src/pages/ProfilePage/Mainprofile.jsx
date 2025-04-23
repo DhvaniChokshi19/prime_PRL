@@ -27,7 +27,6 @@ import {
   FileText,
   Quote,
   Bookmark,
-
 } from 'lucide-react';
 import ProfileImageUpload from './ProfileImageUpload';
 
@@ -51,12 +50,86 @@ const Tooltips = ({ text, children }) => {
   );
 };
 
+// Moved outside Mainprofile component
+const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, setActiveTab, setPublicationsFilter }) => {
+  const handlePublicationFilter = (minValue) => {
+    setActiveTab('Publication');
+    setPublicationsFilter({
+      key: 'Cited by:',
+      minValue: minValue,
+    });
+  };
+
+  return (
+    <div className="rounded-lg shadow-sm p-3 h-72">
+      <h3 className="font-semibold text-lg mb-2">Research Impact Factor</h3>
+      <table className="w-full text-sm">
+        <tbody>
+          <tr>
+            <td className="py-1 font-medium">Total publications (PRL Affiliated):</td>
+            <td className="py-1 text-left">{metrics[0].value}</td>
+          </tr>
+          <tr >
+            <td className="py-1 font-medium">Publication years:</td>
+            <td className="py-1 text-leftt">{yearRangeOptions}</td>
+          </tr>
+          <tr >
+            <td className="py-1 font-medium">Average citations per paper:</td>
+            <td className="py-1 text-left">
+              {parseInt(metrics[0].value) > 0 
+                ? (parseInt(metrics[1].value) / parseInt(metrics[0].value)).toFixed(1) 
+                : "0.0"}
+            </td>
+          </tr>
+          <tr >
+            <td className="py-1 font-medium">Highest number of citations:</td>
+            <td className="py-1 text-left">
+              {publicationsData.length > 0 
+                ? Math.max(...publicationsData.map(pub => pub.cited_by || 0)) 
+                : 0}
+            </td>
+          </tr>
+          <tr >
+            <td className="py-1 font-medium">
+              <button 
+                className="text-blue-600 hover:underline focus:outline-none text-left w-full"
+                onClick={() => handlePublicationFilter(20)}
+              >
+                Publications with 20+ citations:
+              </button>
+            </td>
+            <td className="py-1 text-left">
+              {publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length}
+            </td>
+          </tr>
+          <tr>
+            <td className="py-1 font-medium">
+              <button 
+                className="text-blue-600 hover:underline focus:outline-none text-left w-full"
+                onClick={() => handlePublicationFilter(50)}
+              >
+                Publications with 50+ citations:
+              </button>
+            </td>
+            <td className="py-1 text-left">
+              {publicationsData.filter(pub => (pub.cited_by || 0) >= 50).length}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
 const Mainprofile = () => {
   const [activeTab, setActiveTab] = useState('Personal Information');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { profileId: urlProfileId } = useParams();
   const [publicationsFilter, setPublicationsFilter] = useState(null);
+  const [filterMessage, setFilterMessage] = useState('');
+  const [displayedPublications, setDisplayedPublications] = useState([]);
+  const [filter, setFilter] = useState(null);
   
   const profileId = urlProfileId ? parseInt(urlProfileId, 10) : null;
 
@@ -118,6 +191,7 @@ const Mainprofile = () => {
           params: { profile_id: profileId }
         });
         setPublicationsData(response.data);
+        setDisplayedPublications(response.data); // Initialize displayed publications
       } catch (error) {
         console.error("Error fetching publications data:", error);
       }
@@ -126,6 +200,24 @@ const Mainprofile = () => {
     fetchPublicationsData();
   }, [profileId]);
 
+  // Fix: Filter publications when filter changes
+  useEffect(() => {
+    if (filter) {
+      const filteredData = publicationsData.filter(publication => {
+        if (filter.key === 'Cited by:' && filter.minValue) {
+          return (publication.cited_by || 0) >= filter.minValue;
+        }
+        return true;
+      });
+      
+      setDisplayedPublications(filteredData);
+      setFilterMessage(`Showing publications with ${filter.minValue}+ citations`);
+    } else {
+      setDisplayedPublications(publicationsData);
+      setFilterMessage('');
+    }
+  }, [filter, publicationsData]);
+  
   const updateComponentData = (componentName, data) => {
     switch(componentName) {
       case 'PersonalInformation':
@@ -198,13 +290,12 @@ const Mainprofile = () => {
     
     const citationData = profileData.citation_data?.[0] || {};
     const hIndex = citationData.h_index || Math.floor(Math.sqrt(totalCitations));
-   const totalFbCites = publicationsData.reduce((sum, pub) => sum + (pub.fb_cite || 0), 0);
-  const totalXCites = publicationsData.reduce((sum, pub) => sum + (pub.x_cite || 0), 0);
-  const totalNewsCites = publicationsData.reduce((sum, pub) => sum + (pub.news_cite || 0), 0);
-  const totalPlumxCaptures = publicationsData.reduce((sum, pub) => sum + (pub.plumx_captures || 0), 0);
-  const totalPlumxCitations = publicationsData.reduce((sum, pub) => sum + (pub.plumx_citations || 0), 0);
-  
-    const highImpactPublicationsCount = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
+    const totalFbCites = publicationsData.reduce((sum, pub) => sum + (pub.fb_cite || 0), 0);
+    const totalXCites = publicationsData.reduce((sum, pub) => sum + (pub.x_cite || 0), 0);
+    const totalNewsCites = publicationsData.reduce((sum, pub) => sum + (pub.news_cite || 0), 0);
+    const totalPlumxCaptures = publicationsData.reduce((sum, pub) => sum + (pub.plumx_captures || 0), 0);
+    const totalPlumxCitations = publicationsData.reduce((sum, pub) => sum + (pub.plumx_citations || 0), 0);
+
     return [
       { 
         label: 'Journal Articles', 
@@ -225,35 +316,30 @@ const Mainprofile = () => {
         icon: <BookMarked size={30} className='text-blue-600' />,
       },
       { 
-      
-      value: totalFbCites.toString(),
-      tooltip: 'Total mentions on Facebook',
-      icon: <img src={fb} alt="Facebook" className="w-10 h-8" />,
-    },
-    { 
-     
-      value: totalXCites.toString(),
-      tooltip: 'Total mentions on X (Twitter)',
-      icon: <img src={X} alt="X" className="w-10 h-10" />,
-    },
-    { 
-     
-      value: totalNewsCites.toString(),
-      tooltip: 'Total mentions in news outlets',
-      icon: <Newspaper size={30} className="text-blue-600" />,
-    },
-    { 
-    
-      value: totalPlumxCaptures.toString(),
-      tooltip: 'Total PlumX captures (bookmarks, favorites, readers)',
-      icon: <Bookmark size={30} className="text-blue-600" />,
-    },
-    { 
-     
-      value: totalPlumxCitations.toString(),
-      tooltip: 'Total PlumX citations',
-      icon: <Quote size={30} className="text-white bg-orange-600" />,
-    },
+        value: totalFbCites.toString(),
+        tooltip: 'Total mentions on Facebook',
+        icon: <img src={fb} alt="Facebook" className="w-10 h-8" />,
+      },
+      { 
+        value: totalXCites.toString(),
+        tooltip: 'Total mentions on X (Twitter)',
+        icon: <img src={X} alt="X" className="w-10 h-10" />,
+      },
+      { 
+        value: totalNewsCites.toString(),
+        tooltip: 'Total mentions in news outlets',
+        icon: <Newspaper size={30} className="text-blue-600" />,
+      },
+      { 
+        value: totalPlumxCaptures.toString(),
+        tooltip: 'Total PlumX captures (bookmarks, favorites, readers)',
+        icon: <Bookmark size={30} className="text-blue-600" />,
+      },
+      { 
+        value: totalPlumxCitations.toString(),
+        tooltip: 'Total PlumX citations',
+        icon: <Quote size={30} className="text-white bg-orange-600" />,
+      },
     ];
   };
 
@@ -322,6 +408,9 @@ const Mainprofile = () => {
       );
     };
     
+    const maxPublications = Math.max(...(filteredStats.length ? filteredStats.map(item => item.Publications) : [0]));
+    const maxCitations = Math.max(...(filteredStats.length ? filteredStats.map(item => item.Citations) : [0]));
+    
     return (
       <div className="flex">
         <div className="w-1/4 pr-4 max-h-52 overflow-y-auto">
@@ -345,14 +434,38 @@ const Mainprofile = () => {
           </div>
         </div>
         <div className="w-3/4 publication-chart-container">
-          <ResponsiveContainer width="90%" height={200}>
-            <BarChart data={filteredStats}>
+          <ResponsiveContainer width="110%" height={250}>
+            <BarChart 
+              data={filteredStats}
+              margin={{ top: 10, right: 5, left: 5, bottom: 5 }}
+            >
               <XAxis dataKey="year" />
-              <YAxis />
+              <YAxis 
+                yAxisId="left"
+                orientation="left"
+                stroke="#3B82F6"
+              />
+              <YAxis 
+                yAxisId="right"
+                orientation="right"
+                stroke="#10B981"
+              />
               <Tooltip />
               <Legend />
-              <Bar dataKey="Publications" name="Publications" fill="#3B82F6" barSize={18} />
-              <Bar dataKey="Citations" name="Citations" fill="#10B981" barSize={18} />
+              <Bar 
+                dataKey="Publications" 
+                name="Publications" 
+                fill="#3B82F6" 
+                barSize={18} 
+                yAxisId="left"
+              />
+              <Bar 
+                dataKey="Citations" 
+                name="Citations" 
+                fill="#10B981" 
+                barSize={18} 
+                yAxisId="right"
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -360,187 +473,152 @@ const Mainprofile = () => {
     );
   };
 
-  const handlePublication = () => {
-    setActiveTab('Publication');
-    setPublicationsFilter({
-      key: 'Cited by:',
-      minValue: 20,
-    });
-  }
-
   return (
-   <div className="max-w-7xl mx-auto p-3">
-  <div className="flex gap-4 mb-1 bg-gray-100 p-4 rounded-lg shadow-md"> 
-    <ProfileImageUpload
-      profileImage={`${API_BASE_URL}${profileData.profile.image_url}` || null}
-      onImageUpdate={(newImageUrl) => {
-        setProfileData(prevData => ({
-          ...prevData,
-          profile: {
-            ...prevData.profile,
-            image_url: newImageUrl.replace(API_BASE_URL, '')
-          }
-        }));
-      }}
-    />
-    <div className="flex-1">
-      <div className="flex justify-between items-start w-full">
+    <div className="max-w-7xl mx-auto p-3">
+      <div className="flex gap-4 mb-1 bg-gray-100 p-4 rounded-lg shadow-md"> 
+        <ProfileImageUpload
+          profileImage={`${API_BASE_URL}${profileData.profile.image_url}` || null}
+          onImageUpdate={(newImageUrl) => {
+            setProfileData(prevData => ({
+              ...prevData,
+              profile: {
+                ...prevData.profile,
+                image_url: newImageUrl.replace(API_BASE_URL, '')
+              }
+            }));
+          }}
+        />
         <div className="flex-1">
-          <h1 className="text-2xl font-bold mb-2">{profileData.profile.name || "Dr. Name"}</h1>
-          <p className="text-lg text-gray-600">{profileData.profile.designation || "Designation"}</p>
-          <p className="text-lg text-gray-600">{profileData.profile.department || "Department"}</p>
-          <p className="text-gray-600">{profileData.profile.expertise || "Research Areas"}</p>
-          <p className="text-gray-600">{profileData.profile.state || "Location"}</p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExport}
-          className="flex items-center gap-2"
-        >
-          <Download size={16} />
-          <span>Export</span>
-        </Button>
-      </div>
-      
-      <div className="w-full flex items-center justify-between py-8 my-3">
-        {researchMetrics.map((metric, index) => (
-          <div key={index} className="flex items-center">
-            <div className="pr-2">
-              {metric.icon}
+          <div className="flex justify-between items-start w-full">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold mb-2">{profileData.profile.name || "Dr. Name"}</h1>
+              <p className="text-lg text-gray-600">{profileData.profile.designation || "Designation"}</p>
+              <p className="text-lg text-gray-600">{profileData.profile.department || "Department"}</p>
+              <p className="text-gray-600">{profileData.profile.expertise || "Research Areas"}</p>
+              <p className="text-gray-600">{profileData.profile.state || "Location"}</p>
             </div>
-            <div>
-              <Tooltips text={metric.tooltip || ''}>
-                <p className="text-2xl font-bold text-black">{metric.value}</p>
-                <p className="text-sm font-medium">{metric.label}</p>
-              </Tooltips>
-            </div>
-            {index < researchMetrics.length - 1 && (
-              <div className="mx-2 h-8 border-r border-gray-300"></div>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              className="flex items-center gap-2"
+            >
+              <Download size={16} />
+              <span>Export</span>
+            </Button>
           </div>
-        ))}
-      </div>
-    </div>
-    
-    <Card className="w-72 border-none shadow-none">
-      <CardContent className="pt-2">
-        <h3 className="font-semibold mb-2">Academic Identity</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <img src={orcid} alt="ORCID" className="w-8 h-8" />
-            <div>
-              <p className="text-sm font-medium">Orcid Id</p>
-              <p className="text-sm text-blue-600">
-                <a 
-                  href={profileData.profile.orcid_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  {profileData.profile.orcid_url
-                    ? profileData.profile.orcid_url.split('/').pop() 
-                    : ""}
-                </a>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <img src={scopus} alt="Scopus" className="w-8 h-8" />
-            <div>
-              <p className="text-sm font-medium">Scopus Id</p>
-              <p className="text-sm text-blue-600">
-                <a 
-                  href={profileData.profile.scopus_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  {profileData.profile.scopus_url
-                    ? profileData.profile.scopus_url.split('=').pop()
-                    : ""}
-                </a>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <img src={publons} alt="Publons" className="w-8 h-8" />
-            <div>
-              <p className="text-sm font-medium">Publons Id</p>
-              <p className="text-sm text-blue-600">
-                <a 
-                  href={profileData.profile.publons_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  {profileData.profile.publons_url
-                    ? profileData.profile.publons_url.split('/').pop()  
-                    : ""}
-                </a> 
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <img src={googlei} alt="Google Scholar" className="w-8 h-8" />
-            <div>
-              <p className="text-sm font-medium">Google Scholar Id</p>
-              <p className="text-sm text-blue-600">
-                <a 
-                  href={profileData.profile.google_scholar_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  {profileData.profile.google_scholar_url
-                    ? profileData.profile.google_scholar_url.split('=').pop() 
-                    : ""}
-                </a>
-              </p>
-            </div>
+          
+          <div className="w-full flex items-center justify-between py-8 my-3">
+            {researchMetrics.map((metric, index) => (
+              <div key={index} className="flex items-center">
+                <div className="pr-2">
+                  {metric.icon}
+                </div>
+                <div>
+                  <Tooltips text={metric.tooltip || ''}>
+                    <p className="text-2xl font-bold text-black">{metric.value}</p>
+                    <p className="text-sm font-medium">{metric.label}</p>
+                  </Tooltips>
+                </div>
+                {index < researchMetrics.length - 1 && (
+                  <div className="mx-2 h-8 border-r border-gray-300"></div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
-      </CardContent>
-    </Card>
-  </div>
-
+        
+        <Card className="w-72 border-none shadow-none">
+          <CardContent className="pt-2">
+            <h3 className="font-semibold mb-2">Academic Identity</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <img src={orcid} alt="ORCID" className="w-8 h-8" />
+                <div>
+                  <p className="text-sm font-medium">Orcid Id</p>
+                  <p className="text-sm text-blue-600">
+                    <a 
+                      href={profileData.profile.orcid_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      {profileData.profile.orcid_url
+                        ? profileData.profile.orcid_url.split('/').pop() 
+                        : ""}
+                    </a>
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <img src={scopus} alt="Scopus" className="w-8 h-8" />
+                <div>
+                  <p className="text-sm font-medium">Scopus Id</p>
+                  <p className="text-sm text-blue-600">
+                    <a 
+                      href={profileData.profile.scopus_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      {profileData.profile.scopus_url
+                        ? profileData.profile.scopus_url.split('=').pop()
+                        : ""}
+                    </a>
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <img src={publons} alt="Publons" className="w-8 h-8" />
+                <div>
+                  <p className="text-sm font-medium">Publons Id</p>
+                  <p className="text-sm text-blue-600">
+                    <a 
+                      href={profileData.profile.publons_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      {profileData.profile.publons_url
+                        ? profileData.profile.publons_url.split('/').pop()  
+                        : ""}
+                    </a> 
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <img src={googlei} alt="Google Scholar" className="w-8 h-8" />
+                <div>
+                  <p className="text-sm font-medium">Google Scholar Id</p>
+                  <p className="text-sm text-blue-600">
+                    <a 
+                      href={profileData.profile.google_scholar_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      {profileData.profile.google_scholar_url
+                        ? profileData.profile.google_scholar_url.split('=').pop() 
+                        : ""}
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card className="w-full mb-4 border-none bg-gray-100">
         <CardContent className="p-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div className="h-64wh">
               <PublicationBarChart />
             </div>
             <div>
-              <h3 className="font-semibold mb-3">Research Impact Factor</h3>
-              <div className="h-48 overflow-y-auto">
-                <ul className="space-y-2 text-base">
-                  <li>Total career publications(PRL): {researchMetrics[0].value}</li>
-                  <li>Publication years: {yearRangeOptions}</li>
-                  <li>Average citations per paper: {
-                    parseInt(researchMetrics[0].value) > 0 
-                      ? (parseInt(researchMetrics[1].value) / parseInt(researchMetrics[0].value)).toFixed(1) 
-                      : "0.0"
-                  }</li>
-                  <li>Highest number of citations: {
-      publicationsData.length > 0 
-        ? Math.max(...publicationsData.map(pub => pub.cited_by || 0)) 
-        : 0
-    }</li>
-                  <li className="cursor-pointer hover:text-blue-600 transition-colors" onClick={handlePublication}>
-                    Publications with 20+ citations: {
-                      publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length
-                    }
-                  </li>
-                  <li className="cursor-pointer hover:text-blue-600 transition-colors" onClick={() => {
-      setActiveTab('Publication');
-      setPublicationsFilter({
-        key: 'Cited by:',
-        minValue: 50,
-      });
-    }}>
-      Publications with 50+ citations: {
-        publicationsData.filter(pub => (pub.cited_by || 0) >= 50).length
-      }
-    </li>
-                </ul> 
-              </div>
+              <ResearchImpactFactor 
+                metrics={researchMetrics}
+                yearRangeOptions={yearRangeOptions}
+                publicationsData={publicationsData}
+                setActiveTab={setActiveTab}
+                setPublicationsFilter={setPublicationsFilter}
+              />
             </div>
           </div>
         </CardContent>
