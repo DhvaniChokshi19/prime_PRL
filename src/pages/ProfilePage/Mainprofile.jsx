@@ -27,6 +27,10 @@ import {
   FileText,
   Quote,
   Bookmark,
+  BookText,
+  NotebookText,
+  FilePenLine,
+  SquareChartGantt
 } from 'lucide-react';
 import ProfileImageUpload from './ProfileImageUpload';
 
@@ -127,8 +131,9 @@ const Mainprofile = () => {
   const [error, setError] = useState(null);
   const { profileId: urlProfileId } = useParams();
   const [publicationsFilter, setPublicationsFilter] = useState(null);
-  const [filterMessage, setFilterMessage] = useState('');
   const [displayedPublications, setDisplayedPublications] = useState([]);
+  const [filterMessage, setFilterMessage] = useState('');
+
   const [filter, setFilter] = useState(null);
   
   const profileId = urlProfileId ? parseInt(urlProfileId, 10) : null;
@@ -200,7 +205,6 @@ const Mainprofile = () => {
     fetchPublicationsData();
   }, [profileId]);
 
-  // Fix: Filter publications when filter changes
   useEffect(() => {
     if (filter) {
       const filteredData = publicationsData.filter(publication => {
@@ -302,6 +306,27 @@ const Mainprofile = () => {
         value: totalPublications.toString(),
         tooltip: 'Total number of publications',
         icon: <FileText size={24} className="text-blue-600" />,
+        className: "border-r",
+      },
+      {
+        label: 'Book Chapters',
+        value: '0',
+        tooltip: 'Total number of book chapters',
+        icon: <NotebookText size={24} className="text-blue-600" />,
+        className: "border-r",
+      },
+      {
+        label: 'Conference Papers',
+        value: '0',
+        tooltip: 'Total number of conference papers',
+        icon: <BookText size={24} className="text-blue-600" />,
+        className: "border-r",  
+      },
+      {
+        label: 'Review',
+        value: '0',
+        tooltip: 'Total number of reviews',
+        icon: <SquareChartGantt size={24} className="text-blue-600" />,
         className: "border-r",
       },
       { 
@@ -599,19 +624,19 @@ const Mainprofile = () => {
       </div>
       <Card className="w-full mt-2 border-none shadow-none">
   <CardContent className="p-2">
-    <div className="max-w-full mx-auto my-4">
-      <div className="bg-slate-50 rounded-xl shadow-lg overflow-hidden border border-gray-200">
-        <div className="p-6">
-          <div className="grid grid-cols-8 gap-4">
+    <div className="max-w-full mx-auto my-1">
+      <div className="bg-slate-50 rounded-xl shadow-lg overflow-hidden border border-gray-200 ">
+        <div className="p-4">
+          <div className="grid  grid-rows-2 grid-cols-1 md:grid-cols-6 gap-2">
             {researchMetrics.map((metric, index) => (
-              <div key={index} className="flex flex-col items-center text-center">
-                <div className="mb-3">
+              <div key={index} className="bg-blue-100 hover:bg-blue-200 transition-colors rounded p-2 cursor-pointer">
+                <div className="flex justify-center  mb-2">
                   {metric.icon}
                 </div>
                 <Tooltips text={metric.tooltip || ''}>
                   <div className="flex flex-col items-center">
-                    <p className="text-2xl font-bold text-black mb-1">{metric.value}</p>
-                    <p className="text-xs text-gray-600">{metric.label}</p>
+                    <p className="text-2xl font-bold text-black text-center mb-1">{metric.value}</p>
+                    <p className="text-sm text-gray-600 text-center">{metric.label}</p>
                   </div>
                 </Tooltips>
               </div>

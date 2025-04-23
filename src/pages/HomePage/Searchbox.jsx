@@ -547,7 +547,7 @@ const Searchbox = () => {
           </div>
         </div>
 
-        <div className="mb-12">      
+        <div className="mb-10">      
           
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             {stats.map((stat, index) => (
