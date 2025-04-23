@@ -488,7 +488,7 @@ const Mainprofile = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-3">
-      <div className="flex gap-4 mb-1 bg-gray-100 p-4 rounded-lg shadow-md"> 
+      <div className="flex gap-4 mb-1 bg-gray-50 border border-gray-300 p-3 rounded-lg shadow-md"> 
         <ProfileImageUpload
           profileImage={`${API_BASE_URL}${profileData.profile.image_url}` || null}
           onImageUpdate={(newImageUrl) => {
@@ -520,32 +520,7 @@ const Mainprofile = () => {
               <span>Export</span>
             </Button>
           </div>
-<Card className="w-full mt-2 border-none shadow-none">
-  <CardContent className="p-2">
-    <div className="max-w-full mx-auto my-4">
-      <div className="bg-slate-100 rounded-xl shadow-lg overflow-hidden border border-gray-200">
-        <div className="p-6">
-          <div className="grid grid-cols-8 gap-4">
-            {researchMetrics.map((metric, index) => (
-              <div key={index} className="flex flex-col items-center text-center">
-                <div className="mb-3">
-                  {metric.icon}
-                </div>
-                <Tooltips text={metric.tooltip || ''}>
-                  <div className="flex flex-col items-center">
-                    <p className="text-2xl font-bold text-black mb-1">{metric.value}</p>
-                    <p className="text-xs text-gray-600">{metric.label}</p>
-                  </div>
-                </Tooltips>
-              </div>
-            ))}
           </div>
-        </div>
-      </div>
-    </div>
-  </CardContent>
-</Card>
-        </div>
         <Card className="w-72 border-none shadow-none">
           <CardContent className="pt-2">
             <h3 className="font-semibold mb-2">Academic Identity</h3>
@@ -622,8 +597,32 @@ const Mainprofile = () => {
           </CardContent>
         </Card>
       </div>
-
-      <Card className="w-full mb-4 border-none bg-gray-100">
+      <Card className="w-full mt-2 border-none shadow-none">
+  <CardContent className="p-2">
+    <div className="max-w-full mx-auto my-4">
+      <div className="bg-slate-50 rounded-xl shadow-lg overflow-hidden border border-gray-200">
+        <div className="p-6">
+          <div className="grid grid-cols-8 gap-4">
+            {researchMetrics.map((metric, index) => (
+              <div key={index} className="flex flex-col items-center text-center">
+                <div className="mb-3">
+                  {metric.icon}
+                </div>
+                <Tooltips text={metric.tooltip || ''}>
+                  <div className="flex flex-col items-center">
+                    <p className="text-2xl font-bold text-black mb-1">{metric.value}</p>
+                    <p className="text-xs text-gray-600">{metric.label}</p>
+                  </div>
+                </Tooltips>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </CardContent>
+</Card>
+      <Card className="w-full mb-4 bg-gray-50 border border-gray-300">
         <CardContent className="p-6">
           <div className="grid grid-cols-2 gap-6">
             <div className="h-64wh">

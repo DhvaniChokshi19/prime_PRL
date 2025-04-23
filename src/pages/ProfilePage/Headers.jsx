@@ -31,7 +31,7 @@ const handleLoginClick=()=>{
      
       <div className="flex space-x-4 items-center">
         <div className="Logo ">
-          <img src={prllogo} alt="PRL Logo" />
+          <img onClick={handleHomeClick} src={prllogo} alt="PRL Logo" />
         </div>
         <div className="Mainlogo ">
           <img onClick={handleHomeClick} src={prlogo} alt="Main Logo" />

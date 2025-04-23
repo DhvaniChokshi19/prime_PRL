@@ -97,7 +97,7 @@ const ProfileImageUpload = ({ profileImage, onImageUpdate }) => {
       <img 
         src={previewImage || profileImage || `${API_BASE_URL}/api/placeholder/150/150`}
         alt="Profile"
-        className="w-48 h-48 rounded-lg object-cover"
+        className="w-52 h-56 rounded-lg object-cover"
       />
       
       {isLoggedIn && (

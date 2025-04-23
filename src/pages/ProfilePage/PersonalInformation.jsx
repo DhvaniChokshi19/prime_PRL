@@ -708,9 +708,9 @@ const LoginErrorDialog = () => (
             <p className="text-lg text-gray-600">{personalInfo.gender || "Male"}</p>
             <p className="text-lg text-red-600">{profile.designation || "Research Scientist"}</p>
             <p className="text-lg text-gray-600">{profile.department || "Electrical Engineering"}</p>
-            <p className='text-lg text-gray-600'>{profile.state || "Location not provided"}</p>
           </div>
           <p className="text-gray-600 mt-2">{profile.expertise || "Nanomaterials, Electrochemistry, Energy Storage Applications"}</p>
+        
           <div>
             <p className = "text-base text-gray-600">{personalInfo.about_me || "About Me"}</p>
             </div>
