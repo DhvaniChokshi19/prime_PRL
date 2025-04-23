@@ -302,43 +302,56 @@ const Mainprofile = () => {
         value: totalPublications.toString(),
         tooltip: 'Total number of publications',
         icon: <FileText size={24} className="text-blue-600" />,
+        className: "border-r",
       },
       { 
         label: 'Citations', 
         value: totalCitations.toString(),
         tooltip: 'Total number of citations',
         icon: <Quote size={30} className="text-blue-600"/>,
+        className: "border-r",
       },
       { 
         label: 'H-Index', 
         value: hIndex.toString(),
         tooltip: 'Measure of research productivity and impact',
         icon: <BookMarked size={30} className='text-blue-600' />,
+        className: "border-r",
       },
       { 
+        label:'Total Facebook Mentions',
         value: totalFbCites.toString(),
         tooltip: 'Total mentions on Facebook',
         icon: <img src={fb} alt="Facebook" className="w-10 h-8" />,
+        className: "border-r",
       },
       { 
+        label: 'Total Mentions on X',
         value: totalXCites.toString(),
         tooltip: 'Total mentions on X (Twitter)',
         icon: <img src={X} alt="X" className="w-10 h-10" />,
+        className: "border-r",
       },
       { 
+        label: 'Total Mentions in News',
         value: totalNewsCites.toString(),
         tooltip: 'Total mentions in news outlets',
         icon: <Newspaper size={30} className="text-blue-600" />,
+        className: "border-r",
       },
       { 
+        label: 'Total PlumX Captures',
         value: totalPlumxCaptures.toString(),
         tooltip: 'Total PlumX captures (bookmarks, favorites, readers)',
         icon: <Bookmark size={30} className="text-blue-600" />,
+        className: "border-r",
       },
       { 
+        label: 'Total PlumX Citations', 
         value: totalPlumxCitations.toString(),
         tooltip: 'Total PlumX citations',
         icon: <Quote size={30} className="text-white bg-orange-600" />,
+        className: "border-r",
       },
     ];
   };
@@ -507,27 +520,32 @@ const Mainprofile = () => {
               <span>Export</span>
             </Button>
           </div>
-          
-          <div className="w-full flex items-center justify-between py-8 my-3">
+<Card className="w-full mt-2 border-none shadow-none">
+  <CardContent className="p-2">
+    <div className="max-w-full mx-auto my-4">
+      <div className="bg-slate-100 rounded-xl shadow-lg overflow-hidden border border-gray-200">
+        <div className="p-6">
+          <div className="grid grid-cols-8 gap-4">
             {researchMetrics.map((metric, index) => (
-              <div key={index} className="flex items-center">
-                <div className="pr-2">
+              <div key={index} className="flex flex-col items-center text-center">
+                <div className="mb-3">
                   {metric.icon}
                 </div>
-                <div>
-                  <Tooltips text={metric.tooltip || ''}>
-                    <p className="text-2xl font-bold text-black">{metric.value}</p>
-                    <p className="text-sm font-medium">{metric.label}</p>
-                  </Tooltips>
-                </div>
-                {index < researchMetrics.length - 1 && (
-                  <div className="mx-2 h-8 border-r border-gray-300"></div>
-                )}
+                <Tooltips text={metric.tooltip || ''}>
+                  <div className="flex flex-col items-center">
+                    <p className="text-2xl font-bold text-black mb-1">{metric.value}</p>
+                    <p className="text-xs text-gray-600">{metric.label}</p>
+                  </div>
+                </Tooltips>
               </div>
             ))}
           </div>
         </div>
-        
+      </div>
+    </div>
+  </CardContent>
+</Card>
+        </div>
         <Card className="w-72 border-none shadow-none">
           <CardContent className="pt-2">
             <h3 className="font-semibold mb-2">Academic Identity</h3>

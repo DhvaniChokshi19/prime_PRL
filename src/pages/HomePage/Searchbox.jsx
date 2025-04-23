@@ -364,7 +364,7 @@ const Searchbox = () => {
     {
       icon: <Eye className="h-8 w-8 text-blue-600"/>,
       number: statsData.visitors_today,
-      label: 'Visitors'
+      label: 'VISITORS'
     },
   ];
 
@@ -465,7 +465,7 @@ const Searchbox = () => {
               </li>
               <li className="hover:text-gray-300 text-xl cursor-pointer"
                   onClick={() => handleNavigate('/Publication')}>
-                Department Statistics
+                Division
               </li>
               <li className="hover:text-gray-300 text-xl cursor-pointer"
                   onClick={() => {
