@@ -84,60 +84,141 @@ useEffect(() => {
     setShowAll(true);
   };
 
- const renderAuthors = (publication) => {
-     if (!publication.co_authors) return null;
-    
-    if (!publication.prl_authors || !Array.isArray(publication.prl_authors)) {
-      return <p className="text-gray-600">{publication.co_authors}</p>;
-    }
-    const authorsList = publication.co_authors.split(', ');
-    
-    const prlAuthorsMap = publication.prl_authors.reduce((map, author) => {
- 
-      const simpleName = author.name.replace(/^(Dr\.|Mr\.|Ms\.|Mrs\.|Prof\.) /, '').trim();
-      map[simpleName] = author;
-      map[author.name] = author;
-      const nameParts = simpleName.split(' ');
-      if (nameParts.length > 1) {
-        const lastName = nameParts[nameParts.length - 1];
-        const firstInitial = nameParts[0][0];
-        map[`${lastName} ${firstInitial}.`] = author;
-        map[`${lastName} ${firstInitial}`] = author;
+const levenshteinDistance = (str1, str2) => {
+  const m = str1.length;
+  const n = str2.length;
+  
+  const dp = Array(m + 1).fill().map(() => Array(n + 1).fill(0));
+  
+  // Initialize the matrix
+  for (let i = 0; i <= m; i++) {
+    dp[i][0] = i;
+  }
+  
+  for (let j = 0; j <= n; j++) {
+    dp[0][j] = j;
+  }
+  
+  // Fill the matrix
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (str1[i - 1] === str2[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] = 1 + Math.min(
+          dp[i - 1][j],     // deletion
+          dp[i][j - 1],     // insertion
+          dp[i - 1][j - 1]  // substitution
+        );
       }
-      return map;
-    }, {});
-     return (
-      <p className="text-gray-600">
-        {authorsList.map((authorName, index) => {
+    }
+  }
+  
+  return dp[m][n];
+};
+
+const calculateSimilarity = (str1, str2) => {
+  if (!str1 || !str2) return 0;
+  
+  const maxLength = Math.max(str1.length, str2.length);
+  if (maxLength === 0) return 100; 
+  
+  const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
+  return ((maxLength - distance) / maxLength) * 100;
+};
+
+// Enhanced renderAuthors function with fuzzy matching
+const renderAuthors = (article) => {
+  if (!article.co_authors) return null;
+  
+  if (!article.prl_authors || !Array.isArray(article.prl_authors)) {
+    return <p className="text-gray-600">{article.co_authors}</p>;
+  }
+
+  const authorsList = article.co_authors.split(', ');
+  
+  const prlAuthorsMap = {};
+  const prlAuthorsArray = [];
+  
+  article.prl_authors.forEach(author => {
+    const fullName = author.name;
+    const nameWithoutTitle = fullName.replace(/^(Dr\.|Mr\.|Ms\.|Mrs\.|Prof\.|MS\.) /i, '').trim();
+    
+    prlAuthorsMap[fullName.toLowerCase()] = author;
+    prlAuthorsMap[nameWithoutTitle.toLowerCase()] = author;
+    
+    prlAuthorsArray.push({
+      author: author,
+      fullName: fullName,
+      cleanName: nameWithoutTitle,
+      nameParts: nameWithoutTitle.split(' ')
+    });
+  
+  });
+
+  return (
+    <p className="text-gray-600">
+      {authorsList.map((authorName, index) => {
+        const cleanName = authorName.trim();
+        
+        let prlAuthor = prlAuthorsMap[cleanName.toLowerCase()];
+        
+        if (!prlAuthor) {
+          const SIMILARITY_THRESHOLD = 75; 
+          let bestMatch = null;
+          let highestSimilarity = 0;
           
-          const cleanName = authorName.trim().replace(/\.$/, '');
+          prlAuthorsArray.forEach(entry => {
+            let similarity = calculateSimilarity(cleanName, entry.fullName);
+            
+            if (entry.nameParts.length > 1) {
+              const lastName = entry.nameParts[entry.nameParts.length - 1];
+              const initials = entry.nameParts.slice(0, -1).map(part => part[0]).join('');
+              const lastNameWithInitials = `${lastName} ${initials}`;
+              const initialsWithLastName = `${initials} ${lastName}`;
+              
+              similarity = Math.max(
+                similarity,
+                calculateSimilarity(cleanName, lastNameWithInitials),
+                calculateSimilarity(cleanName, initialsWithLastName)
+              );
+            }
+            
+            if (similarity > highestSimilarity && similarity >= SIMILARITY_THRESHOLD) {
+              highestSimilarity = similarity;
+              bestMatch = entry.author;
+            }
+          });
           
-          const prlAuthor = prlAuthorsMap[cleanName];
-          
-          if (prlAuthor) {
-            return (
-              <React.Fragment key={index}>
-                {index > 0 && ', '}
-                <a 
-                  href={`/profile/${prlAuthor.id}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  {authorName}
-                </a>
-              </React.Fragment>
-            );
+          if (bestMatch) {
+            prlAuthor = bestMatch;
           }
-          
+        }
+        
+        if (prlAuthor) {
           return (
             <React.Fragment key={index}>
               {index > 0 && ', '}
-              {authorName}
+              <a 
+                href={`/profile/${prlAuthor.id}`}
+                className="text-blue-600 hover:underline"
+              >
+                {authorName}
+              </a>
             </React.Fragment>
           );
-        })}
-      </p>
-    );
-  };
+        }
+        
+        return (
+          <React.Fragment key={index}>
+            {index > 0 && ', '}
+            {authorName}
+          </React.Fragment>
+        );
+      })}
+    </p>
+  );
+};
   const displayedPublications = sortedPublications();
   return (
     <div className="space-y-4">

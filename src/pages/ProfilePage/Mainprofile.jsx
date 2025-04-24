@@ -60,10 +60,11 @@ const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, set
       minValue: minValue,
     });
   };
-
+const publications20Plus = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
+const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >= 50).length;
   return (
     <div className="rounded-lg shadow-sm p-3 h-72">
-      <h3 className="font-semibold text-lg mb-2 ">Bibliometric and Citation Indicator</h3>
+      <h3 className="font-semibold text-lg mb-2 ">Bibliometric and Citation Indicators</h3>
       <table className="w-full text-sm">
         <tbody>
           <tr>
@@ -100,7 +101,7 @@ const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, set
               </button>
             </td>
             <td className="py-1 text-left">
-              {publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length}
+             {publications20Plus}
             </td>
           </tr>
           <tr>
@@ -113,7 +114,7 @@ const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, set
               </button>
             </td>
             <td className="py-1 text-left">
-              {publicationsData.filter(pub => (pub.cited_by || 0) >= 50).length}
+              {publications50Plus}
             </td>
           </tr>
         </tbody>
@@ -131,8 +132,6 @@ const Mainprofile = () => {
   const [publicationsFilter, setPublicationsFilter] = useState(null);
   const [displayedPublications, setDisplayedPublications] = useState([]);
   const [filterMessage, setFilterMessage] = useState('');
-
-  const [filter, setFilter] = useState(null);
   
   const profileId = urlProfileId ? parseInt(urlProfileId, 10) : null;
 
@@ -204,21 +203,21 @@ const Mainprofile = () => {
   }, [profileId]);
 
   useEffect(() => {
-    if (filter) {
+    if (activeTab === 'Publication' && publicationsFilter) {
       const filteredData = publicationsData.filter(publication => {
-        if (filter.key === 'Cited by:' && filter.minValue) {
-          return (publication.cited_by || 0) >= filter.minValue;
+        if (publicationsFilter.key === 'Cited by:' && publicationsFilter.minValue) {
+          return (publication.cited_by || 0) >= publicationsFilter.minValue;
         }
         return true;
       });
       
       setDisplayedPublications(filteredData);
-      setFilterMessage(`Showing publications with ${filter.minValue}+ citations`);
-    } else {
-      setDisplayedPublications(publicationsData);
-      setFilterMessage('');
-    }
-  }, [filter, publicationsData]);
+      setFilterMessage(`Showing publications with ${publicationsFilter.minValue}+ citations`);
+    } else if (activeTab === 'Publication') {
+    setDisplayedPublications(publicationsData);
+    setFilterMessage('');
+  }
+}, [activeTab, publicationsFilter, publicationsData]);
   
   const updateComponentData = (componentName, data) => {
     switch(componentName) {
@@ -233,7 +232,12 @@ const Mainprofile = () => {
         }));
         break;
       case 'Publications':
+        if (JSON.stringify(publicationsData) !== JSON.stringify(data)) {
         setPublicationsData(data);
+        if (publicationsFilter) {
+          setPublicationsFilter(null);
+        }
+      }
         break;
       default:
         break;
@@ -259,8 +263,8 @@ const Mainprofile = () => {
       case 'Publication':
         return <Publications 
           profileId={profileId}
-          data={publicationsData}
-          filter={publicationsFilter} 
+          data={displayedPublications}
+         filterMessage={filterMessage}
           onDataUpdate={(data) => updateComponentData('Publications', data)}
         />;
       case 'Patent':
