@@ -12,7 +12,6 @@ const Publication = () => {
   const [years, setYears] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const navigate = useNavigate();
-  
 
   const departmentIdMap = {
     'Astronomy and Astrophysics': 1,
@@ -31,7 +30,6 @@ const Publication = () => {
     'Unknown': 14,
     'Others': 15
   };
-
   useEffect(() => {
     const fetchDepartmentData = async () => {
       try {

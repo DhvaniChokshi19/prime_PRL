@@ -68,7 +68,7 @@ const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >=
       <table className="w-full text-sm">
         <tbody>
           <tr>
-            <td className=" font-medium">Total publications ( with PRL Affiliation):</td>
+            <td className=" font-medium">Total publications <span className='text-red-600'>( with PRL Affiliation)</span>:</td>
             <td className=" text-left">{metrics[0].value}</td>
           </tr>
           <tr >

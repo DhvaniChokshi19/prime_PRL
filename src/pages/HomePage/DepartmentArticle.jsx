@@ -20,20 +20,21 @@ const DepartmentArticles = ({ department_id }) => {
   });
 
   const departmentIdToName = {
-    1: 'Astronomy and Astrophysics',
-    2: 'Atomic, Molecular and Optical Physics',
-    3: 'Geosciences',
-    4: 'Planetary Sciences',
-    5: 'Space and Atmospheric Sciences',
-    6: 'Theoretical Physics',
-    7: 'Udaipur Solar Observatory',
-    8: 'Workshop',
-    9: 'CNIT Services',
-    10: 'Medical Services',
-    11: 'Administration',
-    12: 'Library Services',
-    13: 'Unknown',
-    14: 'Others'
+   1: 'Astronomy and Astrophysics',
+        2: 'Atomic, Molecular and Optical Physics',
+        3: 'Geosciences',
+        4: 'Planetary Sciences',
+        5: 'Space and Atmospheric Sciences',
+        6: 'Theoretical Physics',
+        7: 'Udaipur Solar Observatory',
+        8: 'Workshop',
+        9: 'CNIT Services',
+        10: 'Medical Services',
+        11: 'Administration',
+        12: 'CMG Services',
+        13: 'Library Services',
+        14: 'Unknown',
+        15: 'Others'
   };
 
   useEffect(() => {
