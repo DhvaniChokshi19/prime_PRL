@@ -633,7 +633,7 @@ const renderMetricCards = (metrics) => {
     <div className="max-w-full ">
       <div className="bg-slate-50 rounded-xl shadow-lg overflow-hidden border border-gray-200 ">
         <div className="p-1 border-b border-gray-200">
-                <h3 className="text-lg font-semibold mb-2 text-gray-700">Publications</h3>
+                <h3 className="text-lg font-semibold mb-2 text-gray-700">Publications and Citations</h3>
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-1">
                   {renderMetricCards(publicationsMetrics)}
                 </div>
