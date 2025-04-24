@@ -68,7 +68,7 @@ const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >=
       <table className="w-full text-sm">
         <tbody>
           <tr>
-            <td className=" font-medium">Total publications <span className='text-red-600'>( with PRL Affiliation)</span>:</td>
+            <td className=" font-medium">Total Journal Articles <span className='text-red-600'>( with PRL Affiliation)</span>:</td>
             <td className=" text-left">{metrics[0].value}</td>
           </tr>
           <tr >
@@ -94,7 +94,7 @@ const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >=
           <tr >
             <td className="py-1 font-medium">
               <button 
-                className="text-blue-600 hover:underline focus:outline-none text-left w-full"
+                className="text-black hover:underline focus:outline-none text-left w-full"
                 onClick={() => handlePublicationFilter(20)}
               >
                 Publications with 20+ citations:
@@ -107,7 +107,7 @@ const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >=
           <tr>
             <td className="py-1 font-medium">
               <button 
-                className="text-blue-600 hover:underline focus:outline-none text-left w-full"
+                className="text-black hover:underline focus:outline-none text-left w-full"
                 onClick={() => handlePublicationFilter(50)}
               >
                 Publications with 50+ citations:
@@ -303,9 +303,9 @@ const Mainprofile = () => {
 
         const publicationsMetrics = [
       { 
-        label: 'Journal Articles', 
+        label: 'Journal Articles (PRL)', 
         value: totalPublications.toString(),
-        tooltip: 'Total number of publications',
+        tooltip: 'Total number of Journal Articles affiliated by PRL',
         icon: <FileText size={24} className="text-blue-600" />,
       },
       {

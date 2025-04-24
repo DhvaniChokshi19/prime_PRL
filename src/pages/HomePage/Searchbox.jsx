@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import homeimg from '../../assets/bg2.png';
 import prllogo from '../../assets/prl-logo.png';
 import prlogo from '../../assets/prime.png';
-import { UserRound, Newspaper, BookMarked, AtSign, Eye } from 'lucide-react';
+import { UserRound, Newspaper, BookMarked, AtSign, Eye, LockOpen, Lock, BookUser } from 'lucide-react';
 import axiosInstance from '../../api/axios';
 
 axiosInstance.defaults.headers.common['Content-Type'] = 'application/json';
@@ -22,8 +22,12 @@ const Searchbox = () => {
     total_profiles: '0',
     total_publications: '0', 
     total_citations: '0',
-    avg_citations_per_paper: '0',
+    // avg_citations_per_paper: '0',
     // visitors_today: '0'
+    // total_openaccess:'0',
+    // total_closedaccess:'0',
+    // total_thesis:'0',
+    //total_altmetric:'0',
   });
 
   useEffect(() => {
@@ -36,7 +40,7 @@ const Searchbox = () => {
           total_profiles: data.total_profiles.toLocaleString(),
           total_publications: data.total_publications.toLocaleString(),
           total_citations: data.total_citations.toLocaleString(),
-          avg_citations_per_paper: data.avg_citations_per_paper.toLocaleString(),
+          // avg_citations_per_paper: data.avg_citations_per_paper.toLocaleString(),
           // visitors_today: data.visitors_today.toLocaleString() 
         });
       } catch (error) {
@@ -65,10 +69,30 @@ const Searchbox = () => {
       label: 'CITATIONS',
     },
     {
-      icon: <AtSign className="h-8 w-8 text-blue-600"/>,
-      number: statsData.avg_citations_per_paper,
-      label: 'AVERAGE CITATIONS PER PAPER'
+       icon: <LockOpen className="h-8 w-8 text-blue-600"/>,
+      label: "Total Open Access",
+     number: "0",
     },
+    {
+      icon: <Lock className="h-8 w-9 text-blue-600"/>,
+     label: "Total Closed Access",
+      number: "0",
+    },
+    // {icon: "📊",
+    //   label: "Total Altmetric Score",
+    //  number: "",
+    // },
+    {
+      icon: <BookUser className='w-8 h-8 text-blue-600'/>,
+      label: "Total Thesis",
+     number: "0",
+    }
+
+    // {
+    //   icon: <AtSign className="h-8 w-8 text-blue-600"/>,
+    //   number: statsData.avg_citations_per_paper,
+    //   label: 'AVERAGE CITATIONS PER PAPER'
+    // },
     // {
     //   icon: <Eye className="h-8 w-8 text-blue-600"/>,
     //   number: statsData.visitors_today,
@@ -257,7 +281,7 @@ const Searchbox = () => {
 
         <div className="mb-10">      
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
             {stats.map((stat, index) => (
               <div 
                 key={index}

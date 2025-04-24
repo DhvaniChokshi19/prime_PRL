@@ -101,12 +101,9 @@ const Publication = () => {
       const mockDepartmentData = [
         { department: "Computer Science", total_publications: 356, total_citations: 4250, total_profiles: 42, "h-index": 25 },
         { department: "Physics", total_publications: 285, total_citations: 3800, total_profiles: 36, "h-index": 22 },
-        { department: "Mathematics", total_publications: 198, total_citations: 2100, total_profiles: 28, "h-index": 18 },
-        { department: "Chemistry", total_publications: 245, total_citations: 3200, total_profiles: 32, "h-index": 20 },
-        { department: "Biology", total_publications: 320, total_citations: 4100, total_profiles: 38, "h-index": 24 }
       ];
       
-      const mockYears = ["2021", "2022", "2023", "2024"];
+      const mockYears = ["2021", "2022"];
       
       const mockYearlyData = {};
       mockYears.forEach(year => {
@@ -223,7 +220,7 @@ const Publication = () => {
               <YAxis yAxisId="left" orientation="left" />
               <YAxis yAxisId="right" orientation="right" />
               <Tooltip />
-              <Legend />
+              <Legend layout="horizontal" verticalAlign="top" align="center"/>
               <Bar yAxisId="left" dataKey="total_publications" name="Publications" fill="#3B82F6" />
               <Bar yAxisId="left" dataKey="total_profiles" name="Profiles" fill="#10B981" />
               <Bar yAxisId="left" dataKey="h-index" name="H-Index" fill="#8B5CF6" />
