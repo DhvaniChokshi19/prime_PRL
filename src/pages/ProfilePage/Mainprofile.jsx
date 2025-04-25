@@ -17,6 +17,8 @@ import { useParams } from 'react-router-dom';
 import Thesis from './Thesis';
 import fb from "../../assets/fb.jpg";
 import X from "../../assets/x.jpg";
+import Mend from '../../assets/mendley.png';
+import plum from '../../assets/plumx.png'
 import { 
   User,
   ScrollText,
@@ -300,7 +302,7 @@ const Mainprofile = () => {
     const totalFbCites = publicationsData.reduce((sum, pub) => sum + (pub.fb_cite || 0), 0);
     const totalXCites = publicationsData.reduce((sum, pub) => sum + (pub.x_cite || 0), 0);
     const totalNewsCites = publicationsData.reduce((sum, pub) => sum + (pub.news_cite || 0), 0);
-    const totalPlumxCaptures = publicationsData.reduce((sum, pub) => sum + (pub.plumx_captures || 0), 0);
+   const totalMendelyCites = publicationsData.reduce((sum, pub)=> sum +(pub.mendeley_cite ||0),0);
     const totalPlumxCitations = publicationsData.reduce((sum, pub) => sum + (pub.plumx_citations || 0), 0);
 
         const publicationsMetrics = [
@@ -348,7 +350,7 @@ const Mainprofile = () => {
         label: 'Total Mentions on X',
         value: totalXCites.toString(),
         tooltip: 'Total mentions on X (Twitter)',
-        icon: <img src={X} alt="X" className="w-9 h-9" />,
+        icon: <img src={X} alt="X" className="w-7 h-7" />,
       },
       { 
         label: 'Total Mentions in News',
@@ -357,16 +359,16 @@ const Mainprofile = () => {
         icon: <Newspaper size={30} className="text-blue-600" />,
       },
       { 
-        label: 'Total PlumX Captures',
-        value: totalPlumxCaptures.toString(),
-        tooltip: 'Total PlumX captures (bookmarks, favorites, readers)',
-        icon: <Bookmark size={30} className="text-blue-600" />,
+        label: 'Total Mendeley Citations',
+        value:totalMendelyCites.toString(),
+        tooltip: 'Total Mendeley Citations',
+        icon: <img src={Mend}alt="mendeley" className='w-10 h-10'></img>,
       },
       { 
         label: 'Total PlumX Citations', 
         value: totalPlumxCitations.toString(),
         tooltip: 'Total PlumX citations',
-        icon: <Quote size={30} className="text-white bg-orange-600" />,
+        icon: <img className='w-10 h-10' src={plum}alt="plumc"></img>
       }
     ];
 

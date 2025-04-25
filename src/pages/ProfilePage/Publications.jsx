@@ -10,7 +10,7 @@ import { Tooltip } from 'recharts';
 import BookChapter from './BookChapter';
 import Conference from './Conference';
 import Review from './ReviewPaper';
-
+import plum from '../../assets/plumx.png';
 const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   const [publications, setPublications] = useState([]);
   const [topPubs, setTopPubs] = useState([]);
@@ -379,8 +379,7 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
                                   <span className="flex items-center"><UserCheck className='w-5 h-5 text-orange-500 mr-1'/>Accounts: {pub.accounts_cite || 0}</span>
                                   <span className="flex items-center"><img className="w-7 h-7 " src={altm} alt="Altmetric"/>Altmetric: {pub.alt_score || 0}</span>
                                   <span className="flex items-center"><img className="w-7 h-7 " src={mend} alt="Mendeley"/>Mendeley: {pub.mendeley_cite || 0}</span>
-                                  <span className="flex items-center"><FolderOpen className='w-6 h-6 text-white bg-purple-500'/> PlumX captures: {pub.plumx_captures || 0}</span>
-                                  <span className="flex items-center"><Quote size={22} className="text-white bg-orange-600" /> PlumX citations: {pub.plumx_citations || 0}</span>
+                                  <span className="flex items-center"><img className='w-7 h-7' src={plum}alt="plumc"></img> PlumX citations: {pub.plumx_citations || 0}</span>
                                 </div>
                               </details>
                             </div>

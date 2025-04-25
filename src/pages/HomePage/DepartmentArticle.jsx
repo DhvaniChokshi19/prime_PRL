@@ -7,6 +7,7 @@ import fb from "../../assets/fb.jpg"
 import X from "../../assets/x.jpg"
 import altm from "../../assets/alt.png"
 import mend from "../../assets/mendley.png"
+import plum from '../../assets/plumx.png';
 const DepartmentArticles = ({ department_id }) => {
   const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -430,8 +431,8 @@ const renderAuthors = (article) => {
     <span className="flex items-center"><UserCheck className='w-5 h-5 text-orange-500 mr-1'/>Accounts: {article.accounts_cite || 0}</span>
     <span className="flex items-center"><img className="w-7 h-7 " src={altm}></img> Altmetric: {article.alt_score || 0}</span>
     <span className="flex items-center"> <img className="w-7 h-7 " src={mend}></img>Mendeley: {article.mendeley_cite || 0}</span>
-    <span className="flex items-center"><FolderOpen className='w-6 h-6 text-white bg-purple-500'/> PlumX captures: {article.plumx_captures || 0}</span>
-    <span className="flex items-center"> <Quote size={22} className="text-white bg-orange-600" /> PlumX citations: {article.plumx_citations || 0}</span>
+    {/* <span className="flex items-center"><FolderOpen className='w-6 h-6 text-white bg-purple-500'/> PlumX captures: {article.plumx_captures || 0}</span> */}
+    <span className="flex items-center"> <img className='w-7 h-7' src={plum}alt="plumc"></img> PlumX citations: {article.plumx_citations || 0}</span>
   </div>
 </details>
 </div>
