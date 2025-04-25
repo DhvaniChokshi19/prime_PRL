@@ -29,7 +29,8 @@ import {
   Bookmark,
   BookText,
   NotebookText,
-  SquareChartGantt
+  SquareChartGantt,
+  Users,
 } from 'lucide-react';
 import ProfileImageUpload from './ProfileImageUpload';
 
@@ -312,25 +313,25 @@ const Mainprofile = () => {
         label: 'Book Chapters',
         value: '0',
         tooltip: 'Total number of book chapters',
-        icon: <NotebookText size={24} className="text-blue-600" />,
+        icon: <NotebookText size={28} className="text-blue-600" />,
       },
       {
         label: 'Conference Papers',
         value: '0',
         tooltip: 'Total number of conference papers',
-        icon: <BookText size={24} className="text-blue-600" />,
+        icon: <Users size={28} className="text-blue-600" />,
       },
       {
         label: 'Review',
         value: '0',
         tooltip: 'Total number of reviews',
-        icon: <SquareChartGantt size={24} className="text-blue-600" />,
+        icon: <SquareChartGantt className=" w-8 h-9 text-blue-600" />,
       },
       { 
         label: 'Citations', 
         value: totalCitations.toString(),
         tooltip: 'Total number of citations',
-        icon: <Quote size={30} className="text-blue-600"/>,
+        icon: <Quote size={28} className="text-blue-600"/>,
       },
     ];
 
@@ -340,13 +341,13 @@ const Mainprofile = () => {
         label: 'Total Facebook Mentions',
         value: totalFbCites.toString(),
         tooltip: 'Total mentions on Facebook',
-        icon: <img src={fb} alt="Facebook" className="w-10 h-8" />,
+        icon: <img src={fb} alt="Facebook" className="w-8 h-9" />,
       },
       { 
         label: 'Total Mentions on X',
         value: totalXCites.toString(),
         tooltip: 'Total mentions on X (Twitter)',
-        icon: <img src={X} alt="X" className="w-10 h-10" />,
+        icon: <img src={X} alt="X" className="w-9 h-9" />,
       },
       { 
         label: 'Total Mentions in News',

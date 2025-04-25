@@ -423,8 +423,8 @@ const renderAuthors = (article) => {
                           <details className="mt-2">
   <summary className="cursor-pointer hover:text-blue-600">View metrics</summary>
   <div className="flex flex-wrap gap-4 p-2 mt-2 bg-gray-50 rounded-md">
-    <span className="flex items-center"><img className="w-7 h-7 mr-1" src={fb} alt="Facebook" /> {article.fb_cite || 0}</span>
-    <span className="flex items-center"><img className="w-7 h-7 mr-1" src={X} alt="X" /> {article.x_cite || 0}</span>
+    <span className="flex items-center"><img className="w-5 h-6 mr-1" src={fb} alt="Facebook" /> {article.fb_cite || 0}</span>
+    <span className="flex items-center"><img className="w-5 h-6 mr-1" src={X} alt="X" /> {article.x_cite || 0}</span>
     <span className="flex items-center"><Newspaper className="w-5 h-5 text-orange-600 mr-1" /> {article.news_cite || 0}</span>
     <span className='flex items-center'><ComputerIcon className="w-5 h-5 text-black mr-1"/>Blog: {article.blog_cite || 0}</span>
     <span className="flex items-center"><UserCheck className='w-5 h-5 text-orange-500 mr-1'/>Accounts: {article.accounts_cite || 0}</span>
