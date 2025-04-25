@@ -61,6 +61,9 @@ const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, set
       minValue: minValue,
     });
   };
+    const handleClearFilter = () => {
+    setPublicationsFilter(null);
+  };
 const publications20Plus = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
 const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >= 50).length;
   return (
@@ -98,7 +101,7 @@ const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >=
                 className="text-black hover:underline focus:outline-none text-left w-full"
                 onClick={() => handlePublicationFilter(20)}
               >
-                Publications with 20+ citations:
+               Journal Articles with 20+ citations:
               </button>
             </td>
             <td className="py-1 text-left">
@@ -111,7 +114,7 @@ const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >=
                 className="text-black hover:underline focus:outline-none text-left w-full"
                 onClick={() => handlePublicationFilter(50)}
               >
-                Publications with 50+ citations:
+               Journal Articles with 50+ citations:
               </button>
             </td>
             <td className="py-1 text-left">
@@ -233,19 +236,14 @@ const Mainprofile = () => {
         }));
         break;
       case 'Publications':
-        if (JSON.stringify(publicationsData) !== JSON.stringify(data)) {
+          if (!publicationsFilter && JSON.stringify(publicationsData) !== JSON.stringify(data)) {
         setPublicationsData(data);
-        if (publicationsFilter) {
-          setPublicationsFilter(null);
-        }
       }
         break;
       default:
         break;
     }
   };
-
-  // Tabs configuration
   const tabs = [
     { name: 'Personal Information', icon: User },
     { name: 'Publication', icon: BookOpen },
@@ -266,7 +264,10 @@ const Mainprofile = () => {
           profileId={profileId}
           data={displayedPublications}
          filterMessage={filterMessage}
-          onDataUpdate={(data) => updateComponentData('Publications', data)}
+          onDataUpdate={(data) => {if (!publicationsFilter) {
+            updateComponentData('Publications', data);
+          }
+        }}
         />;
       case 'Patent':
         return <Patents 
