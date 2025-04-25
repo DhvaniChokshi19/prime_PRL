@@ -681,6 +681,26 @@ const LoginErrorDialog = () => (
       </DialogContent>
     </Dialog>
   );
+
+const sortedProfessionalExperiences = [...professionalExperiences].sort((a, b) => {
+    const yearA = parseInt(a.start_year) || 0;
+    const yearB = parseInt(b.start_year) || 0;
+    return yearB - yearA; 
+  });
+const sortedQualification = [...qualifications].sort((a, b) => {
+    const yearA = parseInt(a.year) || 0;
+    const yearB = parseInt(b.year) || 0;
+    return yearB - yearA;
+
+  });
+const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
+    const yearA = parseInt(a.year) || 0;
+    const yearB = parseInt(b.year) || 0;
+    return yearB - yearA;
+
+  });
+
+
   return (
     <Card className="w-full border-none bg-white">
       <CardContent className="p-6">
@@ -741,7 +761,7 @@ const LoginErrorDialog = () => (
                )}             
             </div>
             <div className="space-y-4 pl-4 border-l-2 border-gray-200">
-              {professionalExperiences.map((exp, index) => (
+              {sortedProfessionalExperiences.map((exp, index) => (
                 <div key={exp.id || index} className="flex justify-between items-center">
                   <div>
                     <h4 className="font-semibold">{exp.position}</h4>
@@ -813,7 +833,7 @@ const LoginErrorDialog = () => (
                )}
             </div>
             <div className="space-y-4 pl-4 border-l-2 border-gray-200">
-              {qualifications.map((qual, index) => (
+              {sortedQualification.map((qual, index) => (
                 <div key={qual.id||index} className="flex justify-between items-center">
                   <div>
                     <h4 className="font-semibold">{qual.qualification}</h4>
@@ -881,7 +901,7 @@ const LoginErrorDialog = () => (
              )}
           </div>
           <div className="space-y-4 pl-4 border-l-2 border-gray-200">
-            {honorsAwards.map((award, index) => (
+            {sortedHonorsAwards.map((award, index) => (
               <div key={award.id||index} className="flex justify-between items-center">
                 <div className="flex items-start gap-4">
                   <div className="bg-blue-500 text-white px-3 py-1 rounded">{award.year}</div>
