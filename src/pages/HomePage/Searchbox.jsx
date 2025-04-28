@@ -70,12 +70,12 @@ const Searchbox = () => {
     },
     {
        icon: <LockOpen className="h-8 w-8 text-blue-600"/>,
-      label: "Total Open Access",
+      label: "Open Access",
      number: "0",
     },
     {
       icon: <Lock className="h-8 w-9 text-blue-600"/>,
-     label: "Total Closed Access",
+     label: " Closed Access",
       number: "0",
     },
     // {icon: "📊",
