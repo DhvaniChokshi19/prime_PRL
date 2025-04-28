@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Lock, ExternalLink, ChevronDown, Newspaper,ComputerIcon, UserCheck,Quote, FolderOpen } from 'lucide-react';
+import { BookOpen, Lock, ExternalLink, ChevronDown, Newspaper,ComputerIcon, UserCheck,Quote, FolderOpen, LockOpen } from 'lucide-react';
 import axiosInstance from '../../api/axios';
 import { Button } from '@/components/ui/button';
 import pubimg from '../../assets/pub_bg.jpg';
@@ -397,7 +397,7 @@ const renderAuthors = (article) => {
                     
                       <div className="flex flex-wrap gap-4 text-sm">
                         <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
-                        {article.open_access && <span className="text-green-600 flex items-center"><Lock className="w-3 h-3 mr-1" />Open access</span>}
+                        {article.open_access && <span className="text-green-600 flex items-center"><LockOpen className="w-3 h-3 mr-1" />Open access</span>}
                         <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Cited by: {article.cited_by}</span>
                         <span className="text-gray-600">
                           {article.publication_name}

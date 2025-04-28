@@ -58,7 +58,7 @@ const [localProfileData, setLocalProfileData] = useState({
     expertise: profile.expertise || '',
     about_me:personalInfo.about_me ||'',
     email: profile.email || '',
-    website: profile.website || '',
+    website_url: profile.website_url || '',
     scopus_id: profile.scopus_id || '',
     orc_id: profile.orc_id || '',
     google_scholar_id: profile.google_scholar_id || '',
@@ -117,7 +117,7 @@ const [localProfileData, setLocalProfileData] = useState({
         expertise: profile.expertise || '',
         about_me: personalInfo.about_me || '',
         email: profile.email || '',
-        website: profile.website || '',
+        website_url: profile.website_url || '',
         scopus_id: profile.scopus_id || '',
         orc_id: profile.orc_id || '',
         google_scholar_id: profile.google_scholar_id || '',
@@ -272,7 +272,7 @@ const handleProfessionalFormChange = (e) => {
       designation: personalForm.designation || originalProfile.designation,
       department: personalForm.department || originalProfile.department,
       expertise: personalForm.expertise || originalProfile.expertise,
-      website: personalForm.website || originalProfile.website,
+      website_url: personalForm.website_url || originalProfile.website_url,
       state: personalForm.state || originalProfile.state,
       scopus_id: personalForm.scopus_id || originalProfile.scopus_id,
       orc_id: personalForm.orc_id || originalProfile.orc_id,
@@ -723,7 +723,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
         </div>
 
         <div className="mb-6">
-          <h2 className="text-2xl font-semibold">{profile.name || "Dr. Nithyananad Prabhu"}</h2>
+          <h2 className="text-2xl font-semibold">{profile.name || "Researcher Profile"}</h2>
           <div className="flex flex-wrap gap-3 mt-2">
             <p className="text-lg text-gray-600">{personalInfo.gender || "Male"}</p>
             <p className="text-lg text-red-600">{profile.designation || "Research Scientist"}</p>
@@ -963,9 +963,9 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
               <Globe className="w-5 h-5 text-gray-500 " />
               <span className="font-medium">Website</span>
             </div>
-            <a href={profile.website || "www.example.com"} className="text-red-600 hover:underline break-all">
-              {profile.website || "www.example.com"}
-            </a>
+            <a href={localProfileData.profile.website_url || profile.website_url || "www.example.com"} className="text-red-600 hover:underline break-all">
+    {localProfileData.profile.website_url || profile.website_url || "www.example.com"}
+  </a>
           </div>
         </div>
 
@@ -1126,11 +1126,11 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="website">Website URL</Label>
+                <Label htmlFor="website_url">Website URL</Label>
                 <Input
-                  id="website"
-                  name="website"
-                  value={personalForm.website}
+                  id="website_url"
+                  name="website_url"
+                  value={personalForm.website_url}
                   onChange={handlePersonalFormChange}
                   placeholder="Enter your website URL"
                 />
@@ -1139,7 +1139,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button className="bg-white text-red-500" variant="outline">Cancel</Button>
+                <Button className="bg-white text-red-500 hover:bg-white" variant="outline">Cancel</Button>
               </DialogClose>
               <Button 
               className="bg-blue-500 text-white"
@@ -1205,7 +1205,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button className="bg-white text-red-500" variant="outline">Cancel</Button>
+                <Button className="bg-white text-red-500 hover:bg-white" variant="outline">Cancel</Button>
               </DialogClose>
               <Button 
                 className="bg-blue-500 text-white"
@@ -1261,7 +1261,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
     </div>
     <DialogFooter>
       <DialogClose asChild>
-        <Button className="bg-white text-red-500" variant="outline">Cancel</Button>
+        <Button className="bg-white text-red-500 hover:bg-white" variant="outline">Cancel</Button>
       </DialogClose>
       <Button 
         className="bg-blue-500 text-white"
@@ -1341,7 +1341,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button className="bg-white text-red-500" variant="outline">Cancel</Button>
+                <Button className="bg-white text-red-500 hover:bg-white" variant="outline">Cancel</Button>
               </DialogClose>
               <Button 
                 className="bg-blue-500 text-white"
