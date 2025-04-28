@@ -24,15 +24,18 @@ const Footer = () => {
           <div className="md:text-right">
             <h2 className="text-xl font-bold mb-4">Contact Us</h2>
             <div className="space-y-2">
+              <p className="flex items-center md:justify-end">
+                <span className="mr-2"></span>Library and Information Services
+              </p>
               <p>Physical Research Laboratory</p>
               <p className="flex items-center md:justify-end">
                 <span className="mr-2">📍</span> Navrangpura, Ahmedabad - 380 009
               </p>
               <p className="flex items-center md:justify-end">
-                <span className="mr-2">📞</span> +91-79-26314 000, 2630 2129
+                <span className="mr-2">📞</span> 079-26314619, 079-26314166
               </p>
               <p className="flex items-center md:justify-end">
-                <span className="mr-2">✉️</span> support@prime.org.in
+                <span className="mr-2">✉️</span> prime@prl.res.in
               </p>
             </div>
           </div>

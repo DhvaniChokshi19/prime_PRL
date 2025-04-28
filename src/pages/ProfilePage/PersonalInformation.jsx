@@ -729,7 +729,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
             <p className="text-lg text-red-600">{profile.designation || "Research Scientist"}</p>
             <p className="text-lg text-gray-600">{profile.department || "Electrical Engineering"}</p>
           </div>
-          <p className="text-gray-600 mt-2">{profile.expertise || "Nanomaterials, Electrochemistry, Energy Storage Applications"}</p>
+          <p className="text-gray-600 font-bold mt-2">{profile.expertise || "Nanomaterials, Electrochemistry, Energy Storage Applications"}</p>
         
           <div>
             <p className = "text-base text-gray-600">{personalInfo.about_me || "About Me"}</p>
@@ -790,7 +790,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    )};
+                    )}
                     {isAuthenticated && (
                     <Button 
                       size="icon"
