@@ -40,6 +40,9 @@ const Searchbox = () => {
           total_profiles: data.total_profiles.toLocaleString(),
           total_publications: data.total_publications.toLocaleString(),
           total_citations: data.total_citations.toLocaleString(),
+          total_openaccess: data.total_openaccess.toLocaleString(),
+          total_closedaccess: data.total_closedaccess.toLocaleString(),
+          total_thesis: data.total_thesis.toLocaleString(),
           // avg_citations_per_paper: data.avg_citations_per_paper.toLocaleString(),
           // visitors_today: data.visitors_today.toLocaleString() 
         });
@@ -69,14 +72,16 @@ const Searchbox = () => {
       label: 'CITATIONS',
     },
     {
-       icon: <LockOpen className="h-8 w-8 text-blue-600"/>,
-      label: "Open Access",
-     number: "0",
+      icon: <LockOpen className="h-8 w-8 text-blue-600"/>,
+      number: statsData.total_openaccess,
+     label: "Total Open Access",
+    //number: "0",
     },
     {
       icon: <Lock className="h-8 w-9 text-blue-600"/>,
-     label: " Closed Access",
-      number: "0",
+      number: statsData.total_closedaccess,
+     label: "Total Closed Access",
+      //number: "0",
     },
     // {icon: "📊",
     //   label: "Total Altmetric Score",
@@ -84,8 +89,9 @@ const Searchbox = () => {
     // },
     {
       icon: <BookUser className='w-8 h-8 text-blue-600'/>,
+      number: statsData.total_thesis,
       label: "Total Thesis",
-     number: "0",
+     //number: "0",
     }
 
     // {
