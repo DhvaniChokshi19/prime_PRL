@@ -134,97 +134,147 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   };
 
   // Enhanced renderAuthors function with fuzzy matching
-  const renderAuthors = (article) => {
-    if (!article.co_authors) return null;
-    
-    if (!article.prl_authors || !Array.isArray(article.prl_authors)) {
-      return <p className="text-gray-600">{article.co_authors}</p>;
-    }
+ const renderAuthors = (article) => {
+  if (!article.co_authors) return null;
+  
+  if (!article.prl_authors || !Array.isArray(article.prl_authors)) {
+    return <p className="text-gray-600">{article.co_authors}</p>;
+  }
 
-    const authorsList = article.co_authors.split(', ');
+  const authorsList = article.co_authors.split(', ');
+  
+  const prlAuthorsMap = {};
+  const prlAuthorsArray = [];
+  
+  article.prl_authors.forEach(author => {
+    const fullName = author.name;
+    const nameWithoutTitle = fullName.replace(/^(Dr\.|Mr\.|Ms\.|Mrs\.|Prof\.|MS\.) /i, '').trim();
     
-    const prlAuthorsMap = {};
-    const prlAuthorsArray = [];
+    prlAuthorsMap[fullName.toLowerCase()] = author;
+    prlAuthorsMap[nameWithoutTitle.toLowerCase()] = author;
     
-    article.prl_authors.forEach(author => {
-      const fullName = author.name;
-      const nameWithoutTitle = fullName.replace(/^(Dr\.|Mr\.|Ms\.|Mrs\.|Prof\.|MS\.) /i, '').trim();
-      
-      prlAuthorsMap[fullName.toLowerCase()] = author;
-      prlAuthorsMap[nameWithoutTitle.toLowerCase()] = author;
-      
-      prlAuthorsArray.push({
-        author: author,
-        fullName: fullName,
-        cleanName: nameWithoutTitle,
-        nameParts: nameWithoutTitle.split(' ')
-      });
-    
+    prlAuthorsArray.push({
+      author: author,
+      fullName: fullName,
+      cleanName: nameWithoutTitle,
+      nameParts: nameWithoutTitle.split(' ')
     });
+  });
 
-    return (
-      <p className="text-gray-600">
-        {authorsList.map((authorName, index) => {
-          const cleanName = authorName.trim();
+  return (
+    <p className="text-gray-600">
+      {authorsList.map((authorName, index) => {
+        const cleanName = authorName.trim();
+        
+        // Exact match check first
+        let prlAuthor = prlAuthorsMap[cleanName.toLowerCase()];
+        
+        if (!prlAuthor) {
+          // More strict matching criteria
+          const SIMILARITY_THRESHOLD = 85; // Increased from 75
+          let bestMatch = null;
+          let highestSimilarity = 0;
           
-          let prlAuthor = prlAuthorsMap[cleanName.toLowerCase()];
-          
-          if (!prlAuthor) {
-            const SIMILARITY_THRESHOLD = 75; 
-            let bestMatch = null;
-            let highestSimilarity = 0;
+          prlAuthorsArray.forEach(entry => {
+            // Base similarity check
+            let similarity = calculateSimilarity(cleanName, entry.fullName);
             
-            prlAuthorsArray.forEach(entry => {
-              let similarity = calculateSimilarity(cleanName, entry.fullName);
+            // For cases with last name and first initial (like "Rajpurohit K")
+            // we need to be more careful with matching
+            if (entry.nameParts.length > 1) {
+              const lastName = entry.nameParts[entry.nameParts.length - 1];
+              const initials = entry.nameParts.slice(0, -1).map(part => part[0]).join('');
               
-              if (entry.nameParts.length > 1) {
-                const lastName = entry.nameParts[entry.nameParts.length - 1];
-                const initials = entry.nameParts.slice(0, -1).map(part => part[0]).join('');
-                const lastNameWithInitials = `${lastName} ${initials}`;
-                const initialsWithLastName = `${initials} ${lastName}`;
+              // For "Lastname F" format, check if it matches our current entry
+              const authorParts = cleanName.split(' ');
+              if (authorParts.length === 2) {
+                const authorLastName = authorParts[0];
+                const authorInitial = authorParts[1];
                 
-                similarity = Math.max(
-                  similarity,
-                  calculateSimilarity(cleanName, lastNameWithInitials),
-                  calculateSimilarity(cleanName, initialsWithLastName)
-                );
+                // If the author has format "Lastname I" and entry has "Firstname Lastname"
+                if (authorInitial.length === 1) {
+                  // Make sure the last names match with high similarity
+                  const lastNameSimilarity = calculateSimilarity(authorLastName, lastName);
+                  
+                  // Make sure the initial matches the first letter of the first name
+                  const initialMatches = entry.nameParts[0][0].toLowerCase() === authorInitial.toLowerCase();
+                  
+                  // Only consider a match if both last name is similar AND initial matches
+                  if (lastNameSimilarity > 80 && initialMatches) {
+                    similarity = lastNameSimilarity;
+                  } else {
+                    // Force low similarity if initial doesn't match but last name does
+                    similarity = 0;
+                  }
+                }
               }
               
-              if (similarity > highestSimilarity && similarity >= SIMILARITY_THRESHOLD) {
-                highestSimilarity = similarity;
-                bestMatch = entry.author;
-              }
-            });
-            
-            if (bestMatch) {
-              prlAuthor = bestMatch;
+              // For "F Lastname" format and other variations
+              const lastNameWithInitials = `${lastName} ${initials}`;
+              const initialsWithLastName = `${initials} ${lastName}`;
+              
+              similarity = Math.max(
+                similarity,
+                calculateSimilarity(cleanName, lastNameWithInitials),
+                calculateSimilarity(cleanName, initialsWithLastName)
+              );
             }
-          }
+            
+            // For "Rajpurohit K" and "Arvind Rajpurohit" case
+            // We need to ensure that if a name has initials, they must match correctly
+            const cleanNameParts = cleanName.split(' ');
+            const hasSingleLetterInitial = cleanNameParts.some(part => part.length === 1);
+            
+            if (hasSingleLetterInitial) {
+              // Extract initial from author name
+              const authorInitials = cleanNameParts
+                .filter(part => part.length === 1)
+                .map(initial => initial.toLowerCase());
+                
+              // Check if entry's first name starts with this initial
+              const entryFirstNameInitial = entry.nameParts[0][0].toLowerCase();
+              
+              // If the initials don't match, don't consider it a match
+              if (authorInitials.length > 0 && !authorInitials.includes(entryFirstNameInitial)) {
+                similarity = 0;
+              }
+            }
+            
+            if (similarity > highestSimilarity && similarity >= SIMILARITY_THRESHOLD) {
+              highestSimilarity = similarity;
+              bestMatch = entry.author;
+            }
+          });
           
-          if (prlAuthor) {
-            return (
-              <React.Fragment key={index}>
-                {index > 0 && ', '}
-                <a 
-                  href={`/profile/${prlAuthor.id}`}
-                  className="text-blue-600 hover:underline"
-                >
-                  {authorName}
-                </a>
-              </React.Fragment>
-            );
+          if (bestMatch) {
+            prlAuthor = bestMatch;
           }
-          
+        }
+        
+        if (prlAuthor) {
           return (
             <React.Fragment key={index}>
               {index > 0 && ', '}
-              {authorName}
+              <a 
+                href={`/profile/${prlAuthor.id}`}
+                className="text-blue-600 hover:underline"
+              >
+                {authorName}
+              </a>
             </React.Fragment>
           );
-        })}
-      </p>
-    );
-  };
+        }
+        
+        return (
+          <React.Fragment key={index}>
+            {index > 0 && ', '}
+            {authorName}
+          </React.Fragment>
+        );
+      })}
+    </p>
+  );
+};
 
   const getTabIcon = (tabName) => {
     switch(tabName) {

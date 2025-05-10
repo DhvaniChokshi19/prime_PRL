@@ -72,6 +72,8 @@ const [localProfileData, setLocalProfileData] = useState({
     position: '',
     organization: '',
     start_year: '',
+    start_month:'',
+    end_month:'',
     end_year: ''
   });
 
@@ -230,14 +232,30 @@ const [localProfileData, setLocalProfileData] = useState({
       [name]: value
     }));
   };
-const handleProfessionalFormChange = (e) => {
+const months = [
+    "January", "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"
+  ];
+ const handleProfessionalFormChange = (e) => {
     const { name, value } = e.target;
     setProfessionalForm(prev => ({
       ...prev,
       [name]: value
     }));
   };
-   const handleQualificationFormChange = (e) => {
+  
+  const formatExperienceDate = (exp) => {
+    const startDate = exp.start_month && exp.start_year ? `${exp.start_month} ${exp.start_year}` : exp.start_year || '';
+
+    if (!exp.end_year && !exp.end_month) {
+      return `${startDate} - Present`;
+    }
+    
+    const endDate = exp.end_month && exp.end_year ? `${exp.end_month} ${exp.end_year}` : exp.end_year || '';
+    return `${startDate} - ${endDate}`;
+  };
+  
+  const handleQualificationFormChange = (e) => {
     const { name, value } = e.target;
     setQualificationForm(prev => ({
       ...prev,
@@ -334,18 +352,27 @@ setLocalProfileData(prev => ({
     try {
       setLoading(true);
       const authToken = getAuthToken();
-      
+      const payload = {
+      id: professionalForm.id,
+      position: professionalForm.position,
+      organization: professionalForm.organization,
+      start_year: professionalForm.start_year,
+      start_month: professionalForm.start_month,
+      end_month: professionalForm.end_month,
+      end_year: professionalForm.end_year,
+    };
       if (professionalForm.id) {
         
-        await axiosInstance.put('api/profile/professional-experience/edit', professionalForm, {
+        await axiosInstance.put('api/profile/professional-experience/edit', payload, {
           headers: {
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${authToken}`,
+             'Content-Type': 'application/json'
           }
         });
         setLocalProfileData(prev => ({
           ...prev,
           professional_experiences: prev.professional_experiences.map(exp => 
-            exp.id === professionalForm.id ? professionalForm : exp
+            exp.id === professionalForm.id ? payload : exp
           )
         }));
         toast({
@@ -355,15 +382,16 @@ setLocalProfileData(prev => ({
         });
       } else {
        
-        const response = await axiosInstance.put('api/profile/professional-experience/add', professionalForm, {
+        const response = await axiosInstance.put('api/profile/professional-experience/add', payload, {
           headers: {
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${authToken}`,
+             'Content-Type': 'application/json'
           }
         });
         const newExperience = response.data?.experience || {
           ...professionalForm,
-          id: Date.now() // Fallback ID if API doesn't return it
-        };
+          id: Date.now()
+                  };
         
         // Update local state
         setLocalProfileData(prev => ({
@@ -385,7 +413,9 @@ setLocalProfileData(prev => ({
         position: '',
         organization: '',
         start_year: '',
-        end_year: ''
+        start_month:'',
+        end_month:'',
+        end_year: '',
       });
        await fetchUpdatedData();
     } catch (error) {
@@ -410,7 +440,8 @@ setLocalProfileData(prev => ({
         // Edit existing qualification
         await axiosInstance.put('api/profile/qualifications/edit', qualificationForm, {
           headers: {
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${authToken}`,
+             'Content-Type': 'application/json'
           }
         });
         setLocalProfileData(prev => ({
@@ -428,7 +459,8 @@ setLocalProfileData(prev => ({
         // Add new qualification
         await axiosInstance.put('api/profile/qualifications/add', qualificationForm, {
           headers: {
-            'Authorization': `Bearer ${authToken}`
+            'Authorization': `Bearer ${authToken}`,
+             'Content-Type': 'application/json'
           }
         });
         const newQualification = response.data?.qualification || {
@@ -479,7 +511,8 @@ const handleHonorsFormSubmit = async () => {
       // Edit existing award
       await axiosInstance.put('api/profile/honors-awards/edit', honorsForm, {
         headers: {
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken}`,
+           'Content-Type': 'application/json'
         }
       });
       setLocalProfileData(prev => ({
@@ -498,7 +531,8 @@ const handleHonorsFormSubmit = async () => {
       // Add new award
       await axiosInstance.put('api/profile/honors-awards/add', honorsForm, {
         headers: {
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken}`,
+           'Content-Type': 'application/json'
         }
       });
         const newAward = response.data?.award || {
@@ -700,7 +734,6 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
 
   });
 
-
   return (
     <Card className="w-full border-none bg-white">
       <CardContent className="p-6">
@@ -752,7 +785,9 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                         position: "",
                         organization: '',
                         start_year:'',
-                        end_year: ''
+                        start_month:'',
+                        end_month:'',
+                        end_year: '',
                   });
                   setEditMode('professional');
                 }} >
@@ -767,7 +802,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                     <h4 className="font-semibold">{exp.position}</h4>
                     <p className="text-gray-600">{exp.organization}</p>
                     <p className="text-sm text-gray-500">
-                      {exp.start_year}-{exp.end_year || "Current"}
+                        {formatExperienceDate(exp)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -781,7 +816,9 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                         position: exp.position,
                         organization: exp.organization,
                         start_year: exp.start_year,
-                        end_year: exp.end_year
+                        start_month: exp.start_month,
+                        end_month: exp.end_month,
+                        end_year: exp.end_year,
                       });
                       
                       setSelectedExperience(exp);
@@ -1036,13 +1073,13 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                   />
                 </div>
                  <div className="space-y-2">
-                <Label htmlFor="expertise">Areas of Expertise</Label>
+                <Label htmlFor="expertise">Research Interest</Label>
                 <Input
                   id="expertise"
                   name="expertise"
                   value={personalForm.expertise}
                   onChange={handlePersonalFormChange}
-                  placeholder="Enter your areas of expertise"
+                  placeholder="Enter your Research Interest"
                 />
               </div>
               
@@ -1180,29 +1217,69 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                   placeholder="Enter organization name"
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="start_year">Start Year</Label>
-                  <Input
-                    id="start_year"
-                    name="start_year"
-                    value={professionalForm.start_year}
-                    onChange={handleProfessionalFormChange}
-                    placeholder="YYYY"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="end_year">End Year </Label>
-                  <Input
-                    id="end_year"
-                    name="end_year"
-                    value={professionalForm.end_year}
-                    onChange={handleProfessionalFormChange}
-                    placeholder="YYYY"
-                  />
-                </div>
-              </div>
-            </div>
+        <Label>Start Date</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <select
+              id="start_month"
+              name="start_month"
+              value={professionalForm.start_month}
+              onChange={handleProfessionalFormChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">-- Select Month --</option>
+              {months.map((month, index) => (
+                <option key={index} value={month}>
+                  {month}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Input
+              id="start_year"
+              name="start_year"
+              value={professionalForm.start_year}
+              onChange={handleProfessionalFormChange}
+              placeholder="YYYY"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label>End Date  (Leave blank if currently working here)</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <select
+              id="end_month"
+              name="end_month"
+              value={professionalForm.end_month}
+              onChange={handleProfessionalFormChange}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">-- Select Month --</option>
+              {months.map((month, index) => (
+                <option key={index} value={month}>
+                  {month}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Input
+              id="end_year"
+              name="end_year"
+              value={professionalForm.end_year}
+              onChange={handleProfessionalFormChange}
+              placeholder="YYYY (or leave blank for Present)"
+            />
+          </div>
+        </div>
+      </div>     
+     
+    </div>
+
             <DialogFooter>
               <DialogClose asChild>
                 <Button className="bg-white text-red-500 hover:bg-white" variant="outline">Cancel</Button>
