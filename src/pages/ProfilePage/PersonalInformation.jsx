@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';  
+import { Textarea } from '@/components/ui/textarea'; 
+import { Checkbox } from '@/components/ui/checkbox'; 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,DialogFooter,DialogClose } from '@/components/ui/dialog';
 import { 
   AlertDialog, 
@@ -74,7 +75,8 @@ const [localProfileData, setLocalProfileData] = useState({
     start_year: '',
     start_month:'',
     end_month:'',
-    end_year: ''
+    end_year: '',
+    currently_working: false
   });
 
   const [qualificationForm, setQualificationForm] = useState({
@@ -243,6 +245,23 @@ const months = [
       [name]: value
     }));
   };
+    const handleCurrentlyWorkingChange = (checked) => {
+    setProfessionalForm(prev => {
+      // If checked, clear end dates
+      if (checked) {
+        return {
+          ...prev,
+          currently_working: checked,
+          end_month: '',
+          end_year: ''
+        };
+      }
+      return {
+        ...prev,
+        currently_working: checked
+      };
+    });
+  };
   
   const formatExperienceDate = (exp) => {
     const startDate = exp.start_month && exp.start_year ? `${exp.start_month} ${exp.start_year}` : exp.start_year || '';
@@ -358,8 +377,9 @@ setLocalProfileData(prev => ({
       organization: professionalForm.organization,
       start_year: professionalForm.start_year,
       start_month: professionalForm.start_month,
-      end_month: professionalForm.end_month,
-      end_year: professionalForm.end_year,
+      end_month:  professionalForm.currently_working ? '' : professionalForm.end_month,
+      end_year:  professionalForm.currently_working ? '' : professionalForm.end_year,
+      currently_working: professionalForm.currently_working
     };
       if (professionalForm.id) {
         
@@ -416,6 +436,7 @@ setLocalProfileData(prev => ({
         start_month:'',
         end_month:'',
         end_year: '',
+         currently_working: false
       });
        await fetchUpdatedData();
     } catch (error) {
@@ -788,6 +809,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                         start_month:'',
                         end_month:'',
                         end_year: '',
+                         currently_working: false
                   });
                   setEditMode('professional');
                 }} >
@@ -819,6 +841,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                         start_month: exp.start_month,
                         end_month: exp.end_month,
                         end_year: exp.end_year,
+                        currently_working: exp.currently_working || (!exp.end_year && !exp.end_month)
                       });
                       
                       setSelectedExperience(exp);

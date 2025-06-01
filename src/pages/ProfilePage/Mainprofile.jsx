@@ -55,7 +55,14 @@ const Tooltips = ({ text, children }) => {
     </div>
   );
 };
-const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, setActiveTab, setPublicationsFilter,publicationsMetrics, }) => {
+
+const ResearchImpactFactor = ({ 
+  publicationsMetrics, 
+  yearRangeOptions, 
+  publicationsData, 
+  setActiveTab, 
+  setPublicationsFilter 
+}) => {
   const handlePublicationFilter = (minValue) => {
     setActiveTab('Publication');
     setPublicationsFilter({
@@ -63,33 +70,46 @@ const ResearchImpactFactor = ({ metrics, yearRangeOptions, publicationsData, set
       minValue: minValue,
     });
   };
-    const handleClearFilter = () => {
+
+  const handleClearFilter = () => {
     setPublicationsFilter(null);
   };
-const publications20Plus = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
-const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >= 50).length;
+
+  // Safely get total publications - use publicationsMetrics array
+  const totalPublications = publicationsMetrics && publicationsMetrics.length > 0 
+    ? publicationsMetrics[0].value 
+    : publicationsData.length.toString();
+  
+  // Safely get total citations
+  const totalCitations = publicationsMetrics && publicationsMetrics.length > 1 
+    ? publicationsMetrics[1].value 
+    : publicationsData.reduce((sum, pub) => sum + (pub.cited_by || 0), 0).toString();
+
+  const publications20Plus = publicationsData.filter(pub => (pub.cited_by || 0) >= 20).length;
+  const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >= 50).length;
+
   return (
     <div className="rounded-lg shadow-sm p-3 h-72">
-      <h3 className="font-semibold text-lg mb-2 ">Bibliometric and Citation Indicators</h3>
+      <h3 className="font-semibold text-lg mb-2">Bibliometric and Citation Indicators</h3>
       <table className="w-full text-sm">
         <tbody>
           <tr>
-            <td className=" font-medium">Total Journal Articles <span className='text-red-600'>( with PRL Affiliation)</span>:</td>
-            <td className=" text-left">{metrics[0].value}</td>
-          </tr>
-          <tr >
-            <td className="py-1 font-medium">Publication years:</td>
-            <td className="py-1 text-leftt">{yearRangeOptions}</td>
+            <td className="font-medium">Total Publications <span className='text-red-600'>( with PRL Affiliation)</span>:</td>
+            <td className="text-left">{totalPublications}</td>
           </tr>
           <tr>
-  <td className="py-1 font-medium">Average citations per paper:</td>
-  <td className="py-1 text-left">
-    {parseInt(publicationsMetrics[0].value) > 0 
-      ? (parseInt(publicationsMetrics[4].value) / parseInt(publicationsMetrics[0].value)).toFixed(1) 
-      : "0.0"}
-  </td>
-</tr>
-          <tr >
+            <td className="py-1 font-medium">Publication years:</td>
+            <td className="py-1 text-left">{yearRangeOptions}</td>
+          </tr>
+          <tr>
+            <td className="py-1 font-medium">Average citations per paper:</td>
+            <td className="py-1 text-left">
+              {parseInt(totalPublications) > 0 
+                ? (parseInt(totalCitations) / parseInt(totalPublications)).toFixed(1) 
+                : "0.0"}
+            </td>
+          </tr>
+          <tr>
             <td className="py-1 font-medium">Highest number of citations:</td>
             <td className="py-1 text-left">
               {publicationsData.length > 0 
@@ -97,7 +117,7 @@ const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >=
                 : 0}
             </td>
           </tr>
-          <tr >
+          <tr>
             <td className="py-1 font-medium">
               <button 
                 className="text-black hover:underline focus:outline-none text-left w-full"
@@ -126,7 +146,6 @@ const publications50Plus = publicationsData.filter(pub => (pub.cited_by || 0) >=
         </tbody>
       </table>
     </div>
-    // </div>
   );
 };
 
@@ -220,10 +239,10 @@ const Mainprofile = () => {
       setDisplayedPublications(filteredData);
       setFilterMessage(`Showing publications with ${publicationsFilter.minValue}+ citations`);
     } else if (activeTab === 'Publication') {
-    setDisplayedPublications(publicationsData);
-    setFilterMessage('');
-  }
-}, [activeTab, publicationsFilter, publicationsData]);
+      setDisplayedPublications(publicationsData);
+      setFilterMessage('');
+    }
+  }, [activeTab, publicationsFilter, publicationsData]);
   
   const updateComponentData = (componentName, data) => {
     switch(componentName) {
@@ -238,20 +257,21 @@ const Mainprofile = () => {
         }));
         break;
       case 'Publications':
-          if (!publicationsFilter && JSON.stringify(publicationsData) !== JSON.stringify(data)) {
-        setPublicationsData(data);
-      }
+        if (!publicationsFilter && JSON.stringify(publicationsData) !== JSON.stringify(data)) {
+          setPublicationsData(data);
+        }
         break;
       default:
         break;
     }
   };
+
   const tabs = [
     { name: 'Personal Information', icon: User },
     { name: 'Publication', icon: BookOpen },
     { name: 'Patent', icon: ScrollText },
     { name: 'Project', icon: BookMarked },
-    { name: 'Thesis', icon: Newspaper },
+    { name: 'Thesis (Post Doctoral Fellow)', icon: Newspaper },
   ];
 
   const renderContent = () => {
@@ -265,11 +285,12 @@ const Mainprofile = () => {
         return <Publications 
           profileId={profileId}
           data={displayedPublications}
-         filterMessage={filterMessage}
-          onDataUpdate={(data) => {if (!publicationsFilter) {
-            updateComponentData('Publications', data);
-          }
-        }}
+          filterMessage={filterMessage}
+          onDataUpdate={(data) => {
+            if (!publicationsFilter) {
+              updateComponentData('Publications', data);
+            }
+          }}
         />;
       case 'Patent':
         return <Patents 
@@ -281,7 +302,7 @@ const Mainprofile = () => {
           onDataUpdate={(data) => updateComponentData('Projects', data)} 
           profileId={profileId} 
         />;
-      case 'Thesis':
+      case 'Thesis (Post Doctoral Fellow)':
         return <Thesis
           onDataUpdate={(data) => updateComponentData('Thesis', data)}
           profileId={profileId}
@@ -302,33 +323,15 @@ const Mainprofile = () => {
     const totalFbCites = publicationsData.reduce((sum, pub) => sum + (pub.fb_cite || 0), 0);
     const totalXCites = publicationsData.reduce((sum, pub) => sum + (pub.x_cite || 0), 0);
     const totalNewsCites = publicationsData.reduce((sum, pub) => sum + (pub.news_cite || 0), 0);
-   const totalMendelyCites = publicationsData.reduce((sum, pub)=> sum +(pub.mendeley_cite ||0),0);
+    const totalMendelyCites = publicationsData.reduce((sum, pub) => sum + (pub.mendeley_cite || 0), 0);
     const totalPlumxCitations = publicationsData.reduce((sum, pub) => sum + (pub.plumx_citations || 0), 0);
 
-        const publicationsMetrics = [
+    const publicationsMetrics = [
       { 
         label: 'Journal Articles (PRL)', 
         value: totalPublications.toString(),
         tooltip: 'Total number of Journal Articles affiliated by PRL',
         icon: <FileText size={24} className="text-blue-600" />,
-      },
-      {
-        label: 'Book Chapters',
-        value: '0',
-        tooltip: 'Total number of book chapters',
-        icon: <NotebookText size={28} className="text-blue-600" />,
-      },
-      {
-        label: 'Conference Papers',
-        value: '0',
-        tooltip: 'Total number of conference papers',
-        icon: <Users size={28} className="text-blue-600" />,
-      },
-      {
-        label: 'Review',
-        value: '0',
-        tooltip: 'Total number of reviews',
-        icon: <SquareChartGantt className=" w-8 h-9 text-blue-600" />,
       },
       { 
         label: 'Citations', 
@@ -341,34 +344,34 @@ const Mainprofile = () => {
     // Altmetrics (3rd row)
     const altmetrics = [
       { 
-        label: 'Total Facebook Mentions',
+        label: ' Facebook Mentions',
         value: totalFbCites.toString(),
         tooltip: 'Total mentions on Facebook',
         icon: <img src={fb} alt="Facebook" className="w-8 h-9" />,
       },
       { 
-        label: 'Total Mentions on X',
+        label: ' Mentions on X',
         value: totalXCites.toString(),
         tooltip: 'Total mentions on X (Twitter)',
         icon: <img src={X} alt="X" className="w-7 h-7" />,
       },
       { 
-        label: 'Total Mentions in News',
+        label: ' Mentions in News',
         value: totalNewsCites.toString(),
         tooltip: 'Total mentions in news outlets',
         icon: <Newspaper size={30} className="text-blue-600" />,
       },
       { 
-        label: 'Total Mendeley Citations',
-        value:totalMendelyCites.toString(),
+        label: ' Mendeley Citations',
+        value: totalMendelyCites.toString(),
         tooltip: 'Total Mendeley Citations',
-        icon: <img src={Mend}alt="mendeley" className='w-10 h-10'></img>,
+        icon: <img src={Mend} alt="mendeley" className='w-10 h-10' />,
       },
       { 
-        label: 'Total PlumX Citations', 
+        label: ' PlumX Citations', 
         value: totalPlumxCitations.toString(),
         tooltip: 'Total PlumX citations',
-        icon: <img className='w-10 h-10' src={plum}alt="plumc"></img>
+        icon: <img className='w-10 h-10' src={plum} alt="plumc" />
       }
     ];
 
@@ -425,10 +428,7 @@ const Mainprofile = () => {
 
   const { publicationsMetrics, altmetrics } = calculateMetrics();
   const { stats: formattedPublicationStats, yearRangeOptions } = formatPublicationStats();
- const researchMetrics = [
-    ...publicationsMetrics,
-    ...altmetrics
-  ];
+
   const PublicationBarChart = () => {
     const allYears = formattedPublicationStats.map(stat => stat.year);
     
@@ -510,7 +510,8 @@ const Mainprofile = () => {
       </div>
     );
   };
-const renderMetricCards = (metrics) => {
+
+  const renderMetricCards = (metrics) => {
     return metrics.map((metric, index) => (
       <div key={index} className="bg-blue-100 hover:bg-blue-200 transition-colors rounded p-1 cursor-pointer text-center w-40">
         <div className="flex justify-center mb-2">
@@ -525,6 +526,7 @@ const renderMetricCards = (metrics) => {
       </div>
     ));
   };
+
   return (
     <div className="max-w-7xl mx-auto p-3">
       <div className="flex gap-4 mb-1 bg-gray-50 border border-gray-300 p-3 rounded-lg shadow-md"> 
@@ -559,7 +561,7 @@ const renderMetricCards = (metrics) => {
               <span>Export</span>
             </Button>
           </div>
-          </div>
+        </div>
         <Card className="w-72 border-none shadow-none">
           <CardContent className="pt-2">
             <h3 className="font-semibold mb-2">Academic Identity</h3>
@@ -636,16 +638,17 @@ const renderMetricCards = (metrics) => {
           </CardContent>
         </Card>
       </div>
+      
       <Card className="w-full mt-2 border-none shadow-none">
-  <CardContent className="p-2 ">
-    <div className="max-w-full ">
-      <div className="bg-slate-50 rounded-xl shadow-lg overflow-hidden border border-gray-200 ">
-        <div className="p-1 border-b border-gray-200">
+        <CardContent className="p-2">
+          <div className="max-w-full">
+            <div className="bg-slate-50 rounded-xl shadow-lg overflow-hidden border border-gray-200">
+              <div className="p-1 border-b border-gray-200">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">Publications and Citations</h3>
                 <div className="grid grid-cols-2 md:grid-cols-6 gap-1">
                   {renderMetricCards(publicationsMetrics)}
                 </div>
-        </div>
+              </div>
               <div className="p-1">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">Altmetrics</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
@@ -654,18 +657,18 @@ const renderMetricCards = (metrics) => {
               </div>
             </div>
           </div>
-  </CardContent>
-</Card>
+        </CardContent>
+      </Card>
+      
       <Card className="w-full mb-3 bg-gray-50 border border-gray-300">
         <CardContent className="p-5">
           <div className="grid grid-cols-2 gap-20">
             <div className="h-64wh">
               <PublicationBarChart />
             </div>
-            <div >
+            <div>
               <ResearchImpactFactor 
-              publicationsMetrics={publicationsMetrics}
-                metrics={researchMetrics}
+                publicationsMetrics={publicationsMetrics}
                 yearRangeOptions={yearRangeOptions}
                 publicationsData={publicationsData}
                 setActiveTab={setActiveTab}
