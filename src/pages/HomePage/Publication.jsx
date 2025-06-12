@@ -456,85 +456,99 @@ const Publication = () => {
 
       {/* Chart 7: Department Trends (Line Chart for Publications/Citations over years) */}
       {activeChart === 'dept-trends' && departmentLineData.length > 0 && (
-        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">Department Publications & Citations Trends</h3>
-          <div className="mb-4">
-            <label className="inline-flex items-center mr-4">
-              <input type="radio" name="trendType" value="publications" defaultChecked />
-              <span className="ml-2">Publications</span>
-            </label>
-            <label className="inline-flex items-center">
-              <input type="radio" name="trendType" value="citations" />
-              <span className="ml-2">Citations</span>
-            </label>
-          </div>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={departmentLineData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                {departmentData.map((dept, index) => (
-                  <Line
-                    key={`${dept.department}_publications`}
-                    type="monotone"
-                    dataKey={`${dept.department}_publications`}
-                    stroke={departmentColors[dept.department]}
-                    name={`${dept.department} Publications`}
-                    strokeWidth={2}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+<div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+  <div className="flex justify-between items-center mb-4">
+    <h3 className="text-lg font-semibold text-gray-700">Individual Department Analysis</h3>
+    <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2">
+        <label htmlFor="dept-select" className="text-gray-600">Department:</label>
+        <select 
+          id="dept-select"
+          value={selectedDepartment || ''}
+          onChange={(e) => setSelectedDepartment(e.target.value)}
+          className="form-select block w-48 mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+        >
+          {departmentData.map(dept => (
+            <option key={dept.department} value={dept.department}>
+              {dept.department}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  </div>
+  <div className="h-80">
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart
+        data={years.map(year => {
+          const yearData = (yearlyData[year] || [])
+            .find(item => item.department === selectedDepartment);
+                         
+          return {
+            year,
+            total_publications: yearData?.total_publications || 0,
+            total_citations: yearData?.total_citations || 0
+          };
+        })}
+        margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="year" />
+        <YAxis yAxisId="left" orientation="left" />
+        <YAxis yAxisId="right" orientation="right" />
+        <Tooltip />
+        <Legend />
+        <Bar
+          yAxisId="left"
+          dataKey="total_publications"
+          fill="#3B82F6"
+          name="Publications"
+        />
+        <Bar
+          yAxisId="right"
+          dataKey="total_citations"
+          fill="#F59E0B"
+          name="Citations"
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+</div>
       )}
-
-      {/* Chart 8: PRL Trends (Line Chart for PRL over years) */}
-      {activeChart === 'prl-trends' && prlYearlyData.length > 0 && (
-        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">PRL Publications & Citations Over Time</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={prlYearlyData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="year" />
-                <YAxis yAxisId="left" orientation="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Legend />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="total_publications"
-                  stroke="#3B82F6"
-                  name="Total Publications"
-                  strokeWidth={3}
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="total_citations"
-                  stroke="#F59E0B"
-                  name="Total Citations"
-                  strokeWidth={3}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
+{activeChart === 'prl-trends' && prlYearlyData.length > 0 && (
+  <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+    <h3 className="text-lg font-semibold text-gray-700 mb-4">PRL Publications & Citations Over Time</h3>
+    <div className="h-80">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={prlYearlyData}
+          margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="year" />
+          <YAxis yAxisId="left" orientation="left" />
+          <YAxis yAxisId="right" orientation="right" />
+          <Tooltip />
+          <Legend />
+          <Bar
+            yAxisId="left"
+            dataKey="total_publications"
+            fill="#3B82F6"
+            name="Total Publications"
+          />
+          <Bar
+            yAxisId="right"
+            dataKey="total_citations"
+            fill="#F59E0B"
+            name="Total Citations"
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+)}
       {/* Department Cards */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {departmentData.map((dept, index) => (
           <div 
             key={dept.department} 
@@ -572,7 +586,7 @@ const Publication = () => {
             </div>
           </div>
         ))}
-      </div> */}
+      </div>
     </div>
   );
 };
