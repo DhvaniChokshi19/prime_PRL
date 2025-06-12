@@ -1,479 +1,648 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Lock, ExternalLink, ChevronDown, Newspaper, ComputerIcon, UserCheck, Quote, FolderOpen, Book, FileText, Users } from 'lucide-react';
-import fb from "../../assets/fb.jpg";
-import X from "../../assets/x.jpg";
-import altm from "../../assets/alt.png";
-import mend from "../../assets/mendley.png";
+import { 
+  BarChart, 
+  Bar, 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from 'recharts';
+import pubimg from '../../assets/pub_bg.jpg';
 import axiosInstance, { API_BASE_URL } from '../../api/axios';
-import { Button } from '@/components/ui/button';
-import { Tooltip } from 'recharts';
-import BookChapter from './BookChapter';
-import Conference from './Conference';
-import Review from './ReviewPaper';
-import plum from '../../assets/plumx.png';
-const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
-  const [publications, setPublications] = useState([]);
-  const [topPubs, setTopPubs] = useState([]);
+import { useNavigate } from 'react-router-dom';
+
+const Publication = () => {
+  const [departmentData, setDepartmentData] = useState([]);
+  const [yearlyData, setYearlyData] = useState({});
+  const [prlData, setPrlData] = useState(null);
+  const [prlYearlyData, setPrlYearlyData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAll, setShowAll] = useState(false);
-  const [sortBy, setSortBy] = useState('newest');
-  const [activeTab, setActiveTab] = useState('journal');
+  const [years, setYears] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [activeChart, setActiveChart] = useState('overview'); // New state for chart switching
+  const navigate = useNavigate();
+
+  const departmentIdMap = {
+    'Astronomy and Astrophysics': 1,
+    'Atomic, Molecular and Optical Physics': 2,
+    'Geosciences': 3,
+    'Planetary Sciences': 4,
+    'Space and Atmospheric Sciences': 5,
+    'Theoretical Physics': 6,
+    'Udaipur Solar Observatory': 7,
+    'Workshop': 8,
+    'CNIT Services': 9,
+    'Medical Services': 10,
+    'Administration': 11,
+    'CMG Services': 12,
+    'Library Services': 13,
+    'Unknown': 14,
+    'Others': 15
+  };
 
   useEffect(() => {
-    if (data && Array.isArray(data)) {
-      const sortedData = [...data].sort((a, b) => 
-          new Date(b.publication_date || 0) - new Date(a.publication_date || 0)
-        );
-      setPublications(data);
-      setIsLoading(false);
-    
-      if (!topPublications || !topPublications.length) {
-        setTopPubs(sortedData.slice(0, 10));
-      } else {
-        setTopPubs(topPublications);
-      }    
-      if (onDataUpdate) {
-        onDataUpdate(data);
+    const fetchDepartmentData = async () => {
+      try {
+        setIsLoading(true);        
+        const response = await axiosInstance.get('/api/departments', {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        console.log('Response status:', response.status);
+        
+        const data = response.data;
+        
+        const deptMetrics = [];
+        const yearlyDataObj = {};
+        const uniqueYears = new Set();
+        let prlMetrics = null;
+        let prlYearlyMetrics = [];
+        
+        data.forEach(item => {
+          if (item.hasOwnProperty('total_profiles')) {
+            // Check if this is PRL data or department data
+            if (item.department === 'PRL') {
+              prlMetrics = item;
+            } else {
+              deptMetrics.push(item);
+            }
+          } else if (item.hasOwnProperty('publication_stats')) {
+            // Yearly publication stats data
+            const departmentName = item.department;
+            
+            if (departmentName === 'PRL') {
+              prlYearlyMetrics = item.publication_stats;
+            } else {
+              item.publication_stats.forEach(stat => {
+                const year = stat.year.toString();
+                uniqueYears.add(year);
+                
+                if (!yearlyDataObj[year]) {
+                  yearlyDataObj[year] = [];
+                }
+                
+                yearlyDataObj[year].push({
+                  department: departmentName,
+                  total_publications: stat.total_publications,
+                  total_citations: stat.total_citations
+                });
+              });
+            }
+          }
+        });
+        
+        const sortedYears = Array.from(uniqueYears).sort();
+        const departments = deptMetrics.map(dept => dept.department);
+        
+        setDepartmentData(deptMetrics);
+        setYearlyData(yearlyDataObj);
+        setPrlData(prlMetrics);
+        setPrlYearlyData(prlYearlyMetrics);
+        setYears(sortedYears);
+        setSelectedDepartment(departments[0]);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching department data:', err);
+        setError('Failed to load department data. Please try again later.');
+        
+        // Use mock data if API fails
+        console.log('Using mock data due to API error');
+        useMockData();
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, [data, topPublications, onDataUpdate]);
+    };
 
-  const formatYear = (dateString) => {
-    if (!dateString) return '';
-    try {
-      return new Date(dateString).getFullYear();
-    } catch (e) {
-      return dateString;
-    }
+    // Mock data function for development/testing
+    const useMockData = () => {
+      console.log('Loading mock data');
+      
+      const mockDepartmentData = [
+        { department: "Computer Science", total_publications: 356, total_citations: 4250, total_profiles: 42, "h-index": 25 },
+        { department: "Physics", total_publications: 285, total_citations: 3800, total_profiles: 36, "h-index": 22 },
+      ];
+      
+      const mockPrlData = { 
+        department: "PRL", 
+        total_publications: 1500, 
+        total_citations: 25000, 
+        total_profiles: 150, 
+        "h-index": 45 
+      };
+      
+      const mockYears = ["2021", "2022"];
+      
+      const mockYearlyData = {};
+      mockYears.forEach(year => {
+        mockYearlyData[year] = mockDepartmentData.map(dept => ({
+          department: dept.department,
+          total_publications: Math.floor(dept.total_publications * (0.85 + Math.random() * 0.3)),
+          total_citations: Math.floor(dept.total_citations * (0.85 + Math.random() * 0.3))
+        }));
+      });
+
+      const mockPrlYearlyData = mockYears.map(year => ({
+        year: parseInt(year),
+        total_publications: Math.floor(mockPrlData.total_publications * (0.4 + Math.random() * 0.2)),
+        total_citations: Math.floor(mockPrlData.total_citations * (0.4 + Math.random() * 0.2))
+      }));
+      
+      setDepartmentData(mockDepartmentData);
+      setYearlyData(mockYearlyData);
+      setPrlData(mockPrlData);
+      setPrlYearlyData(mockPrlYearlyData);
+      setYears(mockYears);
+      setSelectedDepartment(mockDepartmentData[0].department);
+    };
+
+    fetchDepartmentData();
+  }, []); 
+
+  const handlePublicationClick = (department) => {
+    const departmentId = departmentIdMap[department] || 11;
+    navigate(`/DepartmentArticles/${departmentId}`);
   };
 
-  const sortedPublications = () => {
-    const publicationsToSort = showAll ? publications : topPubs;
+  // Prepare data for department-wise line charts
+  const prepareDepartmentLineData = () => {
+    const lineData = {};
     
-    if (!Array.isArray(publicationsToSort) || publicationsToSort.length === 0) {
-      return [];
-    }
-    const filteredPublications = publicationsToSort.filter(pub => {
-      switch(activeTab) {
-        case 'journal':
-          return pub.type === 'article' || !pub.type; 
-        case 'bookchapter':
-          return pub.type === 'book chapter';
-        case 'reviews':
-          return pub.type === 'review';
-        case 'conference':
-          return pub.type === 'conference';
-        default:
-          return true;
-      }
-    });  
-    return [...filteredPublications].sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.publication_date || 0) - new Date(a.publication_date || 0);
-        case 'oldest':
-          return new Date(a.publication_date || 0) - new Date(b.publication_date || 0);
-        case 'citations':
-          return (b.cited_by || 0) - (a.cited_by || 0);
-        default:
-          return 0;
-      }
+    years.forEach(year => {
+      const yearEntry = { year };
+      
+      departmentData.forEach(dept => {
+        const deptYearData = (yearlyData[year] || [])
+          .find(item => item.department === dept.department);
+        
+        yearEntry[`${dept.department}_publications`] = deptYearData?.total_publications || 0;
+        yearEntry[`${dept.department}_citations`] = deptYearData?.total_citations || 0;
+      });
+      
+      lineData[year] = yearEntry;
     });
+    
+    return Object.values(lineData);
   };
 
-  const handleSortChange = (e) => {
-    setSortBy(e.target.value);
+  // Generate colors for departments
+  const generateDepartmentColors = () => {
+    const colors = [
+      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
+      '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1'
+    ];
+    const colorMap = {};
+    departmentData.forEach((dept, index) => {
+      colorMap[dept.department] = colors[index % colors.length];
+    });
+    return colorMap;
   };
 
-  const handleViewMoreClick = () => {
-    setShowAll(true);
-  };
-
-  const levenshteinDistance = (str1, str2) => {
-    const m = str1.length;
-    const n = str2.length;
-    
-    const dp = Array(m + 1).fill().map(() => Array(n + 1).fill(0));
-    
-    // Initialize the matrix
-    for (let i = 0; i <= m; i++) {
-      dp[i][0] = i;
-    }
-    
-    for (let j = 0; j <= n; j++) {
-      dp[0][j] = j;
-    }
-    
-    // Fill the matrix
-    for (let i = 1; i <= m; i++) {
-      for (let j = 1; j <= n; j++) {
-        if (str1[i - 1] === str2[j - 1]) {
-          dp[i][j] = dp[i - 1][j - 1];
-        } else {
-          dp[i][j] = 1 + Math.min(
-            dp[i - 1][j],     // deletion
-            dp[i][j - 1],     // insertion
-            dp[i - 1][j - 1]  // substitution
-          );
-        }
-      }
-    }
-    
-    return dp[m][n];
-  };
-
-  const calculateSimilarity = (str1, str2) => {
-    if (!str1 || !str2) return 0;
-    
-    const maxLength = Math.max(str1.length, str2.length);
-    if (maxLength === 0) return 100; 
-    
-    const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
-    return ((maxLength - distance) / maxLength) * 100;
-  };
-
-  // Enhanced renderAuthors function with fuzzy matching
- const renderAuthors = (article) => {
-  if (!article.co_authors) return null;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-gray-600">Loading department data...</div>
+      </div>
+    );
+  }
   
-  if (!article.prl_authors || !Array.isArray(article.prl_authors)) {
-    return <p className="text-gray-600">{article.co_authors}</p>;
+  if (error) {
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong className="font-bold">Error:</strong>
+        <span className="block sm:inline"> {error}</span>
+      </div>
+    );
   }
 
-  const authorsList = article.co_authors.split(', ');
-  
-  const prlAuthorsMap = {};
-  const prlAuthorsArray = [];
-  
-  article.prl_authors.forEach(author => {
-    const fullName = author.name;
-    const nameWithoutTitle = fullName.replace(/^(Dr\.|Mr\.|Ms\.|Mrs\.|Prof\.|MS\.) /i, '').trim();
-    
-    prlAuthorsMap[fullName.toLowerCase()] = author;
-    prlAuthorsMap[nameWithoutTitle.toLowerCase()] = author;
-    
-    prlAuthorsArray.push({
-      author: author,
-      fullName: fullName,
-      cleanName: nameWithoutTitle,
-      nameParts: nameWithoutTitle.split(' ')
-    });
-  });
+  if (departmentData.length === 0) {
+    return (
+      <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
+        <strong className="font-bold">Notice:</strong>
+        <span className="block sm:inline"> No department data available.</span>
+      </div>
+    );
+  }
+
+  const departmentLineData = prepareDepartmentLineData();
+  const departmentColors = generateDepartmentColors();
+
+  // Chart navigation buttons
+  const chartButtons = [
+    { key: 'overview', label: 'Department Overview' },
+    { key: 'profiles', label: 'Total Profiles' },
+    { key: 'publications', label: 'Total Publications' },
+    { key: 'citations', label: 'Total Citations' },
+    { key: 'hindex', label: 'H-Index Comparison' },
+    { key: 'prl-overview', label: 'PRL Overview' },
+    { key: 'dept-trends', label: 'Department Trends' },
+    { key: 'prl-trends', label: 'PRL Trends' }
+  ];
 
   return (
-    <p className="text-gray-600">
-      {authorsList.map((authorName, index) => {
-        const cleanName = authorName.trim();
-        
-        // Exact match check first
-        let prlAuthor = prlAuthorsMap[cleanName.toLowerCase()];
-        
-        if (!prlAuthor) {
-          // More strict matching criteria
-          const SIMILARITY_THRESHOLD = 85; // Increased from 75
-          let bestMatch = null;
-          let highestSimilarity = 0;
-          
-          prlAuthorsArray.forEach(entry => {
-            // Base similarity check
-            let similarity = calculateSimilarity(cleanName, entry.fullName);
-            
-            // For cases with last name and first initial (like "Rajpurohit K")
-            // we need to be more careful with matching
-            if (entry.nameParts.length > 1) {
-              const lastName = entry.nameParts[entry.nameParts.length - 1];
-              const initials = entry.nameParts.slice(0, -1).map(part => part[0]).join('');
-              
-             
-              const authorParts = cleanName.split(' ');
-              if (authorParts.length === 2) {
-                const authorLastName = authorParts[0];
-                const authorInitial = authorParts[1];
-                
-                if (authorInitial.length === 1) {
-                
-                  const lastNameSimilarity = calculateSimilarity(authorLastName, lastName);
-                  
-                  const initialMatches = entry.nameParts[0][0].toLowerCase() === authorInitial.toLowerCase();
-                  
-                  if (lastNameSimilarity > 80 && initialMatches) {
-                    similarity = lastNameSimilarity;
-                  } else {
-                    
-                    similarity = 0;
-                  }
-                }
-              }
-              
-              const lastNameWithInitials = `${lastName} ${initials}`;
-              const initialsWithLastName = `${initials} ${lastName}`;
-              
-              similarity = Math.max(
-                similarity,
-                calculateSimilarity(cleanName, lastNameWithInitials),
-                calculateSimilarity(cleanName, initialsWithLastName)
-              );
-            }
-            
-            const cleanNameParts = cleanName.split(' ');
-            const hasSingleLetterInitial = cleanNameParts.some(part => part.length === 1);
-            
-            if (hasSingleLetterInitial) {
-            
-              const authorInitials = cleanNameParts
-                .filter(part => part.length === 1)
-                .map(initial => initial.toLowerCase());
-          
-              const entryFirstNameInitial = entry.nameParts[0][0].toLowerCase();
-              
-              if (authorInitials.length > 0 && !authorInitials.includes(entryFirstNameInitial)) {
-                similarity = 0;
-              }
-            }
-            
-            if (similarity > highestSimilarity && similarity >= SIMILARITY_THRESHOLD) {
-              highestSimilarity = similarity;
-              bestMatch = entry.author;
-            }
-          });
-          
-          if (bestMatch) {
-            prlAuthor = bestMatch;
-          }
-        }
-        
-        if (prlAuthor) {
-          return (
-            <React.Fragment key={index}>
-              {index > 0 && ', '}
-              <a 
-                href={`/profile/${prlAuthor.id}`}
-                className="text-blue-600 hover:underline"
-              >
-                {authorName}
-              </a>
-            </React.Fragment>
-          );
-        }
-        
-        return (
-          <React.Fragment key={index}>
-            {index > 0 && ', '}
-            {authorName}
-          </React.Fragment>
-        );
-      })}
-    </p>
-  );
-};
-
-  const getTabIcon = (tabName) => {
-    switch(tabName) {
-      case 'journal':
-        return <BookOpen className="w-5 h-5" />;
-      case 'bookchapter':
-        return <Book className="w-5 h-5" />;
-      case 'reviews':
-        return <FileText className="w-5 h-5" />;
-      case 'conference':
-        return <Users className="w-5 h-5" />;
-      default:
-        return <BookOpen className="w-5 h-5" />;
-    }
-  };
-
-  const getTabLabel = (tabName) => {
-    switch(tabName) {
-      case 'journal':
-        return 'Journal Articles';
-      case 'bookchapter':
-        return 'Book Chapters';
-      case 'reviews':
-        return 'Reviews';
-      case 'conference':
-        return 'Conference';
-      default:
-        return 'Publications';
-    }
-  };
-
-  const displayedPublications = sortedPublications();
-  
-  return (
-    <>
-    <div className="border-b border-gray-200">
-            <nav className="flex -mb-px space-x-6 overflow-x-auto">
-              {['journal', 'bookchapter', 'reviews', 'conference'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`group inline-flex items-center px-1 py-4 border-b-2 text-sm font-medium ${
-                    activeTab === tab
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <span className="mr-2">{getTabIcon(tab)}</span>
-                  {getTabLabel(tab)}
-                </button>
-              ))}
-            </nav>
-          </div>
-      {activeTab === 'journal' ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              {getTabIcon(activeTab)}
-              <h3 className="text-xl font-semibold">
-                {getTabLabel(activeTab)}
-              </h3>
-              <p className='font-semibold text-red-700'>(Data Source: Scopus) </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium">Sort By:</span>
-              <select 
-                className="px-3 py-1 border rounded-md text-sm"
-                value={sortBy}
-                onChange={handleSortChange}
-              >
-                <option value="newest">Date (newest)</option>
-                <option value="oldest">Date (oldest)</option>
-                <option value="citations">Citations</option>
-              </select>
+    <div className='bg-blue-200 mx-auto max-w-9xl p-3'>
+      <div className="relative w-full h-48">
+        <img 
+          src={pubimg} 
+          alt="Dashboard" 
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0"> 
+          <div className="container mx-auto px-8 h-52 flex items-center">
+            <div className="text-black space-y-6 max-w-3xl">
+              <h1 className="text-4xl font-bold">
+                Publications & Citations Department wise
+              </h1>
             </div>
           </div>
-
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <span className="text-gray-500">Loading publications...</span>
-            </div>
-          ) : error ? (
-            <div className="text-red-500 text-center py-4">{error}</div>
-          ) : (
-            <>
-              <div className="space-y-6 pl-4 border-l-2 border-gray-200">
-                {displayedPublications.length > 0 ? (
-                  displayedPublications.map((pub, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-start gap-4">
-                      
-                        <span className="font-bold text-gray-600 min-w-6 mt-1">
-                          {index + 1}.
-                        </span>
-
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between gap-4">
-                            <h4 className="font-semibold">
-                              {pub.title}
-                            </h4>
-                            
-                            {pub.doi && (
-                              <a 
-                                href={`https://doi.org/${pub.doi}`}
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="hover:underline"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </a>
-                            )}
-                          </div>
-                          {renderAuthors(pub)}
-                        
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                              {activeTab === 'journal' ? 'Article' : 
-                               activeTab === 'bookchapter' ? 'Book Chapter' : 
-                               activeTab === 'reviews' ? 'Review' : 'Conference Paper'}
-                            </span>
-                            {pub.open_access && <span className="text-green-600">Open access</span>}
-                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Cited by: {pub.cited_by}</span>
-                            <span className="text-gray-600">
-                              {pub.publication_name}
-                              {pub.volume && `, Volume ${pub.volume}`}
-                              {pub.issue && `, Issue ${pub.issue}`}
-                              {pub.pagerange && `, Pages ${pub.pagerange}`}
-                              {pub.publication_date && `, ${formatYear(pub.publication_date)}`}
-                            </span>
-                          </div>
-                          {pub.doi && (
-                            <p className="text-blue-600 text-sm">
-                              <a 
-                                href={`https://doi.org/${pub.doi}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="hover:underline"
-                              >
-                                DOI: {pub.doi}
-                              </a>
-                            </p>
-                          )}
-                          {(pub.cited_by !== undefined) && (
-                            <div className="text-sm text-gray-500">
-                              <details className="mt-2">
-                                <summary className="cursor-pointer hover:text-blue-600">View metrics</summary>
-                                <div className="flex flex-wrap gap-4 p-2 mt-2 bg-gray-50 rounded-md">
-                                  <span className="flex items-center"><img className="w-7 h-7 mr-1" src={fb} alt="Facebook" /> {pub.fb_cite || 0}</span>
-                                  <span className="flex items-center"><img className="w-7 h-7 mr-1" src={X} alt="X" /> {pub.x_cite || 0}</span>
-                                  <span className="flex items-center"><Newspaper className="w-5 h-5 text-orange-600 mr-1" /> {pub.news_cite || 0}</span>
-                                  <span className='flex items-center'><ComputerIcon className="w-5 h-5 text-black mr-1"/>Blog: {pub.blog_cite || 0}</span>
-                                  <span className="flex items-center"><UserCheck className='w-5 h-5 text-orange-500 mr-1'/>Accounts: {pub.accounts_cite || 0}</span>
-                                  <span className="flex items-center"><img className="w-7 h-7 " src={altm} alt="Altmetric"/>Altmetric: {pub.alt_score || 0}</span>
-                                  <span className="flex items-center"><img className="w-7 h-7 " src={mend} alt="Mendeley"/>Mendeley: {pub.mendeley_cite || 0}</span>
-                                  <span className="flex items-center"><img className='w-7 h-7' src={plum}alt="plumc"></img> PlumX citations: {pub.plumx_citations || 0}</span>
-                                </div>
-                              </details>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-gray-500 text-center py-4">No {getTabLabel(activeTab).toLowerCase()} found</div>
-                )}
-              </div>
-              
-              {!showAll && topPubs.length > 0 && publications.length > topPubs.length && (
-                <div className="flex justify-center mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={handleViewMoreClick}
-                    className="flex items-center gap-2"
-                  >
-                    View All {getTabLabel(activeTab)}
-                    <ChevronDown size={16} />
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
         </div>
-      ) : activeTab === 'bookchapter' ? (
-        <BookChapter 
-          profileId={profileId} 
-          data={publications} 
-          topPublications={topPubs} 
-          onDataUpdate={onDataUpdate} 
-        />
-      ) : activeTab === 'conference' ? (
-        <Conference 
-          profileId={profileId} 
-          data={publications} 
-          topPublications={topPubs} 
-          onDataUpdate={onDataUpdate} 
-        />
-      ) : activeTab === 'review' ? (
-        <Review 
-          profileId={profileId} 
-          data={publications} 
-          topPublications={topPubs} 
-          onDataUpdate={onDataUpdate} 
-        />
-      ) : null}
-    </>
+      </div>
+
+      {/* Chart Navigation */}
+      <div className="mb-6 mt-6 bg-white p-4 rounded-lg shadow-md">
+        <div className="flex flex-wrap gap-2 justify-center">
+          {chartButtons.map(button => (
+            <button
+              key={button.key}
+              onClick={() => setActiveChart(button.key)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeChart === button.key
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              {button.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Chart 1: Department Overview (Original) */}
+      {activeChart === 'overview' && (
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">Department Metrics Overview</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={departmentData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="department" 
+                  angle={-45} 
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
+                />
+                <YAxis yAxisId="left" orientation="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <Tooltip />
+                <Legend layout="horizontal" verticalAlign="top" align="center"/>
+                <Bar yAxisId="left" dataKey="total_publications" name="Publications" fill="#3B82F6" />
+                <Bar yAxisId="left" dataKey="total_profiles" name="Profiles" fill="#10B981" />
+                <Bar yAxisId="left" dataKey="h-index" name="H-Index" fill="#8B5CF6" />
+                <Bar yAxisId="right" dataKey="total_citations" name="Citations" fill="#F59E0B" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Chart 2: Total Profiles per Department */}
+      {activeChart === 'profiles' && (
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Profiles per Department</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={departmentData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="department" 
+                  angle={-45} 
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
+                />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="total_profiles" name="Total Profiles" fill="#10B981" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Chart 3: Total Publications per Department */}
+      {activeChart === 'publications' && (
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Publications per Department</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={departmentData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="department" 
+                  angle={-45} 
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
+                />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="total_publications" name="Total Publications" fill="#3B82F6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Chart 4: Total Citations per Department */}
+      {activeChart === 'citations' && (
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Citations per Department</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={departmentData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="department" 
+                  angle={-45} 
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
+                />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="total_citations" name="Total Citations" fill="#F59E0B" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Chart 5: H-Index Comparison */}
+      {activeChart === 'hindex' && (
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">H-Index Comparison Across Departments</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={departmentData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="department" 
+                  angle={-45} 
+                  textAnchor="end"
+                  height={60}
+                  interval={0}
+                />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="h-index" name="H-Index" fill="#8B5CF6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Chart 6: PRL Overview */}
+      {activeChart === 'prl-overview' && prlData && (
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">PRL Overall Statistics</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={[prlData]}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="department" />
+                <YAxis yAxisId="left" orientation="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <Tooltip />
+                <Legend />
+                <Bar yAxisId="left" dataKey="total_profiles" name="Total Profiles" fill="#10B981" />
+                <Bar yAxisId="left" dataKey="total_publications" name="Total Publications" fill="#3B82F6" />
+                <Bar yAxisId="left" dataKey="h-index" name="H-Index" fill="#8B5CF6" />
+                <Bar yAxisId="right" dataKey="total_citations" name="Total Citations" fill="#F59E0B" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Chart 7: Department Trends (Line Chart for Publications/Citations over years) */}
+      {activeChart === 'dept-trends' && departmentLineData.length > 0 && (
+        <>
+          <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Department Publications & Citations Trends</h3>
+            <div className="mb-4">
+              <label className="inline-flex items-center mr-4">
+                <input type="radio" name="trendType" value="publications" defaultChecked />
+                <span className="ml-2">Publications</span>
+              </label>
+              <label className="inline-flex items-center">
+                <input type="radio" name="trendType" value="citations" />
+                <span className="ml-2">Citations</span>
+              </label>
+            </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={departmentLineData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  {departmentData.map((dept, index) => (
+                    <Line
+                      key={`${dept.department}_publications`}
+                      type="monotone"
+                      dataKey={`${dept.department}_publications`}
+                      stroke={departmentColors[dept.department]}
+                      name={`${dept.department} Publications`}
+                      strokeWidth={2}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Individual Department Chart */}
+          <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-700">Individual Department Analysis</h3>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <label htmlFor="dept-select" className="text-gray-600">Department:</label>
+                  <select 
+                    id="dept-select"
+                    value={selectedDepartment || ''}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="form-select block w-48 mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                  >
+                    {departmentData.map(dept => (
+                      <option key={dept.department} value={dept.department}>
+                        {dept.department}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={years.map(year => {
+                    const yearData = (yearlyData[year] || [])
+                      .find(item => item.department === selectedDepartment);
+                    
+                    return {
+                      year,
+                      total_publications: yearData?.total_publications || 0,
+                      total_citations: yearData?.total_citations || 0
+                    };
+                  })}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis yAxisId="left" orientation="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="total_publications"
+                    stroke="#3B82F6"
+                    name="Publications"
+                    strokeWidth={3}
+                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
+                  />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="total_citations"
+                    stroke="#F59E0B"
+                    name="Citations"
+                    strokeWidth={3}
+                    dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Chart 8: PRL Trends (Line Chart for PRL over years) */}
+      {activeChart === 'prl-trends' && prlYearlyData.length > 0 && (
+        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">PRL Publications & Citations Over Time</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={prlYearlyData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis yAxisId="left" orientation="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <Tooltip />
+                <Legend />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="total_publications"
+                  stroke="#3B82F6"
+                  name="Total Publications"
+                  strokeWidth={3}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="total_citations"
+                  stroke="#F59E0B"
+                  name="Total Citations"
+                  strokeWidth={3}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* Department Cards */}
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {departmentData.map((dept, index) => (
+          <div 
+            key={dept.department} 
+            className="bg-white rounded-lg p-4 shadow border-l-4" 
+            style={{ borderLeftColor: '#3B82F6' }}
+          >
+            <h4 className="font-bold text-gray-700 mb-2 truncate" title={dept.department}>{dept.department}</h4>
+            <div className="grid grid-cols-4 gap-2 text-center">
+              <div className="bg-blue-100 p-2 rounded">
+                <p className="text-xs text-blue-700 font-semibold">Publications</p>
+                <p 
+                  onClick={() => handlePublicationClick(dept.department)} 
+                  className="text-lg font-bold text-blue-600 cursor-pointer hover:underline"
+                >
+                  {dept.total_publications}
+                </p>
+              </div>
+              <div className="bg-green-100 p-2 rounded">
+                <p className="text-xs text-green-700 font-semibold">Profiles</p>
+                <a 
+                  href={`http://${window.location.hostname}:5000/search?department=${dept.department}&q=${dept.department}`} 
+                  className="text-lg font-bold text-green-600 hover:underline"
+                >
+                  {dept.total_profiles}
+                </a>
+              </div>
+              <div className="bg-yellow-100 p-2 rounded">
+                <p className="text-xs text-yellow-700 font-semibold">Citations</p>
+                <p className="text-lg font-bold text-yellow-600">{dept.total_citations?.toLocaleString()}</p>
+              </div>
+              <div className="bg-purple-100 p-2 rounded">
+                <p className="text-xs text-purple-700 font-semibold">H-Index</p>
+                <p className="text-lg font-bold text-purple-600">{dept["h-index"]}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div> */}
+    </div>
   );
 };
 
-export default Publications;
+export default Publication;
