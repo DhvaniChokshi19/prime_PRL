@@ -44,7 +44,6 @@ const Publication = () => {
     'Unknown': 14,
     'Others': 15
   };
-
   useEffect(() => {
     const fetchDepartmentData = async () => {
       try {
@@ -63,8 +62,6 @@ const Publication = () => {
         const deptMetrics = [];
         const yearlyDataObj = {};
         const uniqueYears = new Set();
-        let prlMetrics = null;
-        let prlYearlyMetrics = [];
         
         data.forEach(item => {
           if (item.hasOwnProperty('total_profiles')) {
@@ -418,136 +415,28 @@ const Publication = () => {
                   height={60}
                   interval={0}
                 />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="h-index" name="H-Index" fill="#8B5CF6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
-      {/* Chart 6: PRL Overview */}
-      {activeChart === 'prl-overview' && prlData && (
-        <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">PRL Overall Statistics</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={[prlData]}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="department" />
                 <YAxis yAxisId="left" orientation="left" />
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Bar yAxisId="left" dataKey="total_profiles" name="Total Profiles" fill="#10B981" />
-                <Bar yAxisId="left" dataKey="total_publications" name="Total Publications" fill="#3B82F6" />
-                <Bar yAxisId="left" dataKey="h-index" name="H-Index" fill="#8B5CF6" />
-                <Bar yAxisId="right" dataKey="total_citations" name="Total Citations" fill="#F59E0B" />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="total_publications" 
+                  name="Publications" 
+                  fill={colors.publications} 
+                />
+                <Bar 
+                  yAxisId="right"
+                  dataKey="total_citations" 
+                  name="Citations" 
+                  fill={colors.citations} 
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
       )}
 
-      {/* Chart 7: Department Trends (Line Chart for Publications/Citations over years) */}
-      {activeChart === 'dept-trends' && departmentLineData.length > 0 && (
-<div className="mb-8 bg-white p-6 rounded-lg shadow-md">
-  <div className="flex justify-between items-center mb-4">
-    <h3 className="text-lg font-semibold text-gray-700">Individual Department Analysis</h3>
-    <div className="flex items-center space-x-4">
-      <div className="flex items-center space-x-2">
-        <label htmlFor="dept-select" className="text-gray-600">Department:</label>
-        <select 
-          id="dept-select"
-          value={selectedDepartment || ''}
-          onChange={(e) => setSelectedDepartment(e.target.value)}
-          className="form-select block w-48 mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-        >
-          {departmentData.map(dept => (
-            <option key={dept.department} value={dept.department}>
-              {dept.department}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  </div>
-  <div className="h-80">
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart
-        data={years.map(year => {
-          const yearData = (yearlyData[year] || [])
-            .find(item => item.department === selectedDepartment);
-                         
-          return {
-            year,
-            total_publications: yearData?.total_publications || 0,
-            total_citations: yearData?.total_citations || 0
-          };
-        })}
-        margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="year" />
-        <YAxis yAxisId="left" orientation="left" />
-        <YAxis yAxisId="right" orientation="right" />
-        <Tooltip />
-        <Legend />
-        <Bar
-          yAxisId="left"
-          dataKey="total_publications"
-          fill="#3B82F6"
-          name="Publications"
-        />
-        <Bar
-          yAxisId="right"
-          dataKey="total_citations"
-          fill="#F59E0B"
-          name="Citations"
-        />
-      </BarChart>
-    </ResponsiveContainer>
-  </div>
-</div>
-      )}
-{activeChart === 'prl-trends' && prlYearlyData.length > 0 && (
-  <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
-    <h3 className="text-lg font-semibold text-gray-700 mb-4">PRL Publications & Citations Over Time</h3>
-    <div className="h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={prlYearlyData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="year" />
-          <YAxis yAxisId="left" orientation="left" />
-          <YAxis yAxisId="right" orientation="right" />
-          <Tooltip />
-          <Legend />
-          <Bar
-            yAxisId="left"
-            dataKey="total_publications"
-            fill="#3B82F6"
-            name="Total Publications"
-          />
-          <Bar
-            yAxisId="right"
-            dataKey="total_citations"
-            fill="#F59E0B"
-            name="Total Citations"
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  </div>
-)}
-      {/* Department Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {departmentData.map((dept, index) => (
           <div 
@@ -586,7 +475,7 @@ const Publication = () => {
             </div>
           </div>
         ))}
-      </div>
+      </div> 
     </div>
   );
 };
