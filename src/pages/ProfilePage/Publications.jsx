@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Lock, ExternalLink, ChevronDown, Newspaper, ComputerIcon, UserCheck, Quote, FolderOpen, Book, FileText, Users } from 'lucide-react';
+import { BookOpen, ExternalLink, ChevronDown, Newspaper, ComputerIcon, UserCheck, Download } from 'lucide-react';
 import fb from "../../assets/fb.jpg";
 import X from "../../assets/x.jpg";
 import altm from "../../assets/alt.png";
 import mend from "../../assets/mendley.png";
 import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { Button } from '@/components/ui/button';
-import { Tooltip } from 'recharts';
-import BookChapter from './BookChapter';
-import Conference from './Conference';
-import Review from './ReviewPaper';
 import plum from '../../assets/plumx.png';
+
 const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   const [publications, setPublications] = useState([]);
   const [topPubs, setTopPubs] = useState([]);
@@ -18,8 +15,6 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   const [error, setError] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
-  const [activeTab, setActiveTab] = useState('journal');
-
   useEffect(() => {
     if (data && Array.isArray(data)) {
       const sortedData = [...data].sort((a, b) => 
@@ -55,18 +50,7 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
       return [];
     }
     const filteredPublications = publicationsToSort.filter(pub => {
-      switch(activeTab) {
-        case 'journal':
-          return pub.type === 'article' || !pub.type; 
-        case 'bookchapter':
-          return pub.type === 'book chapter';
-        case 'reviews':
-          return pub.type === 'review';
-        case 'conference':
-          return pub.type === 'conference';
-        default:
-          return true;
-      }
+      return pub.type === 'article' || !pub.type; 
     });  
     return [...filteredPublications].sort((a, b) => {
       switch (sortBy) {
@@ -88,6 +72,194 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
 
   const handleViewMoreClick = () => {
     setShowAll(true);
+  };
+
+  // Download functions
+  const downloadCSV = () => {
+    const currentPublications = sortedPublications();
+    if (currentPublications.length === 0) {
+      alert('No publications to download');
+      return;
+    }
+
+    const headers = [
+      'Title',
+      'Authors',
+      'Publication Name',
+      'Type',
+      'Publication Date',
+      'Volume',
+      'Issue',
+      'Page Range',
+      'Citations',
+      'DOI',
+      'Open Access',
+      'Facebook Citations',
+      'X Citations',
+      'News Citations',
+      'Blog Citations',
+      'Accounts Citations',
+      'Altmetric Score',
+      'Mendeley Citations',
+      'PlumX Citations'
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...currentPublications.map(pub => [
+        `"${(pub.title || '').replace(/"/g, '""')}"`,
+        `"${(pub.co_authors || '').replace(/"/g, '""')}"`,
+        `"${(pub.publication_name || '').replace(/"/g, '""')}"`,
+        `"${pub.type || 'article'}"`,
+        `"${formatYear(pub.publication_date) || ''}"`,
+        `"${pub.volume || ''}"`,
+        `"${pub.issue || ''}"`,
+        `"${pub.pagerange || ''}"`,
+        `"${pub.cited_by || 0}"`,
+        `"${pub.doi || ''}"`,
+        `"${pub.open_access ? 'Yes' : 'No'}"`,
+        `"${pub.fb_cite || 0}"`,
+        `"${pub.x_cite || 0}"`,
+        `"${pub.news_cite || 0}"`,
+        `"${pub.blog_cite || 0}"`,
+        `"${pub.accounts_cite || 0}"`,
+        `"${pub.alt_score || 0}"`,
+        `"${pub.mendeley_cite || 0}"`,
+        `"${pub.plumx_citations || 0}"`
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Journal_Articles_publications.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadPDF = () => {
+    const currentPublications = sortedPublications();
+    if (currentPublications.length === 0) {
+      alert('No publications to download');
+      return;
+    }
+
+    // Create a new window with the publications content
+    const printWindow = window.open('', '_blank');
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Journal Articles - Publications</title>
+        <style>
+          body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            line-height: 1.6;
+            color: #333;
+          }
+          h1 { 
+            color: #2563eb; 
+            border-bottom: 2px solid #2563eb; 
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+          }
+          .publication { 
+            margin-bottom: 25px; 
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background-color: #f9fafb;
+          }
+          .title { 
+            font-weight: bold; 
+            font-size: 16px;
+            color: #1f2937;
+            margin-bottom: 5px;
+          }
+          .authors { 
+            color: #6b7280; 
+            margin-bottom: 5px;
+          }
+          .details { 
+            font-size: 14px; 
+            color: #374151;
+            margin-bottom: 5px;
+          }
+          .metrics {
+            background-color: #f3f4f6;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 12px;
+          }
+          .doi {
+            color: #2563eb;
+            margin-top: 5px;
+            font-size: 12px;
+          }
+          .badge {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: 5px;
+          }
+          @media print {
+            body { margin: 0; }
+            .publication { break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>Journal Articles (${currentPublications.length} publications)</h1>
+        ${currentPublications.map((pub, index) => `
+          <div class="publication">
+            <div class="title">${index + 1}. ${pub.title || 'Untitled'}</div>
+            <div class="authors">${pub.co_authors || 'No authors listed'}</div>
+            <div class="details">
+              <span class="badge">${'Article'}</span>
+              <span class="badge">Citations: ${pub.cited_by || 0}</span>
+              ${pub.open_access ? '<span class="badge" style="background-color: #dcfce7; color: #166534;">Open Access</span>' : ''}
+              <br><br>
+              <strong>Journal:</strong> ${pub.publication_name || 'N/A'}
+              ${pub.volume ? `<br><strong>Volume:</strong> ${pub.volume}` : ''}
+              ${pub.issue ? `<br><strong>Issue:</strong> ${pub.issue}` : ''}
+              ${pub.pagerange ? `<br><strong>Pages:</strong> ${pub.pagerange}` : ''}
+              ${pub.publication_date ? `<br><strong>Year:</strong> ${formatYear(pub.publication_date)}` : ''}
+            </div>
+            ${pub.doi ? `<div class="doi"><strong>DOI:</strong> ${pub.doi}</div>` : ''}
+            ${(pub.cited_by !== undefined) ? `
+              <div class="metrics">
+                <strong>Metrics:</strong><br>
+                Facebook: ${pub.fb_cite || 0} | 
+                X (Twitter): ${pub.x_cite || 0} | 
+                News: ${pub.news_cite || 0} | 
+                Blog: ${pub.blog_cite || 0} | 
+                Accounts: ${pub.accounts_cite || 0} | 
+                Altmetric: ${pub.alt_score || 0} | 
+                Mendeley: ${pub.mendeley_cite || 0} | 
+                PlumX: ${pub.plumx_citations || 0}
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+        <script>
+          window.onload = function() {
+            window.print();
+            window.close();
+          }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
   };
 
   const levenshteinDistance = (str1, str2) => {
@@ -302,34 +474,41 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   
   return (
     <>
-    <div className="border-b border-gray-200">
-            <nav className="flex -mb-px space-x-6 overflow-x-auto">
-              {['journal', 'bookchapter', 'reviews', 'conference'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`group inline-flex items-center px-1 py-4 border-b-2 text-sm font-medium ${
-                    activeTab === tab
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <span className="mr-2">{getTabIcon(tab)}</span>
-                  {getTabLabel(tab)}
-                </button>
-              ))}
-            </nav>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <BookOpen className="w-5 h-5" />
+            <h3 className="text-xl font-semibold">
+              Journal Articles
+            </h3>
+            <p className='font-semibold text-red-700'>(Data Source: Scopus) </p>
           </div>
-      {activeTab === 'journal' ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-4">
+            {/* Download buttons */}
             <div className="flex items-center space-x-2">
-              {getTabIcon(activeTab)}
-              <h3 className="text-xl font-semibold">
-                {getTabLabel(activeTab)}
-              </h3>
-              <p className='font-semibold text-red-700'>(Data Source: Scopus) </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadCSV}
+                className="flex items-center gap-2"
+                disabled={displayedPublications.length === 0}
+              >
+                <Download className="w-4 h-4" />
+                CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadPDF}
+                className="flex items-center gap-2"
+                disabled={displayedPublications.length === 0}
+              >
+                <Download className="w-4 h-4" />
+                PDF
+              </Button>
             </div>
+            
+            {/* Sort dropdown */}
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium">Sort By:</span>
               <select 
@@ -343,135 +522,112 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
               </select>
             </div>
           </div>
+        </div>
 
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <span className="text-gray-500">Loading publications...</span>
-            </div>
-          ) : error ? (
-            <div className="text-red-500 text-center py-4">{error}</div>
-          ) : (
-            <>
-              <div className="space-y-6 pl-4 border-l-2 border-gray-200">
-                {displayedPublications.length > 0 ? (
-                  displayedPublications.map((pub, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-start gap-4">
-                      
-                        <span className="font-bold text-gray-600 min-w-6 mt-1">
-                          {index + 1}.
-                        </span>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <span className="text-gray-500">Loading publications...</span>
+          </div>
+        ) : error ? (
+          <div className="text-red-500 text-center py-4">{error}</div>
+        ) : (
+          <>
+            <div className="space-y-6 pl-4 border-l-2 border-gray-200">
+              {displayedPublications.length > 0 ? (
+                displayedPublications.map((pub, index) => (
+                  <div key={index} className="space-y-2">
+                    <div className="flex items-start gap-4">
+                    
+                      <span className="font-bold text-gray-600 min-w-6 mt-1">
+                        {index + 1}.
+                      </span>
 
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between gap-4">
-                            <h4 className="font-semibold">
-                              {pub.title}
-                            </h4>
-                            
-                            {pub.doi && (
-                              <a 
-                                href={`https://doi.org/${pub.doi}`}
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="hover:underline"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </a>
-                            )}
-                          </div>
-                          {renderAuthors(pub)}
-                        
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                              {activeTab === 'journal' ? 'Article' : 
-                               activeTab === 'bookchapter' ? 'Book Chapter' : 
-                               activeTab === 'reviews' ? 'Review' : 'Conference Paper'}
-                            </span>
-                            {pub.open_access && <span className="text-green-600">Open access</span>}
-                            <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Cited by: {pub.cited_by}</span>
-                            <span className="text-gray-600">
-                              {pub.publication_name}
-                              {pub.volume && `, Volume ${pub.volume}`}
-                              {pub.issue && `, Issue ${pub.issue}`}
-                              {pub.pagerange && `, Pages ${pub.pagerange}`}
-                              {pub.publication_date && `, ${formatYear(pub.publication_date)}`}
-                            </span>
-                          </div>
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between gap-4">
+                          <h4 className="font-semibold">
+                            {pub.title}
+                          </h4>
+                          
                           {pub.doi && (
-                            <p className="text-blue-600 text-sm">
-                              <a 
-                                href={`https://doi.org/${pub.doi}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="hover:underline"
-                              >
-                                DOI: {pub.doi}
-                              </a>
-                            </p>
-                          )}
-                          {(pub.cited_by !== undefined) && (
-                            <div className="text-sm text-gray-500">
-                              <details className="mt-2">
-                                <summary className="cursor-pointer hover:text-blue-600">View metrics</summary>
-                                <div className="flex flex-wrap gap-4 p-2 mt-2 bg-gray-50 rounded-md">
-                                  <span className="flex items-center"><img className="w-7 h-7 mr-1" src={fb} alt="Facebook" /> {pub.fb_cite || 0}</span>
-                                  <span className="flex items-center"><img className="w-7 h-7 mr-1" src={X} alt="X" /> {pub.x_cite || 0}</span>
-                                  <span className="flex items-center"><Newspaper className="w-5 h-5 text-orange-600 mr-1" /> {pub.news_cite || 0}</span>
-                                  <span className='flex items-center'><ComputerIcon className="w-5 h-5 text-black mr-1"/>Blog: {pub.blog_cite || 0}</span>
-                                  <span className="flex items-center"><UserCheck className='w-5 h-5 text-orange-500 mr-1'/>Accounts: {pub.accounts_cite || 0}</span>
-                                  <span className="flex items-center"><img className="w-7 h-7 " src={altm} alt="Altmetric"/>Altmetric: {pub.alt_score || 0}</span>
-                                  <span className="flex items-center"><img className="w-7 h-7 " src={mend} alt="Mendeley"/>Mendeley: {pub.mendeley_cite || 0}</span>
-                                  <span className="flex items-center"><img className='w-7 h-7' src={plum}alt="plumc"></img> PlumX citations: {pub.plumx_citations || 0}</span>
-                                </div>
-                              </details>
-                            </div>
+                            <a 
+                              href={`https://doi.org/${pub.doi}`}
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="hover:underline"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
                           )}
                         </div>
+                        {renderAuthors(pub)}
+                      
+                        <div className="flex flex-wrap gap-4 text-sm">
+                          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                            Article
+                          </span>
+                          {pub.open_access && <span className="text-green-600">Open access</span>}
+                          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Cited by: {pub.cited_by}</span>
+                          <span className="text-gray-600">
+                            {pub.publication_name}
+                            {pub.volume && `, Volume ${pub.volume}`}
+                            {pub.issue && `, Issue ${pub.issue}`}
+                            {pub.pagerange && `, Pages ${pub.pagerange}`}
+                            {pub.publication_date && `, ${formatYear(pub.publication_date)}`}
+                          </span>
+                        </div>
+                        {pub.doi && (
+                          <p className="text-blue-600 text-sm">
+                            <a 
+                              href={`https://doi.org/${pub.doi}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="hover:underline"
+                            >
+                              DOI: {pub.doi}
+                            </a>
+                          </p>
+                        )}
+                        {(pub.cited_by !== undefined) && (
+                          <div className="text-sm text-gray-500">
+                            <details className="mt-2">
+                              <summary className="cursor-pointer hover:text-blue-600">View metrics</summary>
+                              <div className="flex flex-wrap gap-4 p-2 mt-2 bg-gray-50 rounded-md">
+                                <span className="flex items-center"><img className="w-7 h-7 mr-1" src={fb} alt="Facebook" /> {pub.fb_cite || 0}</span>
+                                <span className="flex items-center"><img className="w-7 h-7 mr-1" src={X} alt="X" /> {pub.x_cite || 0}</span>
+                                <span className="flex items-center"><Newspaper className="w-5 h-5 text-orange-600 mr-1" /> {pub.news_cite || 0}</span>
+                                <span className='flex items-center'><ComputerIcon className="w-5 h-5 text-black mr-1"/>Blog: {pub.blog_cite || 0}</span>
+                                <span className="flex items-center"><UserCheck className='w-5 h-5 text-orange-500 mr-1'/>Accounts: {pub.accounts_cite || 0}</span>
+                                <span className="flex items-center"><img className="w-7 h-7 " src={altm} alt="Altmetric"/>Altmetric: {pub.alt_score || 0}</span>
+                                <span className="flex items-center"><img className="w-7 h-7 " src={mend} alt="Mendeley"/>Mendeley: {pub.mendeley_cite || 0}</span>
+                                <span className="flex items-center"><img className='w-7 h-7' src={plum}alt="plumc"></img> PlumX citations: {pub.plumx_citations || 0}</span>
+                              </div>
+                            </details>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-gray-500 text-center py-4">No {getTabLabel(activeTab).toLowerCase()} found</div>
-                )}
-              </div>
-              
-              {!showAll && topPubs.length > 0 && publications.length > topPubs.length && (
-                <div className="flex justify-center mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={handleViewMoreClick}
-                    className="flex items-center gap-2"
-                  >
-                    View All {getTabLabel(activeTab)}
-                    <ChevronDown size={16} />
-                  </Button>
-                </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-gray-500 text-center py-4">No journal articles found</div>
               )}
-            </>
-          )}
-        </div>
-      ) : activeTab === 'bookchapter' ? (
-        <BookChapter 
-          profileId={profileId} 
-          data={publications} 
-          topPublications={topPubs} 
-          onDataUpdate={onDataUpdate} 
-        />
-      ) : activeTab === 'conference' ? (
-        <Conference 
-          profileId={profileId} 
-          data={publications} 
-          topPublications={topPubs} 
-          onDataUpdate={onDataUpdate} 
-        />
-      ) : activeTab === 'review' ? (
-        <Review 
-          profileId={profileId} 
-          data={publications} 
-          topPublications={topPubs} 
-          onDataUpdate={onDataUpdate} 
-        />
-      ) : null}
+            </div>
+            
+            {!showAll && topPubs.length > 0 && publications.length > topPubs.length && (
+              <div className="flex justify-center mt-6">
+                <Button
+                  variant="outline"
+                  onClick={handleViewMoreClick}
+                  className="flex items-center gap-2"
+                >
+                  View All Journal Articles
+                  <ChevronDown size={16} />
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </>
   );
 };
