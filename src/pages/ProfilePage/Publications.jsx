@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, ExternalLink, ChevronDown, Newspaper, ComputerIcon, UserCheck, Download } from 'lucide-react';
+import { BookOpen, ExternalLink, ChevronDown, Newspaper, ComputerIcon, UserCheck, Download, FileText } from 'lucide-react';
 import fb from "../../assets/fb.jpg";
 import X from "../../assets/x.jpg";
 import altm from "../../assets/alt.png";
@@ -8,6 +8,7 @@ import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { Button } from '@/components/ui/button';
 import plum from '../../assets/plumx.png';
 
+
 const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   const [publications, setPublications] = useState([]);
   const [topPubs, setTopPubs] = useState([]);
@@ -15,6 +16,7 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
   const [error, setError] = useState(null);
   const [showAll, setShowAll] = useState(false);
   const [sortBy, setSortBy] = useState('newest');
+  
   useEffect(() => {
     if (data && Array.isArray(data)) {
       const sortedData = [...data].sort((a, b) => 
@@ -140,126 +142,123 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
     document.body.removeChild(link);
   };
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     const currentPublications = sortedPublications();
     if (currentPublications.length === 0) {
       alert('No publications to download');
       return;
     }
 
-    // Create a new window with the publications content
-    const printWindow = window.open('', '_blank');
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Journal Articles - Publications</title>
-        <style>
-          body { 
-            font-family: Arial, sans-serif; 
-            margin: 20px; 
-            line-height: 1.6;
-            color: #333;
-          }
-          h1 { 
-            color: #2563eb; 
-            border-bottom: 2px solid #2563eb; 
-            padding-bottom: 10px;
-            margin-bottom: 30px;
-          }
-          .publication { 
-            margin-bottom: 25px; 
-            padding: 15px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            background-color: #f9fafb;
-          }
-          .title { 
-            font-weight: bold; 
-            font-size: 16px;
-            color: #1f2937;
-            margin-bottom: 5px;
-          }
-          .authors { 
-            color: #6b7280; 
-            margin-bottom: 5px;
-          }
-          .details { 
-            font-size: 14px; 
-            color: #374151;
-            margin-bottom: 5px;
-          }
-          .metrics {
-            background-color: #f3f4f6;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-size: 12px;
-          }
-          .doi {
-            color: #2563eb;
-            margin-top: 5px;
-            font-size: 12px;
-          }
-          .badge {
-            background-color: #dbeafe;
-            color: #1e40af;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            margin-right: 5px;
-          }
-          @media print {
-            body { margin: 0; }
-            .publication { break-inside: avoid; }
-          }
-        </style>
-      </head>
-      <body>
-        <h1>Journal Articles (${currentPublications.length} publications)</h1>
-        ${currentPublications.map((pub, index) => `
-          <div class="publication">
-            <div class="title">${index + 1}. ${pub.title || 'Untitled'}</div>
-            <div class="authors">${pub.co_authors || 'No authors listed'}</div>
-            <div class="details">
-              <span class="badge">${'Article'}</span>
-              <span class="badge">Citations: ${pub.cited_by || 0}</span>
-              ${pub.open_access ? '<span class="badge" style="background-color: #dcfce7; color: #166534;">Open Access</span>' : ''}
-              <br><br>
-              <strong>Journal:</strong> ${pub.publication_name || 'N/A'}
-              ${pub.volume ? `<br><strong>Volume:</strong> ${pub.volume}` : ''}
-              ${pub.issue ? `<br><strong>Issue:</strong> ${pub.issue}` : ''}
-              ${pub.pagerange ? `<br><strong>Pages:</strong> ${pub.pagerange}` : ''}
-              ${pub.publication_date ? `<br><strong>Year:</strong> ${formatYear(pub.publication_date)}` : ''}
-            </div>
-            ${pub.doi ? `<div class="doi"><strong>DOI:</strong> ${pub.doi}</div>` : ''}
-            ${(pub.cited_by !== undefined) ? `
-              <div class="metrics">
-                <strong>Metrics:</strong><br>
-                Facebook: ${pub.fb_cite || 0} | 
-                X (Twitter): ${pub.x_cite || 0} | 
-                News: ${pub.news_cite || 0} | 
-                Blog: ${pub.blog_cite || 0} | 
-                Accounts: ${pub.accounts_cite || 0} | 
-                Altmetric: ${pub.alt_score || 0} | 
-                Mendeley: ${pub.mendeley_cite || 0} | 
-                PlumX: ${pub.plumx_citations || 0}
-              </div>
-            ` : ''}
-          </div>
-        `).join('')}
-        <script>
-          window.onload = function() {
-            window.print();
-            window.close();
-          }
-        </script>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    try {
+      // Import jsPDF dynamically
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      
+      // Set up the document
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      const margin = 20;
+      const maxWidth = pageWidth - 2 * margin;
+      let yPosition = margin;
+      
+      // Title
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text('Journal Articles Publications', margin, yPosition);
+      yPosition += 15;
+      
+      // Add generation date
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, margin, yPosition);
+      yPosition += 15;
+      
+      // Publications
+      currentPublications.forEach((pub, index) => {
+        // Check if we need a new page
+        if (yPosition > pageHeight - 60) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        
+        // Publication number
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        const numberText = `${index + 1}.`;
+        doc.text(numberText, margin, yPosition);
+        
+        // Title
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        const titleLines = doc.splitTextToSize(pub.title || 'Untitled', maxWidth - 15);
+        doc.text(titleLines, margin + 15, yPosition);
+        yPosition += titleLines.length * 5;
+        
+        // Authors
+        if (pub.co_authors) {
+          doc.setFontSize(10);
+          doc.setFont(undefined, 'normal');
+          const authorLines = doc.splitTextToSize(`Authors: ${pub.co_authors}`, maxWidth - 15);
+          doc.text(authorLines, margin + 15, yPosition);
+          yPosition += authorLines.length * 4;
+        }
+        
+        // Publication details
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        
+        let details = [];
+        if (pub.publication_name) details.push(pub.publication_name);
+        if (pub.volume) details.push(`Volume ${pub.volume}`);
+        if (pub.issue) details.push(`Issue ${pub.issue}`);
+        if (pub.pagerange) details.push(`Pages ${pub.pagerange}`);
+        if (pub.publication_date) details.push(`${formatYear(pub.publication_date)}`);
+        
+        if (details.length > 0) {
+          const detailsText = details.join(', ');
+          const detailLines = doc.splitTextToSize(detailsText, maxWidth - 15);
+          doc.text(detailLines, margin + 15, yPosition);
+          yPosition += detailLines.length * 4;
+        }
+        
+        // Citations and metrics
+        const metrics = [];
+        if (pub.cited_by !== undefined) metrics.push(`Citations: ${pub.cited_by}`);
+        if (pub.open_access) metrics.push('Open Access');
+        if (pub.alt_score) metrics.push(`Altmetric: ${pub.alt_score}`);
+        if (pub.mendeley_cite) metrics.push(`Mendeley: ${pub.mendeley_cite}`);
+        
+        if (metrics.length > 0) {
+          doc.text(metrics.join(' | '), margin + 15, yPosition);
+          yPosition += 4;
+        }
+        
+        // DOI
+        if (pub.doi) {
+          doc.setTextColor(0, 0, 255);
+          doc.text(`DOI: ${pub.doi}`, margin + 15, yPosition);
+          doc.setTextColor(0, 0, 0);
+          yPosition += 4;
+        }
+        
+        yPosition += 8; // Space between publications
+      });
+      
+      // Add footer with page numbers
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin - 20, pageHeight - 10);
+      }
+      
+      // Save the PDF
+      doc.save('Journal_Articles_Publications.pdf');
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    }
   };
 
   const levenshteinDistance = (str1, str2) => {
@@ -351,8 +350,6 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
             // Base similarity check
             let similarity = calculateSimilarity(cleanName, entry.fullName);
             
-            // For cases with last name and first initial (like "Rajpurohit K")
-            // we need to be more careful with matching
             if (entry.nameParts.length > 1) {
               const lastName = entry.nameParts[entry.nameParts.length - 1];
               const initials = entry.nameParts.slice(0, -1).map(part => part[0]).join('');
@@ -503,7 +500,7 @@ const Publications = ({ profileId, onDataUpdate, data, topPublications }) => {
                 className="flex items-center gap-2"
                 disabled={displayedPublications.length === 0}
               >
-                <Download className="w-4 h-4" />
+                <FileText className="w-4 h-4" />
                 PDF
               </Button>
             </div>

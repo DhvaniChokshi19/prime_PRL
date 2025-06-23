@@ -35,6 +35,7 @@ import {
   Users,
 } from 'lucide-react';
 import ProfileImageUpload from './ProfileImageUpload';
+import PostDoctoralFellow from './PostDoctoralFellow.jsx';
 
 // Tooltips component
 const Tooltips = ({ text, children }) => {
@@ -271,7 +272,8 @@ const Mainprofile = () => {
     { name: 'Publication', icon: BookOpen },
     { name: 'Patent', icon: ScrollText },
     { name: 'Project', icon: BookMarked },
-    { name: 'Thesis (Post Doctoral Fellow)', icon: Newspaper },
+    { name: 'Thesis (PhD)', icon: Newspaper },
+    {name : 'Post Doctoral Fellow',icon: NotebookText},
   ];
 
   const renderContent = () => {
@@ -302,11 +304,16 @@ const Mainprofile = () => {
           onDataUpdate={(data) => updateComponentData('Projects', data)} 
           profileId={profileId} 
         />;
-      case 'Thesis (Post Doctoral Fellow)':
+      case 'Thesis (PhD)':
         return <Thesis
           onDataUpdate={(data) => updateComponentData('Thesis', data)}
           profileId={profileId}
-        />
+        />;
+      case 'Post Doctoral Fellow':
+          return <PostDoctoralFellow
+          onDataUpdate={(data) => updateComponentData('Post Doctoral Fellow', data)}
+          profileId={profileId}
+        />;
       default:
         return <PersonalInformation 
           onDataUpdate={(data) => updateComponentData('PersonalInformation', data)} 
