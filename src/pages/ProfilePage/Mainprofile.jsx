@@ -521,8 +521,8 @@ const Mainprofile = () => {
 
   const renderMetricCards = (metrics) => {
     return metrics.map((metric, index) => (
-      <div key={index} className="bg-white hover:bg-blue-200 transition-colors rounded p-1 cursor-pointer text-center w-10">
-        <div className="flex justify-center mb-5">
+      <div key={index} className="bg-white hover:bg-blue-200 transition-colors rounded p-1 cursor-pointer text-center px-2 py-1">
+        <div className="flex justify-center mb-2">
           {metric.icon}
         </div>
         <Tooltips text={metric.tooltip || ''}>
@@ -647,27 +647,26 @@ const Mainprofile = () => {
         </Card>
       </div>
       
-      <Card className="w-full mt-2 border-none shadow-none ">
-        <CardContent className="p-2">
-          <div className="max-w-full">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 grid grid-cols-2">
-              <div className="p-1 border-b border-gray-200">
-                <h3 className="text-lg font-semibold mb-2  text-gray-700">Publications and Citations</h3>
-                <div className="grid grid-cols-2">
-                  {renderMetricCards(publicationsMetrics)}
-                </div>
-              </div>
-              <div className="p-1">
-                <h3 className="text-lg font-semibold mb-2 text-gray-700">Altmetrics</h3>
-                <div className="grid grid-cols-5">
-                  {renderMetricCards(altmetrics)}
-                </div>
-              </div>
-            </div>
+     <Card className="w-full mt-2 border-none shadow-none">
+  <CardContent className="p-2">
+    <div className="max-w-full">
+      <div className="bg-white rounded-l shadow-lg overflow-hidden border border-gray-200 grid grid-cols-2 gap-0">
+        <div className="p-3 border-r border-gray-200">
+          <h3 className="text-lg font-semibold mb-3 text-gray-700">Publications and Citations</h3>
+          <div className="grid grid-cols-4 gap-1">
+            {renderMetricCards(publicationsMetrics)}
           </div>
-        </CardContent>
-      </Card>
-      
+        </div>
+        <div className="p-3">
+          <h3 className="text-lg font-semibold mb-3 text-gray-700">Altmetrics</h3>
+          <div className="grid grid-cols-5">
+            {renderMetricCards(altmetrics)}
+          </div>
+        </div>
+      </div>
+    </div>
+  </CardContent>
+</Card>
       <Card className="w-full mb-3 bg-gray-50 border border-gray-300">
         <CardContent className="p-5">
           <div className="grid grid-cols-2 gap-20">
