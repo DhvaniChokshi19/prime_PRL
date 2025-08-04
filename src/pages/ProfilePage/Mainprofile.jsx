@@ -459,7 +459,7 @@ const Mainprofile = () => {
     
     return (
       <div className="flex">
-        <div className="w-1/4 pr-4 max-h-52 overflow-y-auto">
+        <div className="w-auto pr-4 max-h-52 overflow-y-auto">
           <h3 className="text-lg font-semibold mb-3">Select Years</h3>
           <div className="space-y-2">
             {allYears.map(year => (
@@ -667,9 +667,9 @@ const Mainprofile = () => {
     </div>
   </CardContent>
 </Card>
-      <Card className="w-full mb-3 bg-gray-50 border border-gray-300">
-        <CardContent className="p-5">
-          <div className="grid grid-cols-2 gap-20">
+      <Card className="w-full mb-1 bg-gray-50 border border-gray-300">
+        <CardContent className="p-3">
+          <div className="grid grid-cols-1">
             <div className="h-64wh">
               <PublicationBarChart />
             </div>
