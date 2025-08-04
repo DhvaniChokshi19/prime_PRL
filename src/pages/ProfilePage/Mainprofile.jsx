@@ -339,6 +339,7 @@ const Mainprofile = () => {
         value: totalPublications.toString(),
         tooltip: 'Total number of Journal Articles affiliated by PRL',
         icon: <FileText size={24} className="text-blue-600" />,
+        
       },
       { 
         label: 'Citations', 
@@ -366,7 +367,7 @@ const Mainprofile = () => {
         label: ' Mentions in News',
         value: totalNewsCites.toString(),
         tooltip: 'Total mentions in news outlets',
-        icon: <Newspaper size={30} className="text-blue-600" />,
+        icon: <Newspaper size={30} className="text-black" />,
       },
       { 
         label: ' Mendeley Citations',
@@ -520,8 +521,8 @@ const Mainprofile = () => {
 
   const renderMetricCards = (metrics) => {
     return metrics.map((metric, index) => (
-      <div key={index} className="bg-blue-100 hover:bg-blue-200 transition-colors rounded p-1 cursor-pointer text-center w-40">
-        <div className="flex justify-center mb-2">
+      <div key={index} className="bg-white hover:bg-blue-200 transition-colors rounded p-1 cursor-pointer text-center w-10">
+        <div className="flex justify-center mb-5">
           {metric.icon}
         </div>
         <Tooltips text={metric.tooltip || ''}>
@@ -646,19 +647,19 @@ const Mainprofile = () => {
         </Card>
       </div>
       
-      <Card className="w-full mt-2 border-none shadow-none">
+      <Card className="w-full mt-2 border-none shadow-none ">
         <CardContent className="p-2">
           <div className="max-w-full">
-            <div className="bg-slate-50 rounded-xl shadow-lg overflow-hidden border border-gray-200">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 grid grid-cols-2">
               <div className="p-1 border-b border-gray-200">
-                <h3 className="text-lg font-semibold mb-2 text-gray-700">Publications and Citations</h3>
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-1">
+                <h3 className="text-lg font-semibold mb-2  text-gray-700">Publications and Citations</h3>
+                <div className="grid grid-cols-2">
                   {renderMetricCards(publicationsMetrics)}
                 </div>
               </div>
               <div className="p-1">
                 <h3 className="text-lg font-semibold mb-2 text-gray-700">Altmetrics</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+                <div className="grid grid-cols-5">
                   {renderMetricCards(altmetrics)}
                 </div>
               </div>

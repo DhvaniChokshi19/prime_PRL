@@ -6,10 +6,13 @@ import prlogo from '../../assets/prime.png';
 import { UserRound, Newspaper, BookMarked, AtSign, Eye, LockOpen, Lock, BookUser } from 'lucide-react';
 import axiosInstance from '../../api/axios';
 
+import { Users, Book, Zap, Menu, X } from 'lucide-react';
+
 axiosInstance.defaults.headers.common['Content-Type'] = 'application/json';
 axiosInstance.defaults.withCredentials = true;
 
 const Searchbox = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
@@ -190,22 +193,22 @@ const Searchbox = () => {
           </div>
         </div>
         
-        <nav className="bg-blue-900 text-white py-2">
+        <nav className="hidden md:flex space-x-8">
           <div className="container mx-auto flex justify-center">
             <ul className="flex space-x-14">
-              <li className="hover:text-gray-300 text-xl cursor-pointer" 
+              <li className="hover:text-blue-600 text-xl cursor-pointer" 
                   onClick={() => handleNavigate('/')}>
                 Home
               </li>
-              <li className="hover:text-gray-300 text-xl cursor-pointer" 
+              <li className="hover:text-blue-600 text-xl cursor-pointer" 
                   onClick={handleLearnMoreClick}>
                 Features
               </li>
-              <li className="hover:text-gray-300 text-xl cursor-pointer"
+              <li className="hover:text-blue-600 text-xl cursor-pointer"
                   onClick={() => handleNavigate('/Publication')}>
                 Division
               </li>
-              <li className="hover:text-gray-300 text-xl cursor-pointer"
+              <li className="hover:text-blue-600 text-xl cursor-pointer"
                   onClick={() => {
                     const footersection = document.getElementById('footer');
                     footersection?.scrollIntoView({ behavior: 'smooth' });
@@ -222,22 +225,21 @@ const Searchbox = () => {
           alt="Dashboard" 
           className="w-full h-full object-cover" 
         />
-        <div className="absolute inset-0 bg-white bg-opacity-10">
-          <div className="container mx-auto px-8 py-6 flex items-start mt-4">
-            <div className="text-white space-y-4 max-w-2xl">
-              <h1 className="text-5xl font-bold">
-                Welcome to the<br />PRIME
-              </h1>
-              <p className="text-xl">
-                Unlock Knowledge, Connect with Expert
-              </p>
-              <button 
-                className="bg-blue-400 text-white px-5 py-2 rounded-xl shadow-md hover:bg-blue-500 transition-colors"
-                onClick={handleLearnMoreClick}
-              >
-                Learn More
-              </button>
-            </div>
+        <div className=" absolute inset-0 bg-white bg-opacity-10">
+          <div className="container mx-auto px-8 py-6 flex items-start mt-44">
+            <div className="text-center mb-12">
+          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
+            Welcome to the{' '}
+            <span className="text-blue-500 relative">
+              PRIME
+              <div className="absolute  bg-blue-500 rounded"></div>
+            </span>
+          </h1>
+          <p className="text-xl text-white max-w-3xl mx-auto leading-relaxed">
+            Connect with industry experts, unlock specialized knowledge
+          </p>
+        </div>
+
           </div>
         </div>
       </div>
@@ -311,5 +313,6 @@ const Searchbox = () => {
     </div>
   );
 };
+
 
 export default Searchbox;
