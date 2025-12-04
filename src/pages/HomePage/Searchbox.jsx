@@ -62,7 +62,7 @@ const Searchbox = () => {
       icon: <UserRound className="h-8 w-8 text-blue-600" />,
       number: statsData.total_profiles,
       label: 'PROFILES',
-      href: `http://${window.location.hostname}:5000/search?name=*&q=*`
+      href: `https://${window.location.hostname}/search?name=*&q=*`
     },
     {
       icon: <Newspaper className="h-8 w-8 text-blue-600"/>,
@@ -236,7 +236,7 @@ const Searchbox = () => {
             </span>
           </h1>
           <p className="text-xl text-white max-w-3xl mx-auto leading-relaxed">
-            Connect with industry experts, unlock specialized knowledge
+            Connect with experts, unlock specialized knowledge
           </p>
         </div>
 

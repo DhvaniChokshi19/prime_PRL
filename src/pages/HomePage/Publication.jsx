@@ -240,10 +240,10 @@ const Publication = () => {
     { key: 'profiles', label: 'Total Profiles' },
     { key: 'publications', label: 'Total Publications' },
     { key: 'citations', label: 'Total Citations' },
-    { key: 'hindex', label: 'H-Index Comparison' },
+    { key: 'hindex', label: 'H-Index' },
     { key: 'prl-overview', label: 'PRL Overview' },
-    { key: 'dept-trends', label: 'Department Trends' },
-    { key: 'prl-trends', label: 'PRL Trends' }
+    { key: 'dept-trends', label: 'Department Publication Trends' },
+    { key: 'prl-trends', label: 'PRL Publication Trends' }
   ];
 
   return (
@@ -569,7 +569,7 @@ const Publication = () => {
               <div className="bg-green-100 p-2 rounded">
                 <p className="text-xs text-green-700 font-semibold">Profiles</p>
                 <a 
-                  href={`http://${window.location.hostname}:5000/search?department=${dept.department}&q=${dept.department}`} 
+                  href={`https://${window.location.hostname}/search?department=${dept.department}&q=${dept.department}`} 
                   className="text-lg font-bold text-green-600 hover:underline"
                 >
                   {dept.total_profiles}

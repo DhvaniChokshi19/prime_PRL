@@ -8,12 +8,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About Us - Left Side */}
           <div className="md:col-span-2">
-            <h2 className="text-xl font-bold mb-4">About us</h2>
+            <h2 className="text-xl font-bold mb-4">About PRIME</h2>
             <p>
-              PRIME stands out as a visionary Research Information 
-              Management System (RIMS) explicitly designed to 
-              streamline and enhance research data management 
-              within Physical Research Laboratories (PRL).
+            PRIME is a cutting-edge Research Information Management System (RIMS) developed by the Library to streamline and centralize research data management at the Physical Research Laboratory (PRL). Designed to support PRL’s research ecosystem, PRIME brings together research outputs, activities, and metrics into a unified, easy-to-use platform. PRIME significantly enhances institutional visibility by showcasing PRL’s research achievements, contributions, and collaborations.
             </p>
           </div>
           
@@ -32,10 +29,10 @@ const Footer = () => {
                 <span className="mr-2">📍</span> Navrangpura, Ahmedabad - 380 009
               </p>
               <p className="flex items-center md:justify-end">
-                <span className="mr-2">📞</span> 079-26314619, 079-26314166
+                <span className="mr-2">📞</span> 079-26314620, 079-26314166
               </p>
               <p className="flex items-center md:justify-end">
-                <span className="mr-2">✉️</span> prime@prl.res.in
+                <span className="mr-2">✉️</span> library@prl.res.in
               </p>
             </div>
           </div>
@@ -43,7 +40,7 @@ const Footer = () => {
       </div>
       <div className="border-t border-blue-800 mt-3 pt-4">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
-          <p>© 2025 PRIME Centre, Ahmedabad. All rights reserved.</p>
+          <p>© 2025 Library & Information Services. All rights reserved.</p>
           <a
             href="#"
             className="flex items-center text-blue-300 hover:text-white mt-2 md:mt-0"
