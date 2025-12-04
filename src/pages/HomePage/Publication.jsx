@@ -14,6 +14,7 @@ import {
 import pubimg from '../../assets/pub_bg.jpg';
 import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import { useNavigate } from 'react-router-dom';
+import '../../App.css';
 
 const Publication = () => {
   const [departmentData, setDepartmentData] = useState([]);
@@ -206,11 +207,17 @@ const Publication = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-gray-600">Loading department data...</div>
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin fast-spin"></div>
+
+        <span className="text-gray-600 text-sm">
+          Calculating department statistics...
+        </span>
       </div>
-    );
+    </div>
+  );
   }
   
   if (error) {
@@ -288,18 +295,18 @@ const Publication = () => {
       {activeChart === 'overview' && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Department Metrics Overview</h3>
-          <div className="h-80">
+          <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={departmentData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 110 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="department" 
                   angle={-45} 
                   textAnchor="end"
-                  height={60}
+                  height={100}
                   interval={0}
                 />
                 <YAxis yAxisId="left" orientation="left" />
@@ -320,18 +327,18 @@ const Publication = () => {
       {activeChart === 'profiles' && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Profiles per Department</h3>
-          <div className="h-80">
+          <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={departmentData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 110 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="department" 
                   angle={-45} 
                   textAnchor="end"
-                  height={60}
+                  height={100}
                   interval={0}
                 />
                 <YAxis />
@@ -348,18 +355,18 @@ const Publication = () => {
       {activeChart === 'publications' && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Publications per Department</h3>
-          <div className="h-80">
+          <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={departmentData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 110 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="department" 
                   angle={-45} 
                   textAnchor="end"
-                  height={60}
+                  height={100}
                   interval={0}
                 />
                 <YAxis />
@@ -376,18 +383,18 @@ const Publication = () => {
       {activeChart === 'citations' && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">Total Citations per Department</h3>
-          <div className="h-80">
+          <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={departmentData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 110 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="department" 
                   angle={-45} 
                   textAnchor="end"
-                  height={60}
+                  height={100}
                   interval={0}
                 />
                 <YAxis />
@@ -404,18 +411,18 @@ const Publication = () => {
       {activeChart === 'hindex' && (
         <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">H-Index Comparison Across Departments</h3>
-          <div className="h-80">
+          <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={departmentData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                margin={{ top: 20, right: 30, left: 20, bottom: 110 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
                   dataKey="department" 
                   angle={-45} 
                   textAnchor="end"
-                  height={60}
+                  height={100}
                   interval={0}
                 />
                 <YAxis />
@@ -466,7 +473,7 @@ const Publication = () => {
           id="dept-select"
           value={selectedDepartment || ''}
           onChange={(e) => setSelectedDepartment(e.target.value)}
-          className="form-select block w-48 mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          className="form-select block w-72 mt-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
         >
           {departmentData.map(dept => (
             <option key={dept.department} value={dept.department}>

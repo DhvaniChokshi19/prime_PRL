@@ -30,6 +30,7 @@ import {
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
 import { toast } from "@/hooks/use-toast";
+import '../../App.css';
 
 // Initial form state with all required fields from the backend
 const INITIAL_FORM_STATE = {
@@ -61,6 +62,9 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
   // Error state
   const [error, setError] = useState(null);
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+
   useEffect(() => {
     if (initialProjects) {
       setProjects(initialProjects);
@@ -74,19 +78,16 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
   const getAuthToken = () => {
     const cookies = document.cookie.split('; ');
     const tokenCookie = cookies.find(row => row.startsWith('authToken='));
-    
     if (tokenCookie) {
       const token = tokenCookie.split('=')[1];
       return token;
     }
-    
     return null;
   };
   
   const getCurrentProfileIdFromUrl = () => {
     const pathSegments = window.location.pathname.split('/');
     const idIndex = pathSegments.findIndex(segment => segment === 'profile') + 1;
-    
     if (idIndex > 0 && idIndex < pathSegments.length) {
       return pathSegments[idIndex];
     }
@@ -179,6 +180,7 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
     try {
       const token = getAuthToken();
     if (!token) {
+      alert("Please log in to add or edit projects");
       toast({
         title: "Authentication Required",
         description: "Please log in to add or edit projects",
@@ -210,9 +212,11 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
           : 'Project Added Successfully!',
         variant: "default"
       });
-      
+
+      alert("Project processed successfully.");
       fetchProjects();
       setProjectForm(INITIAL_FORM_STATE);
+      setIsDialogOpen(false);
     } catch (error) {
       console.error('Error processing project:', error);
       if (!token) {
@@ -304,18 +308,20 @@ const isAuthenticated = () => {
     if (projectsList.length === 0) {
       return (
         <div className="text-center py-4 text-gray-500">
-          No Projects found.{isAuthenticated() && "Add a Project to get started."}
+          No Projects found.{isAuthenticated() && " Add a Project to get started."}
         </div>
       );
     }
-    return projectsList.map((project) => (
+
+
+    return projectsList.map((project, index) => (
       <div 
         key={project.id} 
         className="p-4 rounded-lg shadow-sm mb-4"
       >
         <div className="flex justify-between">
           <h4 className="text-lg font-semibold text-gray-800 mb-2 pr-16">
-            {project.title}
+            {index + 1}. {project.title}
           </h4>
           {isAuthenticated() && (
           <div className="flex items-center gap-2">
@@ -441,7 +447,7 @@ const isAuthenticated = () => {
 
   const renderProjectForm = () => {
     return (
-      <form onSubmit={handleAddProject} className="space-y-6 w-full max-w-4xl bg-white">
+      <form onSubmit={handleAddProject} className="space-y-6 w-full max-w-4xl bg-white beautiful-form p-6 rounded-lg" style={{ maxWidth: '1000px' }}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-4">
             <Label htmlFor="title">Title*</Label>
@@ -599,7 +605,10 @@ const isAuthenticated = () => {
             <CardTitle>Projects</CardTitle>
           </div>
            {isAuthenticated() && (
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) setProjectForm(INITIAL_FORM_STATE); // reset when closed
+              }}>
             <DialogTrigger asChild>
               <Button 
                 className="flex items-center gap-2"
@@ -609,7 +618,7 @@ const isAuthenticated = () => {
                 Add Project
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-4xl">
+            <DialogContent className="sm:max-w-4xl bg-white">
               <DialogHeader>
                 <DialogTitle>
                   {projectForm.id ? 'Edit Project' : 'Add New Project'}

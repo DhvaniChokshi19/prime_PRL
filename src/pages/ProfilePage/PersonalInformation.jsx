@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from "@/hooks/use-toast";
 import axiosInstance, { API_BASE_URL } from '../../api/axios';
+import '../../App.css';
 
 const PersonalInformation = ({ profileData, onProfileUpdate}) => {
   const [loading, setLoading] = useState(false);
@@ -296,7 +297,6 @@ const months = [
     }));
   };
 
- 
   const handlePersonalFormSubmit = async () => {
     if (!checkAuthentication()) return;
     try {
@@ -315,6 +315,7 @@ const months = [
       orc_id: personalForm.orc_id || originalProfile.orc_id,
       google_scholar_id: personalForm.google_scholar_id || originalProfile.google_scholar_id,
       publons_id: personalForm.publons_id || originalProfile.publons_id,
+      nasa_ads_id: personalForm.nasa_ads_id || originalProfile.nasa_ads_id,
     };
     // personal information data
   const personalInfoData = {
@@ -329,6 +330,9 @@ const months = [
           'Authorization': `Bearer ${authToken}`
         }
       });
+      alert("Personal information updated successfully");
+      //reload page
+      window.location.reload();
       toast({
         title: "Success",
         description: "Personal information updated successfully",
@@ -395,6 +399,9 @@ setLocalProfileData(prev => ({
             exp.id === professionalForm.id ? payload : exp
           )
         }));
+        alert("Professional experience updated successfully");
+        //reload
+        window.location.reload();
         toast({
           title: "Success",
           description: "Professional experience updated successfully",
@@ -418,7 +425,9 @@ setLocalProfileData(prev => ({
           ...prev,
           professional_experiences: [...prev.professional_experiences, newExperience]
         }));
-       
+       alert("Professional experience added successfully");
+       //reload
+        window.location.reload();
         toast({
           title: "Success",
           description: "Professional experience added successfully",
@@ -471,6 +480,9 @@ setLocalProfileData(prev => ({
             qual.id === qualificationForm.id ? qualificationForm : qual
           )
         }));
+        alert("Qualification updated successfully");
+        //reload
+        window.location.reload();
         toast({
           title: "Success",
           description: "Qualification updated successfully",
@@ -484,17 +496,19 @@ setLocalProfileData(prev => ({
              'Content-Type': 'application/json'
           }
         });
-        const newQualification = response.data?.qualification || {
-          ...qualificationForm,
-          id: Date.now() 
-        };
+        // const newQualification = response.data?.qualification || {
+        //   ...qualificationForm,
+        //   id: Date.now() 
+        // };
         
         // Update local state
         setLocalProfileData(prev => ({
           ...prev,
           qualifications: [...prev.qualifications, newQualification]
         }));
-        
+        alert("Qualification added successfully");
+        //reload
+        window.location.reload();
         toast({
           title: "Success",
           description: "Qualification added successfully",
@@ -510,6 +524,7 @@ setLocalProfileData(prev => ({
         authority: '',
         year: ''
       });
+      console.log("Fetching updated data after qualification submit");
        await fetchUpdatedData();
     } catch (error) {
       console.error("Error handling qualification:", error);
@@ -542,7 +557,9 @@ const handleHonorsFormSubmit = async () => {
             award.id === honorsForm.id ? honorsForm : award
           )
         }));
-        
+        alert("Award updated successfully");
+        //reload
+        window.location.reload();
       toast({
         title: "Success",
         description: "Award updated successfully",
@@ -556,17 +573,20 @@ const handleHonorsFormSubmit = async () => {
            'Content-Type': 'application/json'
         }
       });
-        const newAward = response.data?.award || {
-          ...honorsForm,
-          id: Date.now() // Fallback ID if API doesn't return it
-        };
+        // const newAward = response.data?.award || {
+        //   ...honorsForm,
+        //   id: Date.now() // Fallback ID if API doesn't return it
+        // };
         
         // Update local state
         setLocalProfileData(prev => ({
           ...prev,
           honors_and_awards: [...prev.honors_and_awards, newAward]
         }));
-        
+
+        alert("Award added successfully");
+        //reload
+        window.location.reload();
       toast({
         title: "Success",
         description: "Award added successfully",
@@ -616,6 +636,9 @@ const handleHonorsFormSubmit = async () => {
         ...prev,
         professional_experiences: prev.professional_experiences.filter(exp => exp.id !== idToDelete)
       }));
+      alert("Professional experience deleted successfully");
+      //reload
+      window.location.reload();
       toast({
         title: "Success",
         description: "Professional experience deleted successfully",
@@ -658,6 +681,9 @@ const handleHonorsFormSubmit = async () => {
         ...prev,
         qualifications: prev.qualifications.filter(qual => qual.id !== idToDelete)
       }));
+      alert("Qualification deleted successfully");
+      //reload
+      window.location.reload();
       toast({
         title: "Success",
         description: "Qualification deleted successfully",
@@ -698,6 +724,10 @@ const handleDeleteAward = async () => {
         ...prev,
         honors_and_awards: prev.honors_and_awards.filter(award => award.id !== idToDelete)
       }));
+      alert("Award deleted successfully");
+      //reload
+      window.location.reload();
+
     toast({
       title: "Success",
       description: "Award deleted successfully",
@@ -1039,11 +1069,13 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
             <p>{personalInfo.address || "Ahmedabad, Gujarat, India"}</p>
           </div>
         </div>
-           <Dialog open={editMode === 'personal'} onOpenChange={(open) => !open && setEditMode(null)}>
-          <DialogContent className="sm:max-w-4xl h-svh  bg-white">
+           <Dialog style={{ minWidth: '64rem;' }} open={editMode === 'personal'} onOpenChange={(open) => !open && setEditMode(null)} >
+          <DialogContent className="!max-w-full sm:!max-w-4xl w-full h-svh bg-white">
             <DialogHeader>
               <DialogTitle>Edit Personal Information</DialogTitle>
             </DialogHeader>
+            <form onSubmit={handlePersonalFormSubmit} className="grid gap-4 py-2 bg-white beautiful-form" style={{ maxWidth: '100%' }}>
+
             <div className="grid gap-4 py-2 bg-white" >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -1162,7 +1194,17 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                 placeholder="Enter your Publons ID"
                 />
                 </div>
-</div>
+                                <div className='space-y-2'>
+                <Label htmlFor="publons_id">NASA ADS URL</Label>
+                <Input
+                id="nasa_ads_id"
+                name="nasa_ads_id"
+                value={personalForm.nasa_ads_id}
+                onChange={handlePersonalFormChange}
+                placeholder="Enter your NASA ads URL"
+                />
+                </div>
+          </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="state">State</Label>
@@ -1209,16 +1251,19 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
         {/* Professional Experience Edit Dialog */}
         <Dialog open={editMode === 'professional'} onOpenChange={(open) => !open && setEditMode(null)}>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[550px] bg-white">
             <DialogHeader>
               <DialogTitle>
                 {professionalForm.id ? "Edit Professional Experience" : "Add Professional Experience"}
               </DialogTitle>
             </DialogHeader>
+            <form onSubmit={handleProfessionalFormSubmit} className="grid gap-4 py-2 bg-white beautiful-form" style={{ maxWidth: '100%' }}>
+
             <div className="grid gap-4 py-4 bg-white">
               <div className="space-y-2">
                 <Label htmlFor="position">Position</Label>
@@ -1315,16 +1360,19 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
 
 <Dialog open={editMode === 'honors'} onOpenChange={(open) => !open && setEditMode(null)}>
-  <DialogContent className="sm:max-w-[550px]">
+  <DialogContent className="sm:max-w-[550px] bg-white">
     <DialogHeader>
       <DialogTitle>
         {honorsForm.id ? "Edit Award" : "Add Award"}
       </DialogTitle>
     </DialogHeader>
+    <form onSubmit={handleHonorsFormSubmit} className="grid gap-4 py-2 bg-white beautiful-form" style={{ maxWidth: '100%' }}>
+
     <div className="grid gap-4 py-4 bg-white">
       <div className="space-y-2">
         <Label htmlFor="year">Year</Label>
@@ -1371,6 +1419,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
         {loading ? "Saving..." : "Save Changes"}
       </Button>
     </DialogFooter>
+    </form>
   </DialogContent>
 </Dialog>
         {/* Delete Professional Experience Alert Dialog */}
@@ -1399,12 +1448,14 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
         </AlertDialog>
         {/* Qualification Edit Dialog */}
         <Dialog open={editMode === 'qualification'} onOpenChange={(open) => !open && setEditMode(null)}>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[550px] bg-white">
             <DialogHeader>
               <DialogTitle>
                 {qualificationForm.id ? "Edit Qualification" : "Add Qualification"}
               </DialogTitle>
             </DialogHeader>
+            <form onSubmit={handleQualificationFormSubmit} className="grid gap-4 py-2 bg-white beautiful-form" style={{ maxWidth: '100%' }}>
+
             <div className="grid gap-4 py-4 bg-white">
               <div className="space-y-2">
                 <Label htmlFor="qualification">Qualification</Label>
@@ -1451,6 +1502,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
+            </form>
           </DialogContent>
         </Dialog>
          {/* Delete Qualification Alert Dialog */}

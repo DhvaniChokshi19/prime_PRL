@@ -1,6 +1,10 @@
-import jsPDF from 'jspdf';
+import {jsPDF} from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 import html2canvas from 'html2canvas';
 import { API_BASE_URL } from '../../api/axios';
+
+
 /**
  * Exports researcher profile data to a PDF document
  * @param {Object} profileData - The complete profile data object
@@ -40,7 +44,7 @@ const handleExport = async (profileData, publicationsData, chartData) => {
         const dataUrl = canvas.toDataURL('image/jpeg');
         
         // Add image to PDF
-        const imgWidth = 40;
+        const imgWidth = 45;
         const imgHeight = (img.height * imgWidth) / img.width;
         doc.addImage(dataUrl, 'JPEG', margin, yPosition, imgWidth, imgHeight);
         
@@ -55,6 +59,11 @@ const handleExport = async (profileData, publicationsData, chartData) => {
         doc.text(profileData.profile.department || 'Department not provided', textX, yPosition + 21);
         doc.text(profileData.profile.expertise || 'Expertise not provided', textX, yPosition + 27);
         doc.text(profileData.profile.state || 'Location not provided', textX, yPosition + 33);
+        doc.text(profileData.profile.email || 'Email not provided', textX, yPosition + 39);
+        //website url
+        if (profileData.profile.website_url) {
+          doc.text(profileData.profile.website_url, textX, yPosition + 45);
+        }
         
         yPosition += Math.max(imgHeight, 40) + 5;
       } catch (error) {
@@ -123,7 +132,7 @@ const handleExport = async (profileData, publicationsData, chartData) => {
             item.Citations.toString()
           ]);
           
-          doc.autoTable({
+          autoTable(doc, {
             head: [['Year', 'Publications', 'Citations']],
             body: chartTableData,
             startY: yPosition,
@@ -141,7 +150,8 @@ const handleExport = async (profileData, publicationsData, chartData) => {
           item.Citations.toString()
         ]);
         
-        doc.autoTable({
+        
+          autoTable(doc, {
           head: [['Year', 'Publications', 'Citations']],
           body: chartTableData,
           startY: yPosition,
@@ -177,9 +187,9 @@ const handleExport = async (profileData, publicationsData, chartData) => {
       doc.text(`Publons ID: ${profileData.profile.publons_id || 'N/A'}`, margin, yPosition);
       yPosition += 5;
     }
-    
-    if (profileData.profile.google_scholar_id) {
-      doc.text(`Google Scholar ID: ${profileData.profile.google_scholar_id || 'N/A'}`, margin, yPosition);
+    console.log('Profile Data:', profileData);
+    if (profileData.profile.google_scholar_url) {
+      doc.text(`Google Scholar ID: ${profileData.profile.google_scholar_url.split('user=').pop() || 'N/A'}`, margin, yPosition);
       yPosition += 10;
     }
     
@@ -229,6 +239,16 @@ const handleExport = async (profileData, publicationsData, chartData) => {
       { key: 'year', label: 'Year' },
       { key: 'awarding_authority', label: 'Organization' }
     ], yPosition, margin, contentWidth);
+
+    // Add Publications Section
+    yPosition = addSectionToPDF(doc, 'Publications', publicationsData || [], [
+      { key: 'title', label: 'Title' },
+      { key: 'publication_name', label: 'Journal' },
+      { key: 'publication_date', label: 'Date' },
+      { key: 'cited_by', label: 'Citations' },
+      { key: 'co_authors', label: 'Authors' },
+    ], yPosition, margin, contentWidth);
+
     
     // Save the PDF
     doc.save(`${profileData.profile.name || 'Researcher'}_Profile.pdf`);

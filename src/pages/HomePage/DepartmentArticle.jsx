@@ -195,7 +195,6 @@ const calculateSimilarity = (str1, str2) => {
   const distance = levenshteinDistance(str1.toLowerCase(), str2.toLowerCase());
   return ((maxLength - distance) / maxLength) * 100;
 };
-
 // Enhanced renderAuthors function with fuzzy matching
 const renderAuthors = (article) => {
   if (!article.co_authors) return null;
@@ -360,91 +359,157 @@ const renderAuthors = (article) => {
 
       {isLoading ? (
         <div className="flex justify-center py-8">
-          <span className="text-gray-500">Loading publications...</span>
+              <div className="flex items-center justify-center min-h-screen">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin fast-spin"></div>
+
+                <span className="text-gray-600 text-sm">
+                  Fetching Articles...
+                </span>
+              </div>
+            </div>
         </div>
       ) : error ? (
         <div className="text-red-500 text-center py-4">{error}</div>
       ) : (
         <>
-          <div className="space-y-6 pl-4 border-l-2 border-gray-200 bg-white">
-            {displayedArticles.length > 0 ? (
-              displayedArticles.map((article, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-8 text-center">
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-700 rounded-full font-medium text-sm">
-                        {index + 1}
-                      </span>
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between gap-4">
-                        <h4 className="font-semibold">
-                          {article.title}
-                        </h4>
-                        
-                        {article.doi && (
-                          <a 
-                            href={`https://doi.org/${article.doi}`}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
-                      {renderAuthors(article)}
-                    
-                      <div className="flex flex-wrap gap-4 text-sm">
-                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Article</span>
-                        {article.open_access && <span className="text-green-600 flex items-center"><LockOpen className="w-3 h-3 mr-1" />Open access</span>}
-                        <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">Cited by: {article.cited_by}</span>
-                        <span className="text-gray-600">
-                          {article.publication_name}
-                          {article.volume && `, Volume ${article.volume}`}
-                          {article.issue && `, Issue ${article.issue}`}
-                          {article.pagerange && `, Pages ${article.pagerange}`}
-                          {article.publication_date && `, ${formatYear(article.publication_date)}`}
-                        </span>
-                      </div>
-                      {article.doi && (
-                        <p className="text-blue-600 text-sm">
-                          <a 
-                            href={`https://doi.org/${article.doi}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            DOI: {article.doi}
-                          </a>
-                        </p>
-                      )}
-                      {(article.cited_by !== undefined) && (
-                        <div className="text-sm text-gray-500">
-                          <details className="mt-2">
-  <summary className="cursor-pointer hover:text-blue-600">View metrics</summary>
-  <div className="flex flex-wrap gap-4 p-2 mt-2 bg-gray-50 rounded-md">
-    <span className="flex items-center"><img className="w-5 h-6 mr-1" src={fb} alt="Facebook" /> {article.fb_cite || 0}</span>
-    <span className="flex items-center"><img className="w-5 h-6 mr-1" src={X} alt="X" /> {article.x_cite || 0}</span>
-    <span className="flex items-center"><Newspaper className="w-5 h-5 text-orange-600 mr-1" /> {article.news_cite || 0}</span>
-    <span className='flex items-center'><ComputerIcon className="w-5 h-5 text-black mr-1"/>Blog: {article.blog_cite || 0}</span>
-    <span className="flex items-center"><UserCheck className='w-5 h-5 text-orange-500 mr-1'/>Accounts: {article.accounts_cite || 0}</span>
-    <span className="flex items-center"><img className="w-7 h-7 " src={altm}></img> Altmetric: {article.alt_score || 0}</span>
-    <span className="flex items-center"> <img className="w-7 h-7 " src={mend}></img>Mendeley: {article.mendeley_cite || 0}</span>
-    {/* <span className="flex items-center"><FolderOpen className='w-6 h-6 text-white bg-purple-500'/> PlumX captures: {article.plumx_captures || 0}</span> */}
-    <span className="flex items-center"> <img className='w-7 h-7' src={plum}alt="plumc"></img> PlumX citations: {article.plumx_citations || 0}</span>
-  </div>
-</details>
-</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-gray-500 text-center py-4">No publications found for this department in the selected year range</div>
-            )}
+        <div className="space-y-6 pl-4 pr-4 py-6 bg-white border-l-4 border-blue-300 rounded-md shadow-sm">
+
+  {displayedArticles.length > 0 ? (
+    displayedArticles.map((article, index) => (
+      <div 
+        key={index} 
+        className="bg-white rounded-lg shadow hover:shadow-md transition p-5 border border-gray-100"
+      >
+        <div className="flex items-start gap-4">
+
+          {/* Index Circle */}
+          <div className="flex-shrink-0">
+            <span className="inline-flex items-center justify-center w-7 h-7 bg-blue-100 text-blue-700 rounded-full font-medium">
+              {index + 1}
+            </span>
           </div>
+
+          {/* Content */}
+          <div className="flex-1 space-y-3">
+
+            {/* Title + DOI */}
+            <div className="flex items-start justify-between gap-3">
+              <h4 className="font-semibold text-lg leading-snug text-gray-800 hover:text-blue-700">
+                {article.title}
+              </h4>
+
+              {article.doi && (
+                <a 
+                  href={`https://doi.org/${article.doi}`}
+                  target="_blank"
+                  className="text-blue-500 hover:text-blue-700"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                </a>
+              )}
+            </div>
+
+            {/* Authors */}
+            <div className="text-sm">
+              {renderAuthors(article)}
+            </div>
+
+            {/* Metadata Badges */}
+            <div className="flex flex-wrap gap-2 text-sm mt-2">
+
+              <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                Article
+              </span>
+
+              {article.open_access && (
+                <span className="flex items-center text-green-700 text-xs bg-green-100 px-2 py-1 rounded">
+                  <LockOpen className="w-3 h-3 mr-1" /> Open Access
+                </span>
+              )}
+
+              <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">
+                Citations: {article.cited_by}
+              </span>
+
+              <span className="text-gray-600 text-xs flex items-center">
+                {article.publication_name}
+                {article.volume && ` • Vol. ${article.volume}`}
+                {article.issue && ` • Issue ${article.issue}`}
+                {article.pagerange && ` • Pages ${article.pagerange}`}
+                {article.publication_date && ` • ${formatYear(article.publication_date)}`}
+              </span>
+            </div>
+
+            {/* DOI Line */}
+            {article.doi && (
+              <p className="text-blue-600 text-sm mt-1">
+                <a 
+                  href={`https://doi.org/${article.doi}`} 
+                  target="_blank"
+                  className="hover:underline"
+                >
+                  DOI: {article.doi}
+                </a>
+              </p>
+            )}
+
+            {/* Metrics Collapsible */}
+            {(article.cited_by !== undefined) && (
+              <details className="mt-3 bg-gray-50 p-3 rounded border">
+                <summary className="cursor-pointer text-sm text-gray-700 hover:text-blue-600 font-medium">
+                  View Metrics
+                </summary>
+
+                <div className="flex flex-wrap gap-4 p-2 mt-3">
+
+                  <span className="flex items-center text-sm">
+                    <img className="w-5 h-5 mr-1" src={fb} /> {article.fb_cite || 0}
+                  </span>
+
+                  <span className="flex items-center text-sm">
+                    <img className="w-5 h-5 mr-1" src={X} /> {article.x_cite || 0}
+                  </span>
+
+                  <span className="flex items-center text-sm">
+                    <Newspaper className="w-5 h-5 text-orange-600 mr-1" /> {article.news_cite || 0}
+                  </span>
+
+                  <span className="flex items-center text-sm">
+                    <ComputerIcon className="w-5 h-5 mr-1" /> Blog: {article.blog_cite || 0}
+                  </span>
+
+                  <span className="flex items-center text-sm">
+                    <UserCheck className="w-5 h-5 text-orange-500 mr-1" /> Accounts: {article.accounts_cite || 0}
+                  </span>
+
+                  <span className="flex items-center text-sm">
+                    <img className="w-6 h-6 mr-1" src={altm} /> Altmetric: {article.alt_score || 0}
+                  </span>
+
+                  <span className="flex items-center text-sm">
+                    <img className="w-6 h-6 mr-1" src={mend} /> Mendeley: {article.mendeley_cite || 0}
+                  </span>
+
+                  <span className="flex items-center text-sm">
+                    <img className="w-6 h-6 mr-1" src={plum} /> PlumX: {article.plumx_citations || 0}
+                  </span>
+
+                </div>
+              </details>
+            )}
+
+          </div>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="text-gray-500 text-center py-6">
+      No publications found for this department in the selected year range
+    </div>
+  )}
+</div>
+
           
           {!showAll && filteredCount > 10 && (
             <div className="flex justify-center mt-6">

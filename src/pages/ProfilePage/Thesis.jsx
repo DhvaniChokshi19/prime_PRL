@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
 import { toast } from "@/hooks/use-toast";
+import '../../App.css';
 
 // Initial form state
 const INITIAL_FORM_STATE = {
@@ -52,6 +53,9 @@ const Thesis = ({ profileId, thesis: initialThesis, onDataUpdate }) => {
   
   const [isLoading, setIsLoading] = useState(!initialThesis);
   const [error, setError] = useState(null);
+
+const [isDialogOpen, setIsDialogOpen] = useState(false);
+
 
   useEffect(() => {
     if (initialThesis) {
@@ -166,8 +170,10 @@ const getCurrentProfileIdFromUrl = () => {
         variant: "default"
       });
 
+      alert("Thesis processed successfully.");
       fetchThesis();
       setThesisForm(INITIAL_FORM_STATE);
+      setIsDialogOpen(false);
     } catch (error) {
       console.error('Error processing thesis:', error);
       toast({
@@ -234,14 +240,14 @@ const getCurrentProfileIdFromUrl = () => {
       );
     }
 
-    return thesisList.map((thesis) => (
+    return thesisList.map((thesis, index) => (
       <div 
         key={thesis.id} 
         className="p-4 rounded-lg shadow-sm mb-4"
       >
         <div className="flex justify-between">
           <h4 className="text-lg font-semibold text-gray-800 mb-2 pr-16">
-            {thesis.title}
+            {index + 1}. {thesis.title}
           </h4>
           <div className="flex items-center gap-2">
             <Dialog 
@@ -358,7 +364,7 @@ const getCurrentProfileIdFromUrl = () => {
 
   const renderThesisForm = () => {
     return (
-      <form onSubmit={handleAddThesis} className="space-y-4 bg-white">
+      <form onSubmit={handleAddThesis} className="space-y-4 bg-white beautiful-form">
         <div>
           <Label>Thesis Title</Label>
           <Input 
@@ -513,17 +519,23 @@ const getCurrentProfileIdFromUrl = () => {
             <CardTitle>Thesis</CardTitle>
           </div>
           
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) setThesisForm(INITIAL_FORM_STATE); // reset when closed
+              }}>
             <DialogTrigger asChild>
               <Button 
+              type="button"
                 className="flex items-center gap-2"
-                onClick={() => setThesisForm(INITIAL_FORM_STATE)}
+                onClick={() => {setThesisForm(INITIAL_FORM_STATE)
+                  setIsDialogOpen(true);
+                }}
               >
                 <PlusCircle className="w-4 h-4" />
                 Add Thesis
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-white">
               <DialogHeader>
                 <DialogTitle>
                   {thesisForm.id ? 'Edit Thesis' : 'Add New Thesis'}

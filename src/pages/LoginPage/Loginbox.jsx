@@ -105,6 +105,13 @@ const handleLogout = async () => {
       };
       
       const response = await axiosInstance.get('api/logout',config);
+      if (response.status === 200) {
+        alert('Logged out successfully');
+        var path = response.data.id ? `/profile/${response.data.id}` : '/login';
+        window.location.href = path;
+
+      }
+
     if (userId) {
       navigate(`/profile/${userId}`);
     } else {

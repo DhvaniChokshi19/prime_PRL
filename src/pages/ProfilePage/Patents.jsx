@@ -28,6 +28,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import '../../App.css';
+
 
 // Initial form state
 const INITIAL_FORM_STATE = {
@@ -54,6 +56,9 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
   
   // Error state
   const [error, setError] = useState(null);
+
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (initialPatents) {
@@ -176,9 +181,12 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
           : 'Patent Added Successfully!',
         variant: "default"
       });
+      
+      alert("Patent processed successfully.");
 
       fetchPatents();
       setPatentForm(INITIAL_FORM_STATE);
+      setIsDialogOpen(false);
     } catch (error) {
       console.error('Error processing patent:', error);
       toast({
@@ -306,14 +314,14 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
       );
     }
 
-    return patentsList.map((patent) => (
+    return patentsList.map((patent, index) => (
       <div 
         key={patent.id} 
         className="p-4 rounded-lg shadow-sm mb-4"
       >
         <div className="flex justify-between">
           <h4 className="text-lg font-semibold text-gray-800 mb-2 pr-16">
-            {patent.patent_name}
+            {index + 1}. {patent.patent_name}
           </h4>
           <div className="flex items-center gap-2">
             <Dialog 
@@ -426,7 +434,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
 
   const renderPatentForm = () => {
     return (
-      <form onSubmit={handleAddPatent} className="space-y-4 bg-white">
+      <form onSubmit={handleAddPatent} className="space-y-4 bg-white beautiful-form">
         <div>
           <Label>Patent Name</Label>
           <Input 
@@ -535,7 +543,10 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
             <CardTitle>Patents</CardTitle>
           </div>
           
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) setPatentForm(INITIAL_FORM_STATE); // reset when closed
+              }}>
             <DialogTrigger asChild>
               <Button 
                 className="flex items-center gap-2"
@@ -545,7 +556,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
                 Add Patent
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-white">
               <DialogHeader>
                 <DialogTitle>
                   {patentForm.id ? 'Edit Patent' : 'Add New Patent'}

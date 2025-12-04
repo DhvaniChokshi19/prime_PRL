@@ -16,6 +16,7 @@ import {
 import orcidImg from "../../assets/image.png";
 import scopusImg from "../../assets/image 16.png";
 import googleImg from "../../assets/image 18.png";
+import nasaAdsImg from "../../assets/nasa-ads.svg";
 import publonsImg from "../../assets/image 17.png";
 import fbImg from "../../assets/fb.jpg";
 import xImg from "../../assets/x.jpg";
@@ -31,6 +32,7 @@ import Thesis from './Thesis';
 import PostDoctoralFellow from './PostDoctoralFellow.jsx';
 import ProfileImageUpload from './ProfileImageUpload';
 import handleExportPDF from './handleExport';
+
 
 // --- Reusable & Sub-Components ---
 
@@ -83,8 +85,9 @@ const AcademicIdentity = ({ profile }) => {
     { name: 'Scopus Id', img: scopusImg, url: profile.scopus_url, value: profile.scopus_url?.split('=').pop() },
     { name: 'Publons Id', img: publonsImg, url: profile.publons_url, value: profile.publons_url?.split('/').pop() },
     { name: 'Google Scholar Id', img: googleImg, url: profile.google_scholar_url, value: profile.google_scholar_url?.split('=').pop() },
+    { name: 'NASA ADS', img: nasaAdsImg, url: profile.nasa_ads_url, value: decodeURIComponent(profile.nasa_ads_url?.split('q=').pop()?.split('&')[0]) },
   ];
-
+https://ui.adsabs.harvard.edu/search/fq=%7B!type%3Daqp%20v%3D%24fq_database%7D&fq=%7B!type%3Daqp%20v%3D%24fq_property%7D&fq_database=database%3A%20astronomy&fq_property=property%3A%20refereed&q=author%3A(%22Vadawale%22)&sort=date%20desc%2C%20bibcode%20desc&p_=0
   return (
     <Card className="w-72 border-none shadow-none bg-transparent">
       <CardContent className="pt-2">
@@ -321,6 +324,7 @@ const Mainprofile = () => {
         honors_and_awards: profileData.honors_and_awards || [],
         citation_data: profileData.citation_data || [], 
         publication_stats: profileData.publication_stats || [],
+        publications: publicationsData || []
       };
       await handleExportPDF(dataForExport, publicationsData, chartData);
     } catch (err) {
@@ -338,7 +342,17 @@ const Mainprofile = () => {
   ], [profileData, displayedPublications, filterMessage, profileId]);
 
   // Render Logic
-  if (loading) return <div className="flex justify-center items-center h-screen">Loading profile data...</div>;
+  if (loading) return <div className="flex justify-center items-center h-screen">
+        <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin fast-spin"></div>
+
+        <span className="text-gray-600 text-sm">
+          Loading Profile
+        </span>
+      </div>
+    </div>
+  </div>;
   if (error) return <div className="text-red-500 text-center p-6">Error loading profile: {error}</div>;
 
   return (
