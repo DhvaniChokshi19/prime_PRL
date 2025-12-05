@@ -374,7 +374,7 @@ const normalizeYear = (value) => {
         </div>
 
         <div>
-          <Label>Institute</Label>
+          <Label>PhD Awarding Institute</Label>
           <Input 
             name="institute"
             value={form.institute}
