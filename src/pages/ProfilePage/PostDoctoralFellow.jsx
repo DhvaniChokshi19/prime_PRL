@@ -363,7 +363,7 @@ const normalizeYear = (value) => {
         </div>
 
         <div>
-          <Label>Fellow Name</Label>
+          <Label>Name of Post Doctoral Fellow</Label>
           <Input 
             name="fellow"
             value={form.fellow}
@@ -385,7 +385,7 @@ const normalizeYear = (value) => {
         </div>
 
         <div>
-          <Label>Department</Label>
+          <Label>Department of PRL</Label>
           <Input 
             name="department"
             value={form.department}
