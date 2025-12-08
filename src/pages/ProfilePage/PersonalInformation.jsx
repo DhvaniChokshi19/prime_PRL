@@ -22,9 +22,11 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
-import { toast } from "@/hooks/use-toast";
+// import { toast } from "@/hooks/use-toast";
+import { toast,  Toaster } from 'react-hot-toast';
 import axiosInstance, { API_BASE_URL } from '../../api/axios';
 import '../../App.css';
+import { jwtDecode } from "jwt-decode";
 
 const PersonalInformation = ({ profileData, onProfileUpdate}) => {
   const [loading, setLoading] = useState(false);
@@ -114,6 +116,34 @@ const [localProfileData, setLocalProfileData] = useState({
       
       setLocalProfileData(formattedData);
 
+      //format google scholar id from url
+      const formatGoogleScholarId = (url) => {
+        const match = url.match(/user=([^&]+)/);
+        return match ? match[1] : '';
+      };
+      const googleScholarId = formatGoogleScholarId(profile.google_scholar_url || '');
+
+      //format orcid id from url
+      const formatOrcidId = (url) => {
+        const match = url.match(/\/([^/]+)$/);
+        return match ? match[1] : '';
+      };
+      const orcidId = formatOrcidId(profile.orcid_url || '');
+
+      //format publons id from url
+      const formatPublonsId = (url) => {
+        const match = url.match(/\/researcher\/([^/]+)/);
+        return match ? match[1] : '';
+      };
+      const publonsId = formatPublonsId(profile.publons_url || '');
+
+      //format scopus id from url
+      const formatScopusId = (url) => {
+        const match = url.match(/authorId=([^&]+)/);
+        return match ? match[1] : '';
+      };
+      const scopusId = formatScopusId(profile.scopus_url || '');
+
       setPersonalForm({
         name: profile.name || '',
         gender: personalInfo.gender || '',
@@ -123,12 +153,13 @@ const [localProfileData, setLocalProfileData] = useState({
         about_me: personalInfo.about_me || '',
         email: profile.email || '',
         website_url: profile.website_url || '',
-        scopus_id: profile.scopus_id || '',
-        orc_id: profile.orc_id || '',
-        google_scholar_id: profile.google_scholar_id || '',
-        publons_id: profile.publons_id || '',
+        scopus_id: scopusId,
+        orc_id: orcidId,
+        google_scholar_id: googleScholarId,
+        publons_id: publonsId,
         state: profile.state ||'',
         address: personalInfo.address || '',
+        nasa_ads_id: profile.nasa_ads_url || ''
         
       });
   }
@@ -203,30 +234,57 @@ const [localProfileData, setLocalProfileData] = useState({
     }
   };
  
- const getAuthToken = () => {
+  const getAuthToken = () => {
     const cookies = document.cookie.split('; ');
     const tokenCookie = cookies.find(row => row.startsWith('authToken='));
-    
     if (tokenCookie) {
       const token = tokenCookie.split('=')[1];
+      // check token validity
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000; // in seconds
+      if (decoded.exp < currentTime) {
+        // token expired
+        toast.error("Session expired. Please log in again.");
+        //redirect to logout
+        setTimeout(() => {
+          document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          window.location.href = "/login";
+        }, 2000);
+        return null;
+      }
+      else{
       return token;
+
+      }
+      return null;
     }
-    
-    throw new Error('No authentication token found Please Login again');
+    return null;
   };
+    const getUserIdFromToken = () => {
+  const token = getAuthToken();
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.profile_id; // must match backend payload
+  } catch (err) {
+    return null;
+  }
+};
    const checkAuthentication = () => {
     if (!isAuthenticated) {
       setShowLoginError(true);
-      alert("Please login to perform this action");
-      toast({
-        title: "Authentication Error",
-        description: "Please login to perform this action",
-        variant: "destructive"
-      });
+      toast.error("Please login to perform this action");
       return false;
     }
     return true;
   };
+
+  const canModify = () => {
+  const loggedUserId = getUserIdFromToken();
+  const profileIdFromUrl = getCurrentProfileIdFromUrl();
+  return loggedUserId && profileIdFromUrl && loggedUserId.toString() === profileIdFromUrl.toString();
+};
 
   const handlePersonalFormChange = (e) => {
     const { name, value } = e.target;
@@ -330,14 +388,11 @@ const months = [
           'Authorization': `Bearer ${authToken}`
         }
       });
-      alert("Personal information updated successfully");
+      toast.success("Personal information updated successfully!");
       //reload page
-      window.location.reload();
-      toast({
-        title: "Success",
-        description: "Personal information updated successfully",
-        variant: "success"
-      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
       
       await axiosInstance.put('api/profile/edit', profileData, {
   headers: {
@@ -399,14 +454,11 @@ setLocalProfileData(prev => ({
             exp.id === professionalForm.id ? payload : exp
           )
         }));
-        alert("Professional experience updated successfully");
+        toast.success("Professional experience updated successfully");
         //reload
+      setTimeout(() => {
         window.location.reload();
-        toast({
-          title: "Success",
-          description: "Professional experience updated successfully",
-          variant: "success"
-        });
+      }, 2000);
       } else {
        
         const response = await axiosInstance.put('api/profile/professional-experience/add', payload, {
@@ -425,15 +477,12 @@ setLocalProfileData(prev => ({
           ...prev,
           professional_experiences: [...prev.professional_experiences, newExperience]
         }));
-       alert("Professional experience added successfully");
+        toast.success("Professional experience added successfully");
        //reload
+      setTimeout(() => {
         window.location.reload();
-        toast({
-          title: "Success",
-          description: "Professional experience added successfully",
-          variant: "success"
-        });
-      }      
+      }, 2000);
+    }      
       // Close edit mode
       setEditMode(null);
       // Reset form
@@ -480,40 +529,34 @@ setLocalProfileData(prev => ({
             qual.id === qualificationForm.id ? qualificationForm : qual
           )
         }));
-        alert("Qualification updated successfully");
+        toast.success("Qualification updated successfully");
         //reload
+      setTimeout(() => {
         window.location.reload();
-        toast({
-          title: "Success",
-          description: "Qualification updated successfully",
-          variant: "success"
-        });
+      }, 2000);
       } else {
         // Add new qualification
-        await axiosInstance.put('api/profile/qualifications/add', qualificationForm, {
+        const response = await axiosInstance.put('api/profile/qualifications/add', qualificationForm, {
           headers: {
             'Authorization': `Bearer ${authToken}`,
              'Content-Type': 'application/json'
           }
         });
-        // const newQualification = response.data?.qualification || {
-        //   ...qualificationForm,
-        //   id: Date.now() 
-        // };
+        const newQualification = response.data?.qualification || {
+          ...qualificationForm,
+          id: Date.now() 
+        };
         
         // Update local state
         setLocalProfileData(prev => ({
           ...prev,
           qualifications: [...prev.qualifications, newQualification]
         }));
-        alert("Qualification added successfully");
+        toast.success("Qualification added successfully");
         //reload
-        window.location.reload();
-        toast({
-          title: "Success",
-          description: "Qualification added successfully",
-          variant: "success"
-        });
+       setTimeout(() => {
+         window.location.reload();
+        }, 2000);
       }      
       // Close edit mode
       setEditMode(null);
@@ -557,41 +600,34 @@ const handleHonorsFormSubmit = async () => {
             award.id === honorsForm.id ? honorsForm : award
           )
         }));
-        alert("Award updated successfully");
+        toast.success("Award updated successfully");
         //reload
+      setTimeout(() => {
         window.location.reload();
-      toast({
-        title: "Success",
-        description: "Award updated successfully",
-        variant: "success"
-      });
+      }, 2000);
     } else {
       // Add new award
-      await axiosInstance.put('api/profile/honors-awards/add', honorsForm, {
+      const response = await axiosInstance.put('api/profile/honors-awards/add', honorsForm, {
         headers: {
           'Authorization': `Bearer ${authToken}`,
            'Content-Type': 'application/json'
         }
       });
-        // const newAward = response.data?.award || {
-        //   ...honorsForm,
-        //   id: Date.now() // Fallback ID if API doesn't return it
-        // };
+        const newAward = response.data?.award || {
+          ...honorsForm,
+          id: Date.now() // Fallback ID if API doesn't return it
+        };
         
         // Update local state
         setLocalProfileData(prev => ({
           ...prev,
           honors_and_awards: [...prev.honors_and_awards, newAward]
         }));
-
-        alert("Award added successfully");
-        //reload
+        toast.success("Award added successfully");
+              //reload page
+      setTimeout(() => {
         window.location.reload();
-      toast({
-        title: "Success",
-        description: "Award added successfully",
-        variant: "success"
-      });
+      }, 2000);
     }
     
     // Close edit mode
@@ -636,14 +672,11 @@ const handleHonorsFormSubmit = async () => {
         ...prev,
         professional_experiences: prev.professional_experiences.filter(exp => exp.id !== idToDelete)
       }));
-      alert("Professional experience deleted successfully");
+      toast.success("Professional experience deleted successfully");
       //reload
-      window.location.reload();
-      toast({
-        title: "Success",
-        description: "Professional experience deleted successfully",
-        variant: "success"
-      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
       
       // Close delete alert
       setDeleteAlertOpen(false);
@@ -681,14 +714,11 @@ const handleHonorsFormSubmit = async () => {
         ...prev,
         qualifications: prev.qualifications.filter(qual => qual.id !== idToDelete)
       }));
-      alert("Qualification deleted successfully");
+      toast.success("Qualification deleted successfully");
       //reload
-      window.location.reload();
-      toast({
-        title: "Success",
-        description: "Qualification deleted successfully",
-        variant: "success"
-      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
       
       // Close delete alert
       setDeleteQualificationAlertOpen(false);
@@ -724,15 +754,11 @@ const handleDeleteAward = async () => {
         ...prev,
         honors_and_awards: prev.honors_and_awards.filter(award => award.id !== idToDelete)
       }));
-      alert("Award deleted successfully");
-      //reload
-      window.location.reload();
-
-    toast({
-      title: "Success",
-      description: "Award deleted successfully",
-      variant: "success"
-    });
+      toast.success("Award deleted successfully");
+      //reload page
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     
     // Close delete alert
     setDeleteAwardAlertOpen(false);
@@ -795,7 +821,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
             <SquareUser className="w-6 h-6 text-gray-500" />
             <h3 className="text-xl font-semibold">Personal Information</h3>
           </div>
-          {isAuthenticated && (
+          {canModify() && (
           <Button 
             onClick={() => setEditMode('personal')}
             className="flex items-center gap-2"
@@ -828,7 +854,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                 <Briefcase className="w-6 h-6 text-gray-500" />
                 <h3 className="text-xl font-semibold">Professional Experience</h3>
               </div> 
-              {isAuthenticated && (
+              {canModify() && (
               <Button
                 onClick={() => {
                  setProfessionalForm({
@@ -858,7 +884,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                     {isAuthenticated && (
+                     {canModify() && (
                     <Button 
                       size="icon" 
                        onClick={() => {
@@ -881,7 +907,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                       <Edit className="h-4 w-4" />
                     </Button>
                     )}
-                    {isAuthenticated && (
+                    {canModify() && (
                     <Button 
                       size="icon"
                       variant="destructive"
@@ -907,7 +933,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                 <GraduationCap className="w-6 h-6 text-gray-500" />
                 <h3 className="text-xl font-semibold">Qualification</h3>
               </div>
-               {isAuthenticated && (
+               {canModify() && (
               <Button
                 onClick={() => {
                   setQualificationForm({
@@ -930,7 +956,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                     <p className="text-gray-600">{qual.authority}</p>
                     <p className="text-sm text-gray-500">{qual.year}</p>
                   </div>
-                   {isAuthenticated && (
+                   {canModify() && (
                   <div className="flex items-center gap-2">
                     <Button  
                       size="icon"   
@@ -973,7 +999,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
               <Award className="w-6 h-6 text-gray-500" />
               <h3 className="text-xl font-semibold">Awards and Recognition</h3>
             </div>
-             {isAuthenticated && (
+             {canModify() && (
             <Button 
               size="icon"
                onClick={() => {
@@ -1000,7 +1026,7 @@ const sortedHonorsAwards = [...honorsAwards].sort((a, b) => {
                     <p className="text-sm text-gray-500">{award.awarding_authority}</p>
                   </div>
                 </div>
-                 {isAuthenticated && (
+                 {canModify() && (
                 <div className="flex items-center gap-2">
                   <Button 
                     size="icon" 

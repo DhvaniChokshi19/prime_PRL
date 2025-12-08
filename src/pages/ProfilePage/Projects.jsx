@@ -29,7 +29,9 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
-import { toast } from "@/hooks/use-toast";
+//import { toast } from "@/hooks/use-toast";
+import { toast,  Toaster } from 'react-hot-toast';
+import { jwtDecode } from "jwt-decode";
 import '../../App.css';
 
 // Initial form state with all required fields from the backend
@@ -80,11 +82,40 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
     const tokenCookie = cookies.find(row => row.startsWith('authToken='));
     if (tokenCookie) {
       const token = tokenCookie.split('=')[1];
+      // check token validity
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000; // in seconds
+      if (decoded.exp < currentTime) {
+        // token expired
+        toast.error("Session expired. Please log in again.");
+        //redirect to logout
+        setTimeout(() => {
+          document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          window.location.href = "/login";
+        }, 2000);
+        return null;
+      }
+      else{
       return token;
+
+      }
+      return null;
     }
     return null;
   };
-  
+
+  const getUserIdFromToken = () => {
+  const token = getAuthToken();
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.profile_id; // must match backend payload
+  } catch (err) {
+    return null;
+  }
+};
+
   const getCurrentProfileIdFromUrl = () => {
     const pathSegments = window.location.pathname.split('/');
     const idIndex = pathSegments.findIndex(segment => segment === 'profile') + 1;
@@ -94,6 +125,12 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
     
     return null;
   };
+
+  const canModify = () => {
+  const loggedUserId = getUserIdFromToken();
+  const profileIdFromUrl = getCurrentProfileIdFromUrl();
+  return loggedUserId && profileIdFromUrl && loggedUserId.toString() === profileIdFromUrl.toString();
+};
   
   const fetchProjects = async () => {
     try {
@@ -115,11 +152,12 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
   } catch (err) {
     console.error('Projects fetch error:', err);
     setError(err.response?.data?.message || 'Failed to load projects');
-    toast({
-      title: "Error",
-      description: "Failed to fetch projects",
-      variant: "destructive"
-    });
+    toast.error('Failed to fetch projects');
+    // toast({
+    //   title: "Error",
+    //   description: "Failed to fetch projects",
+    //   variant: "destructive"
+    // });
   } finally {
     setIsLoading(false);
   }
@@ -146,11 +184,12 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
     
     // Basic validation for required fields
     if (!title || !status || !principal_investigator || !institute || !start_year || !end_year) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
+      toast.error('Please fill in all required fields');
+      // toast({
+      //   title: "Validation Error",
+      //   description: "Please fill in all required fields",
+      //   variant: "destructive"
+      // });
       return false;
     }
 
@@ -158,11 +197,12 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
     const startYear = parseInt(start_year);
     const endYear = parseInt(end_year);
     if (isNaN(startYear) || isNaN(endYear) || startYear >= endYear) {
-      toast({
-        title: "Validation Error",
-        description: "Invalid year range",
-        variant: "destructive"
-      });
+      toast.error('Invalid year range');
+      // toast({
+      //   title: "Validation Error",
+      //   description: "Invalid year range",
+      //   variant: "destructive"
+      // });
       return false;
     }
 
@@ -181,11 +221,12 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
       const token = getAuthToken();
     if (!token) {
       alert("Please log in to add or edit projects");
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to add or edit projects",
-        variant: "destructive"
-      });
+      toast.error("Please log in to add or edit projects");
+      // toast({
+      //   title: "Authentication Required",
+      //   description: "Please log in to add or edit projects",
+      //   variant: "destructive"
+      // });
       setIsLoading(false);
       return;
     }
@@ -205,26 +246,27 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
       });
 
       // Show success toast
-      toast({
-        title: "Success",
-        description: projectForm.id 
-          ? 'Project Updated Successfully!' 
-          : 'Project Added Successfully!',
-        variant: "default"
-      });
+      toast.success(projectForm.id ? 'Project Updated Successfully!' : 'Project Added Successfully!');
+      // toast({
+      //   title: "Success",
+      //   description: projectForm.id
+      //     ? 'Project Updated Successfully!'
+      //     : 'Project Added Successfully!',
+      //  variant: "default"
+      //});
 
-      alert("Project processed successfully.");
       fetchProjects();
       setProjectForm(INITIAL_FORM_STATE);
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error processing project:', error);
       if (!token) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to add or edit projects",
-        variant: "destructive"
-      });
+        toast.error("Please log in to add or edit projects");
+      // toast({
+      //   title: "Authentication Required",
+      //   description: "Please log in to add or edit projects",
+      //   variant: "destructive"
+      // });
       setIsLoading(false);
       return;
     }
@@ -238,11 +280,12 @@ const Projects = ({ profileId, projects: initialProjects, onDataUpdate }) => {
     try {
       const token = getAuthToken();
 if (!token) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to add or edit projects",
-        variant: "destructive"
-      });
+      toast.error("Please log in to add or edit projects");
+      // toast({
+      //   title: "Authentication Required",
+      //   description: "Please log in to add or edit projects",
+      //   variant: "destructive"
+      // });
       setIsLoading(false);
       return;
     }
@@ -253,24 +296,25 @@ if (!token) {
         },
         data: { id: projectId }
       });
-      
-      toast({
-        title: "Success",
-        description: 'Project Deleted Successfully!',
-        variant: "default"
-      });
+      toast.success('Project Deleted Successfully!');
+      // toast({
+      //   title: "Success",
+      //   description: 'Project Deleted Successfully!',
+      //   variant: "default"
+      // });
 
       fetchProjects();
     } catch (error) {
       console.error('Error deleting project:', error);
       console.error('Error processing project:', error);
-    toast({
-      title: "Error",
-      description: error.response?.status === 401 
-        ? "Authentication required. Please login."
-        : (error.response?.data?.message || 'Error processing project'),
-      variant: "destructive"
-    });
+      toast.error('Error deleting project');
+    // toast({
+    //   title: "Error",
+    //   description: error.response?.status === 401 
+    //     ? "Authentication required. Please login."
+    //     : (error.response?.data?.message || 'Error processing project'),
+    //   variant: "destructive"
+    // });
     } finally {
       setIsLoading(false);
     }
@@ -323,7 +367,7 @@ const isAuthenticated = () => {
           <h4 className="text-lg font-semibold text-gray-800 mb-2 pr-16">
             {index + 1}. {project.title}
           </h4>
-          {isAuthenticated() && (
+          {canModify() && (
           <div className="flex items-center gap-2">
             <Dialog 
               open={projectForm.id === project.id} 
@@ -364,7 +408,7 @@ const isAuthenticated = () => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white"
                     onClick={() => handleDeleteProject(project.id)}
                   >
                     Delete
@@ -447,6 +491,7 @@ const isAuthenticated = () => {
 
   const renderProjectForm = () => {
     return (
+      
       <form onSubmit={handleAddProject} className="space-y-6 w-full max-w-4xl bg-white beautiful-form p-6 rounded-lg" style={{ maxWidth: '1000px' }}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-4">
@@ -604,7 +649,7 @@ const isAuthenticated = () => {
             <BookMarked className="w-6 h-6 text-gray-500" />
             <CardTitle>Projects</CardTitle>
           </div>
-           {isAuthenticated() && (
+           {canModify() && (
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
                 setIsDialogOpen(open);
                 if (!open) setProjectForm(INITIAL_FORM_STATE); // reset when closed

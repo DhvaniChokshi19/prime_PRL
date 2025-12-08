@@ -28,7 +28,9 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
-import { toast } from "@/hooks/use-toast";
+// import { toast } from "@/hooks/use-toast";
+import { toast,  Toaster } from 'react-hot-toast';
+import { jwtDecode } from "jwt-decode";
 import '../../App.css';
 
 // Initial form state (area_of_research replaces title; fellow replaces student)
@@ -65,11 +67,39 @@ const PostDoctoralFellow = ({ profileId, postdocs: initialPostdocs, onDataUpdate
     const tokenCookie = cookies.find(row => row.startsWith('authToken='));
     if (tokenCookie) {
       const token = tokenCookie.split('=')[1];
+      // check token validity
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000; // in seconds
+      if (decoded.exp < currentTime) {
+        // token expired
+        toast.error("Session expired. Please log in again.");
+        //redirect to logout
+        setTimeout(() => {
+          document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          window.location.href = "/login";
+        }, 2000);
+        return null;
+      }
+      else{
       return token;
+
+      }
+      return null;
     }
     return null;
   };
 
+  const getUserIdFromToken = () => {
+  const token = getAuthToken();
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.profile_id; // must match backend payload
+  } catch (err) {
+    return null;
+  }
+};
   const getCurrentProfileIdFromUrl = () => {
     const pathSegments = window.location.pathname.split('/');
     const idIndex = pathSegments.findIndex(segment => segment === 'profile') + 1;
@@ -78,7 +108,11 @@ const PostDoctoralFellow = ({ profileId, postdocs: initialPostdocs, onDataUpdate
     }
     return null;
   };
-
+  const canModify = () => {
+  const loggedUserId = getUserIdFromToken();
+  const profileIdFromUrl = getCurrentProfileIdFromUrl();
+  return loggedUserId && profileIdFromUrl && loggedUserId.toString() === profileIdFromUrl.toString();
+};
   const fetchPostdocs = async () => {
     try {
       setIsLoading(true);
@@ -94,11 +128,12 @@ const PostDoctoralFellow = ({ profileId, postdocs: initialPostdocs, onDataUpdate
     } catch (err) {
       console.error('PostDoc fetch error:', err);
       setError(err.response?.data?.message || 'Failed to load postdoctoral fellows');
-      toast({
-        title: "Error",
-        description: "Failed to fetch postdoctoral fellows",
-        variant: "destructive"
-      });
+      toast.error("Failed to fetch postdoctoral fellows.");
+      // toast({
+      //   title: "Error",
+      //   description: "Failed to fetch postdoctoral fellows",
+      //   variant: "destructive"
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -112,11 +147,12 @@ const PostDoctoralFellow = ({ profileId, postdocs: initialPostdocs, onDataUpdate
   const validateForm = () => {
     const { area_of_research, fellow, institute } = form;
     if (!area_of_research || !fellow || !institute) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
+      toast.error("Please fill in all required fields.");
+      // toast({
+      //   title: "Validation Error",
+      //   description: "Please fill in all required fields",
+      //   variant: "destructive"
+      // });
       return false;
     }
     return true;
@@ -142,27 +178,27 @@ const PostDoctoralFellow = ({ profileId, postdocs: initialPostdocs, onDataUpdate
           'Content-Type': 'application/json'
         }
       });
-
-      toast({
-        title: "Success",
-        description: form.id 
-          ? 'Postdoctoral Fellow Updated Successfully!' 
-          : 'Postdoctoral Fellow Added Successfully!',
-        variant: "default"
-      });
+      toast.success(form.id ? 'Postdoctoral Fellow updated successfully!' : 'Postdoctoral Fellow added successfully!');
+      // toast({
+      //   title: "Success",
+      //   description: form.id 
+      //     ? 'Postdoctoral Fellow Updated Successfully!' 
+      //     : 'Postdoctoral Fellow Added Successfully!',
+      //   variant: "default"
+      // });
 
       // optional alert for parity with original code
-      alert("Postdoctoral fellow processed successfully.");
       fetchPostdocs();
       setForm(INITIAL_FORM_STATE);
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error processing postdoctoral fellow:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Error processing postdoctoral fellow',
-        variant: "destructive"
-      });
+      toast.error("Error processing postdoctoral fellow.");
+      // toast({
+      //   title: "Error",
+      //   description: error.response?.data?.message || 'Error processing postdoctoral fellow',
+      //   variant: "destructive"
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -178,21 +214,22 @@ const PostDoctoralFellow = ({ profileId, postdocs: initialPostdocs, onDataUpdate
           'Content-Type': 'application/json'
         }
       });
-
-      toast({
-        title: "Success",
-        description: 'Postdoctoral Fellow Deleted Successfully!',
-        variant: "default"
-      });
+      toast.success("Postdoctoral Fellow deleted successfully!");
+      // toast({
+      //   title: "Success",
+      //   description: 'Postdoctoral Fellow Deleted Successfully!',
+      //   variant: "default"
+      // });
 
       fetchPostdocs();
     } catch (error) {
       console.error('Error deleting postdoctoral fellow:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Error deleting postdoctoral fellow',
-        variant: "destructive"
-      });
+      toast.error("Error deleting postdoctoral fellow.");
+      // toast({
+      //   title: "Error",
+      //   description: error.response?.data?.message || 'Error deleting postdoctoral fellow',
+      //   variant: "destructive"
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -239,6 +276,7 @@ const normalizeYear = (value) => {
           <h4 className="text-lg font-semibold text-gray-800 mb-2 pr-16">
             {index + 1}. {item.area_of_research}
           </h4>
+          {canModify() && (
           <div className="flex items-center gap-2">
             <Dialog 
               open={form.id === item.id} 
@@ -276,13 +314,14 @@ const normalizeYear = (value) => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => handleDelete(item.id)}>
+                  <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={() => handleDelete(item.id)}>
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-4 mt-2">
@@ -509,7 +548,7 @@ const normalizeYear = (value) => {
             <BookOpen className="w-6 h-6 text-gray-500" />
             <CardTitle>Postdoctoral Fellows</CardTitle>
           </div>
-
+          {canModify() && (
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
             if (!open) setForm(INITIAL_FORM_STATE);
@@ -536,6 +575,7 @@ const normalizeYear = (value) => {
               {renderForm()}
             </DialogContent>
           </Dialog>
+          )}
         </CardHeader>
 
         <CardContent>

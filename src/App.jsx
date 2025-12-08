@@ -12,6 +12,8 @@ import Publication from "./pages/HomePage/Publication";
 import Header from './pages/HomePage/Header';
 import DepartmentArticles from "./pages/HomePage/DepartmentArticle";
 import { useParams } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+
 // Home page component
 const Home = () => {
   return (
@@ -74,6 +76,7 @@ function App() {
   return (
     
     <Router>
+        <Toaster position="top-center" />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<SearchDisplay />} />

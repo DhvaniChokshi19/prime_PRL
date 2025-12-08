@@ -15,6 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -26,10 +28,10 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
-import { toast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+// import { toast } from "@/hooks/use-toast";
+import { toast,  Toaster } from 'react-hot-toast';
+import { jwtDecode } from "jwt-decode";
 import '../../App.css';
-
 
 // Initial form state
 const INITIAL_FORM_STATE = {
@@ -73,14 +75,41 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
   const getAuthToken = () => {
     const cookies = document.cookie.split('; ');
     const tokenCookie = cookies.find(row => row.startsWith('authToken='));
-    
     if (tokenCookie) {
       const token = tokenCookie.split('=')[1];
+      // check token validity
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000; // in seconds
+      if (decoded.exp < currentTime) {
+        // token expired
+        toast.error("Session expired. Please log in again.");
+        //redirect to logout
+        setTimeout(() => {
+          document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          window.location.href = "/login";
+        }, 2000);
+        return null;
+      }
+      else{
       return token;
+
+      }
+      return null;
     }
-    
     return null;
   };
+
+  const getUserIdFromToken = () => {
+  const token = getAuthToken();
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.profile_id; // must match backend payload
+  } catch (err) {
+    return null;
+  }
+};
  const getCurrentProfileIdFromUrl = () => {
     const pathSegments = window.location.pathname.split('/');
     const idIndex = pathSegments.findIndex(segment => segment === 'profile') + 1;
@@ -91,6 +120,11 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
     
     return null;
   };
+  const canModify = () => {
+  const loggedUserId = getUserIdFromToken();
+  const profileIdFromUrl = getCurrentProfileIdFromUrl();
+  return loggedUserId && profileIdFromUrl && loggedUserId.toString() === profileIdFromUrl.toString();
+};
   const fetchPatents = async () => {
      try {
       setIsLoading(true);
@@ -109,11 +143,12 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
     } catch (err) {
       console.error('Patent fetch error:', err);
       setError(err.response?.data?.message || 'Failed to load patents');
-      toast({
-        title: "Error",
-        description: "Failed to fetch patents",
-        variant: "destructive"
-      });
+      toast.error("Failed to fetch patents.");
+      // toast({
+      //   title: "Error",
+      //   description: "Failed to fetch patents",
+      //   variant: "destructive"
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -139,11 +174,12 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
     
     // Basic validation
     if (!patent_name || !authors || !date_filed) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
+      toast.error("Please fill in all required fields.");
+      // toast({
+      //   title: "Validation Error",
+      //   description: "Please fill in all required fields",
+      //   variant: "destructive"
+      // });
       return false;
     }
 
@@ -173,27 +209,26 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
           'Content-Type': 'application/json'
         }
       });
-
-      toast({
-        title: "Success",
-        description: patentForm.id 
-          ? 'Patent Updated Successfully!' 
-          : 'Patent Added Successfully!',
-        variant: "default"
-      });
-      
-      alert("Patent processed successfully.");
-
+      toast.success(patentForm.id ? 'Patent updated successfully!' : 'Patent added successfully!');
+      // toast({
+      //   title: "Success",
+      //   description: patentForm.id 
+      //     ? 'Patent Updated Successfully!' 
+      //     : 'Patent Added Successfully!',
+      //   variant: "default"
+      // });
+    
       fetchPatents();
       setPatentForm(INITIAL_FORM_STATE);
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error processing patent:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Error processing patent',
-        variant: "destructive"
-      });
+      toast.error("Error processing patent.");
+      // toast({
+      //   title: "Error",
+      //   description: error.response?.data?.message || 'Error processing patent',
+      //   variant: "destructive"
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -209,21 +244,22 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
           'Content-Type': 'application/json'
         }
       });
-
-      toast({
-        title: "Success",
-        description: 'Patent Deleted Successfully!',
-        variant: "default"
-      });
+      toast.success("Patent deleted successfully!");
+      // toast({
+      //   title: "Success",
+      //   description: 'Patent Deleted Successfully!',
+      //   variant: "default"
+      // });
 
       fetchPatents();
     } catch (error) {
       console.error('Error deleting patent:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Error deleting patent',
-        variant: "destructive"
-      });
+      toast.error("Error deleting patent.");
+      // toast({
+      //   title: "Error",
+      //   description: error.response?.data?.message || 'Error deleting patent',
+      //   variant: "destructive"
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -242,6 +278,10 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
       country: patent.country || ''
     });
   };
+  // do not send date_published if null
+  if (!patentForm.date_published) {
+    delete patentForm.date_published;
+  }
 
   // Status badge color mapping
   const getStatusColor = (status) => {
@@ -323,6 +363,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
           <h4 className="text-lg font-semibold text-gray-800 mb-2 pr-16">
             {index + 1}. {patent.patent_name}
           </h4>
+          {canModify() && (
           <div className="flex items-center gap-2">
             <Dialog 
               open={patentForm.id === patent.id} 
@@ -363,7 +404,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white"
                     onClick={() => handleDeletePatent(patent.id)}
                   >
                     Delete
@@ -372,6 +413,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
               </AlertDialogContent>
             </AlertDialog>
           </div>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-4 mt-2">
           {patent.authors && (
@@ -389,7 +431,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
           ) : (
             <div className="flex items-center gap-2 text-gray-600">
               <FileText className="w-4 h-4 text-gray-500" />
-              <span>Patent No. Pending</span>
+              <span>Patent No. {patent.patent_number || 'Pending'}</span>
             </div>
           )}
           
@@ -542,7 +584,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
             <ScrollText className="w-6 h-6 text-gray-500" />
             <CardTitle>Patents</CardTitle>
           </div>
-          
+          {canModify() && (
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
                 setIsDialogOpen(open);
                 if (!open) setPatentForm(INITIAL_FORM_STATE); // reset when closed
@@ -565,6 +607,7 @@ const Patents = ({ profileId, patents: initialPatents, onDataUpdate }) => {
               {renderPatentForm()}
             </DialogContent>
           </Dialog>
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (

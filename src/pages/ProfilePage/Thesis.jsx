@@ -28,7 +28,9 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
-import { toast } from "@/hooks/use-toast";
+// import { toast } from "@/hooks/use-toast";
+import { toast,  Toaster } from 'react-hot-toast';
+import { jwtDecode } from "jwt-decode";
 import '../../App.css';
 
 // Initial form state
@@ -70,14 +72,41 @@ const [isDialogOpen, setIsDialogOpen] = useState(false);
   const getAuthToken = () => {
     const cookies = document.cookie.split('; ');
     const tokenCookie = cookies.find(row => row.startsWith('authToken='));
-    
     if (tokenCookie) {
       const token = tokenCookie.split('=')[1];
+      // check token validity
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000; // in seconds
+      if (decoded.exp < currentTime) {
+        // token expired
+        toast.error("Session expired. Please log in again.");
+        //redirect to logout
+        setTimeout(() => {
+          document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          document.cookie = "refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          window.location.href = "/login";
+        }, 2000);
+        return null;
+      }
+      else{
       return token;
+
+      }
+      return null;
     }
-    
     return null;
   };
+
+  const getUserIdFromToken = () => {
+  const token = getAuthToken();
+  if (!token) return null;
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.profile_id; // must match backend payload
+  } catch (err) {
+    return null;
+  }
+};
 const getCurrentProfileIdFromUrl = () => {
     const pathSegments = window.location.pathname.split('/');
     const idIndex = pathSegments.findIndex(segment => segment === 'profile') + 1;
@@ -88,6 +117,11 @@ const getCurrentProfileIdFromUrl = () => {
     
     return null;
   };
+  const canModify = () => {
+  const loggedUserId = getUserIdFromToken();
+  const profileIdFromUrl = getCurrentProfileIdFromUrl();
+  return loggedUserId && profileIdFromUrl && loggedUserId.toString() === profileIdFromUrl.toString();
+};
   
   const fetchThesis = async () => {
     try {
@@ -108,11 +142,12 @@ const getCurrentProfileIdFromUrl = () => {
     } catch (err) {
       console.error('Thesis fetch error:', err);
       setError(err.response?.data?.message || 'Failed to load thesis');
-      toast({
-        title: "Error",
-        description: "Failed to fetch thesis",
-        variant: "destructive"
-      });
+      toast.error("Failed to load thesis data.");
+      // toast({
+      //   title: "Error",
+      //   description: "Failed to fetch thesis",
+      //   variant: "destructive"
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -130,11 +165,12 @@ const getCurrentProfileIdFromUrl = () => {
     const { title, student, institute } = thesisForm;
     
     if (!title || !student || !institute) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
+      toast.error("Please fill in all required fields.");
+      // toast({
+      //   title: "Validation Error",
+      //   description: "Please fill in all required fields",
+      //   variant: "destructive"
+      // });
       return false;
     }
 
@@ -161,26 +197,26 @@ const getCurrentProfileIdFromUrl = () => {
           'Content-Type': 'application/json'
         }
       });
+      toast.success(thesisForm.id ? 'Thesis updated successfully!' : 'Thesis added successfully!');
+      // toast({
+      //   title: "Success",
+      //   description: thesisForm.id 
+      //     ? 'Thesis Updated Successfully!' 
+      //     : 'Thesis Added Successfully!',
+      //  variant: "default"
+      //});
 
-      toast({
-        title: "Success",
-        description: thesisForm.id 
-          ? 'Thesis Updated Successfully!' 
-          : 'Thesis Added Successfully!',
-        variant: "default"
-      });
-
-      alert("Thesis processed successfully.");
       fetchThesis();
       setThesisForm(INITIAL_FORM_STATE);
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Error processing thesis:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Error processing thesis',
-        variant: "destructive"
-      });
+      toast.error("Error processing thesis.");
+      // toast({
+      //   title: "Error",
+      //   description: error.response?.data?.message || 'Error processing thesis',
+      //   variant: "destructive"
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -196,21 +232,22 @@ const getCurrentProfileIdFromUrl = () => {
           'Content-Type': 'application/json'
         }
       });
-
-      toast({
-        title: "Success",
-        description: 'Thesis Deleted Successfully!',
-        variant: "default"
-      });
+      toast.success("Thesis deleted successfully!");
+      // toast({
+      //   title: "Success",
+      //   description: 'Thesis Deleted Successfully!',
+      //   variant: "default"
+      // });
 
       fetchThesis();
     } catch (error) {
       console.error('Error deleting thesis:', error);
-      toast({
-        title: "Error",
-        description: error.response?.data?.message || 'Error deleting thesis',
-        variant: "destructive"
-      });
+      toast.error("Error deleting thesis.");
+      // toast({
+      //   title: "Error",
+      //   description: error.response?.data?.message || 'Error deleting thesis',
+      //   variant: "destructive"
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -249,6 +286,7 @@ const getCurrentProfileIdFromUrl = () => {
           <h4 className="text-lg font-semibold text-gray-800 mb-2 pr-16">
             {index + 1}. {thesis.title}
           </h4>
+          {canModify() && (
           <div className="flex items-center gap-2">
             <Dialog 
               open={thesisForm.id === thesis.id} 
@@ -289,7 +327,7 @@ const getCurrentProfileIdFromUrl = () => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white"
                     onClick={() => handleDeleteThesis(thesis.id)}
                   >
                     Delete
@@ -298,6 +336,7 @@ const getCurrentProfileIdFromUrl = () => {
               </AlertDialogContent>
             </AlertDialog>
           </div>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-4 mt-2">
           {thesis.student && (
@@ -518,7 +557,7 @@ const getCurrentProfileIdFromUrl = () => {
             <BookOpen className="w-6 h-6 text-gray-500" />
             <CardTitle>Thesis</CardTitle>
           </div>
-          
+          {canModify() && (
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
                 setIsDialogOpen(open);
                 if (!open) setThesisForm(INITIAL_FORM_STATE); // reset when closed
@@ -544,6 +583,7 @@ const getCurrentProfileIdFromUrl = () => {
               {renderThesisForm()}
             </DialogContent>
           </Dialog>
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
